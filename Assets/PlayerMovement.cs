@@ -39,6 +39,12 @@ public class PlayerMovement : MonoBehaviour
         float moveX = Input.GetAxisRaw("Horizontal");
         float moveY = Input.GetAxisRaw("Vertical");
 
+        // gabungkan dengan joystick virtual (untuk HP / sentuhan)
+        moveX += VirtualJoystick.Direction.x;
+        moveY += VirtualJoystick.Direction.y;
+        moveX = Mathf.Clamp(moveX, -1f, 1f);
+        moveY = Mathf.Clamp(moveY, -1f, 1f);
+
         Vector3 gerak = new Vector3(moveX, moveY, 0).normalized;
         transform.position += gerak * moveSpeed * Time.deltaTime;
 
