@@ -8,14 +8,16 @@ public class VirtualJoystick : MonoBehaviour
 
     [Header("Pengaturan (opsional)")]
     public float skala = 1f;                              // besar-kecil joystick (1 = normal)
-    [Range(0f, 1f)] public float transparansi = 0.25f;   // transparansi lingkaran
+    [Range(0f, 1f)] public float transparansi = 0.3f;    // transparansi lingkaran saat muncul
+    [Range(0.1f, 1f)] public float areaAktif = 1f;       // bagian layar dari kiri yang bisa dipakai (1 = seluruh layar)
+    public bool selaluTersembunyi = false;               // true = gambar joystick tidak pernah muncul (kontrol geser murni)
 
     private RectTransform bg;
     private RectTransform handle;
-    private float ukuran;     // diameter background (piksel)
-    private float margin;     // jarak pusat dari pojok kiri-bawah (piksel)
-    private float maxHandle;  // jarak maksimal geser handle (piksel)
-    private Vector2 pusat;    // posisi pusat joystick di layar (piksel)
+    private CanvasGroup group;   // untuk menyembunyikan/menampilkan joystick
+    private float ukuran;        // diameter background (piksel)
+    private float maxHandle;     // jarak maksimal geser handle (piksel)
+    private Vector2 pusat;       // titik awal sentuh (pusat joystick)
     private int pointerId = -99; // -99 = nonaktif, -1 = mouse, >=0 = jari
 
     // Otomatis dibuat saat game mulai (tanpa setup di Editor)
@@ -32,11 +34,10 @@ public class VirtualJoystick : MonoBehaviour
     void Start()
     {
         float h = Screen.height;
-        ukuran = h * 0.20f * skala;
-        margin = h * 0.14f * skala;
+        ukuran = h * 0.22f * skala;
         maxHandle = ukuran * 0.42f;
-        pusat = new Vector2(margin, margin);
         BuildUI();
+        Sembunyikan(); // joystick tidak terlihat sampai layar disentuh
     }
 
     void BuildUI()
@@ -49,6 +50,9 @@ public class VirtualJoystick : MonoBehaviour
         CanvasScaler scaler = cgo.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
         scaler.scaleFactor = 1f;
+        group = cgo.AddComponent<CanvasGroup>();
+        group.interactable = false;
+        group.blocksRaycasts = false;
 
         Sprite lingkaran = MakeCircle(128);
 
@@ -60,10 +64,9 @@ public class VirtualJoystick : MonoBehaviour
         bgImg.color = new Color(1f, 1f, 1f, transparansi);
         bgImg.raycastTarget = false;
         bg = bgo.GetComponent<RectTransform>();
-        bg.anchorMin = bg.anchorMax = Vector2.zero;
+        bg.anchorMin = bg.anchorMax = Vector2.zero; // titik acuan = pojok kiri-bawah
         bg.pivot = new Vector2(0.5f, 0.5f);
         bg.sizeDelta = new Vector2(ukuran, ukuran);
-        bg.anchoredPosition = new Vector2(margin, margin);
 
         // handle (bulatan yang digeser)
         GameObject hgo = new GameObject("JoyHandle");
@@ -97,19 +100,27 @@ public class VirtualJoystick : MonoBehaviour
         for (int i = 0; i < Input.touchCount; i++)
         {
             Touch t = Input.GetTouch(i);
-            if (t.phase == TouchPhase.Began && Dekat(t.position))
+            if (t.phase == TouchPhase.Began && DiArea(t.position))
             {
-                pointerId = t.fingerId;
-                GeserHandle(t.position);
+                Aktifkan(t.fingerId, t.position);
                 return;
             }
         }
         // mouse (tes di editor/PC)
-        if (Input.GetMouseButtonDown(0) && Dekat(Input.mousePosition))
+        if (Input.GetMouseButtonDown(0) && DiArea(Input.mousePosition))
         {
-            pointerId = -1;
-            GeserHandle(Input.mousePosition);
+            Aktifkan(-1, Input.mousePosition);
         }
+    }
+
+    // Joystick muncul tepat di titik sentuh
+    void Aktifkan(int id, Vector2 titik)
+    {
+        pointerId = id;
+        pusat = titik;
+        bg.anchoredPosition = titik;
+        handle.anchoredPosition = Vector2.zero;
+        Tampilkan();
     }
 
     bool AmbilPosisi(out Vector2 pos)
@@ -144,14 +155,18 @@ public class VirtualJoystick : MonoBehaviour
     void Lepas()
     {
         pointerId = -99;
-        if (handle != null) handle.anchoredPosition = Vector2.zero;
         Direction = Vector2.zero;
+        if (handle != null) handle.anchoredPosition = Vector2.zero;
+        Sembunyikan();
     }
 
-    bool Dekat(Vector2 p)
+    bool DiArea(Vector2 p)
     {
-        return Vector2.Distance(p, pusat) <= ukuran * 0.75f;
+        return p.x <= Screen.width * areaAktif;
     }
+
+    void Tampilkan() { if (group != null) group.alpha = selaluTersembunyi ? 0f : 1f; }
+    void Sembunyikan() { if (group != null) group.alpha = 0f; }
 
     // Membuat sprite lingkaran lewat kode (tanpa perlu file gambar)
     Sprite MakeCircle(int size)
