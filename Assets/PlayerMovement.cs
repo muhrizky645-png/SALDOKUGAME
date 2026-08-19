@@ -9,11 +9,14 @@ public class PlayerMovement : MonoBehaviour
     public float bobSpeed = 12f;      // seberapa cepat mantulannya
 
     private SpriteRenderer sr;
+    private Animator anim;
     private Vector3 baseScale;
+    private bool wasMoving = true;
 
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
+        anim = GetComponent<Animator>();
         baseScale = transform.localScale; // simpan ukuran asli
     }
 
@@ -40,5 +43,25 @@ public class PlayerMovement : MonoBehaviour
         {
             transform.localScale = baseScale;
         }
+
+        // animasi kaki jalan: hanya main saat bergerak, berhenti di pose diam saat idle
+        if (anim != null)
+        {
+            if (sedangJalan)
+            {
+                anim.speed = 1f;
+            }
+            else
+            {
+                if (wasMoving)
+                {
+                    // balik ke frame pertama (pose berdiri) lalu bekukan
+                    anim.Play(anim.GetCurrentAnimatorStateInfo(0).fullPathHash, 0, 0f);
+                }
+                anim.speed = 0f;
+            }
+        }
+
+        wasMoving = sedangJalan;
     }
 }
