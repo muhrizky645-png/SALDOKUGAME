@@ -16,6 +16,7 @@ public class PlayerMovement : MonoBehaviour
     private SpriteRenderer sr;
     private Animator anim;
     private Vector3 baseScale;
+    private Vector3 visualBaseScale = Vector3.one;
     private bool wasMoving = true;
 
     void Start()
@@ -30,6 +31,7 @@ public class PlayerMovement : MonoBehaviour
             Transform found = transform.Find("Ninja_Character_5");
             if (found != null) visual = found;
         }
+        if (visual != null) visualBaseScale = visual.localScale; // simpan ukuran asli ninja
     }
 
     void Update()
@@ -40,7 +42,7 @@ public class PlayerMovement : MonoBehaviour
         Vector3 gerak = new Vector3(moveX, moveY, 0).normalized;
         transform.position += gerak * moveSpeed * Time.deltaTime;
 
-        // hadap kiri/kanan sesuai arah gerak
+        // hadap kiri/kanan sesuai arah gerak (untuk sprite bawaan player, kalau dipakai)
         if (moveX < 0) sr.flipX = true;      // gerak kiri → hadap kiri
         else if (moveX > 0) sr.flipX = false; // gerak kanan → hadap kanan
 
@@ -56,9 +58,15 @@ public class PlayerMovement : MonoBehaviour
             transform.localScale = baseScale;
         }
 
-        // efek goyang badan ninja (biar kelihatan melangkah)
+        // efek untuk badan ninja: balik badan sesuai arah + goyang saat jalan
         if (visual != null)
         {
+            // balik badan kiri/kanan
+            if (moveX < 0)
+                visual.localScale = new Vector3(-Mathf.Abs(visualBaseScale.x), visualBaseScale.y, visualBaseScale.z);
+            else if (moveX > 0)
+                visual.localScale = new Vector3(Mathf.Abs(visualBaseScale.x), visualBaseScale.y, visualBaseScale.z);
+
             if (sedangJalan)
             {
                 float sudut = Mathf.Sin(Time.time * goyangKecepatan) * goyangSudut;
