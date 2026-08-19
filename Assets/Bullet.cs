@@ -22,6 +22,10 @@ public class Bullet : MonoBehaviour
         {
             Destroy(other.gameObject); // hancurkan zombie
             Destroy(gameObject);       // hancurkan peluru
+
+            // tambah skor tiap zombie mati
+            if (ScoreManager.Instance != null)
+                ScoreManager.Instance.AddScore(10);
         }
     }
 }
