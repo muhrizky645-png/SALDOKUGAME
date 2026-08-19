@@ -8,6 +8,11 @@ public class PlayerMovement : MonoBehaviour
     public float bobAmount = 0.08f;   // seberapa besar mantulannya (0 = mati)
     public float bobSpeed = 12f;      // seberapa cepat mantulannya
 
+    [Header("Efek goyang badan ninja saat jalan")]
+    public Transform visual;          // isi dengan Ninja_Character_5 (kalau kosong, dicari otomatis)
+    public float goyangSudut = 8f;    // seberapa miring saat jalan (derajat)
+    public float goyangKecepatan = 12f;
+
     private SpriteRenderer sr;
     private Animator anim;
     private Vector3 baseScale;
@@ -18,6 +23,13 @@ public class PlayerMovement : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
         baseScale = transform.localScale; // simpan ukuran asli
+
+        // cari otomatis karakter ninja (anak dari player) kalau belum diisi
+        if (visual == null)
+        {
+            Transform found = transform.Find("Ninja_Character_5");
+            if (found != null) visual = found;
+        }
     }
 
     void Update()
@@ -42,6 +54,21 @@ public class PlayerMovement : MonoBehaviour
         else
         {
             transform.localScale = baseScale;
+        }
+
+        // efek goyang badan ninja (biar kelihatan melangkah)
+        if (visual != null)
+        {
+            if (sedangJalan)
+            {
+                float sudut = Mathf.Sin(Time.time * goyangKecepatan) * goyangSudut;
+                visual.localRotation = Quaternion.Euler(0f, 0f, sudut);
+            }
+            else
+            {
+                // kembali tegak pelan-pelan saat berhenti
+                visual.localRotation = Quaternion.Lerp(visual.localRotation, Quaternion.identity, Time.deltaTime * 12f);
+            }
         }
 
         // animasi kaki jalan: hanya main saat bergerak, berhenti di pose diam saat idle
