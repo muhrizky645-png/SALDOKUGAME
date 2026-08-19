@@ -46,16 +46,16 @@ public class EnemyChase : MonoBehaviour
         rb.MovePosition(rb.position + arah * moveSpeed * Time.fixedDeltaTime);
 
         // untuk sprite bawaan (kalau dipakai)
-        if (arah.x < 0) sr.flipX = true;
-        else if (arah.x > 0) sr.flipX = false;
+        if (arah.x < 0) sr.flipX = false;
+        else if (arah.x > 0) sr.flipX = true;
 
-        // balik badan gambar monster (karena sprite-nya objek anak terpisah)
+        // balik badan gambar monster (arah dibalik biar tidak menghadap mundur)
         if (visual != null)
         {
             if (arah.x < 0)
-                visual.localScale = new Vector3(-Mathf.Abs(visualBaseScale.x), visualBaseScale.y, visualBaseScale.z);
-            else if (arah.x > 0)
                 visual.localScale = new Vector3(Mathf.Abs(visualBaseScale.x), visualBaseScale.y, visualBaseScale.z);
+            else if (arah.x > 0)
+                visual.localScale = new Vector3(-Mathf.Abs(visualBaseScale.x), visualBaseScale.y, visualBaseScale.z);
         }
     }
 }
