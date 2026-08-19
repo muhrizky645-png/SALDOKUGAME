@@ -31,13 +31,27 @@ public class ScoreManager : MonoBehaviour
         score += amount;
     }
 
-    // Tampilkan skor di layar (cara cepat tanpa setup UI)
+    // Tampilkan skor di TENGAH ATAS layar (ukuran menyesuaikan tinggi layar)
     void OnGUI()
     {
+        int fontSize = Mathf.RoundToInt(Screen.height * 0.045f); // otomatis pas di HP
+        float atas = Screen.height * 0.02f;
+        float tinggi = fontSize * 1.6f;
+        float lebar = Screen.width;
+        string teks = "Skor: " + score;
+
         GUIStyle style = new GUIStyle();
-        style.fontSize = 36;
+        style.fontSize = fontSize;
         style.fontStyle = FontStyle.Bold;
+        style.alignment = TextAnchor.UpperCenter; // rata tengah
+
+        // bayangan gelap biar kebaca di background apa pun
+        float o = Mathf.Max(2f, fontSize * 0.06f);
+        style.normal.textColor = new Color(0f, 0f, 0f, 0.6f);
+        GUI.Label(new Rect(o, atas + o, lebar, tinggi), teks, style);
+
+        // teks utama (putih)
         style.normal.textColor = Color.white;
-        GUI.Label(new Rect(20, 15, 500, 60), "Skor: " + score, style);
+        GUI.Label(new Rect(0, atas, lebar, tinggi), teks, style);
     }
 }
