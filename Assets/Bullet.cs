@@ -23,8 +23,11 @@ public class Bullet : MonoBehaviour
     {
         if (other.CompareTag("Enemy"))
         {
-            // efek ledakan kecil di posisi musuh
-            HitEffect.Munculkan(other.transform.position);
+            Vector3 posMusuh = other.transform.position;
+
+            // efek ledakan kecil + jatuhkan permata XP
+            HitEffect.Munculkan(posMusuh);
+            XpGem.Munculkan(posMusuh, 1);
 
             Destroy(other.gameObject); // hancurkan zombie
             Destroy(gameObject);       // hancurkan peluru
