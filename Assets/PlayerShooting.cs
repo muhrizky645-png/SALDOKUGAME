@@ -4,7 +4,7 @@ public class PlayerShooting : MonoBehaviour
 {
     public GameObject bulletPrefab;
     public float fireRate = 0.5f;   // nembak tiap 0.5 detik
-    public float range = 6f;        // jarak deteksi zombie (kecilkan biar musuh keliatan dulu baru ditembak)
+    public float range = 4f;        // jarak deteksi zombie (makin kecil = musuh harus lebih dekat dulu)
 
     void Start()
     {
