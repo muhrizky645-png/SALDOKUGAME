@@ -13,6 +13,7 @@ public class XpGem : MonoBehaviour
     }
 
     public int nilai = 1;             // XP yang diberikan
+    public float ukuran = 1.2f;       // besar permata (sebelumnya 0.4)
     public float jarakMagnet = 2.5f;  // mulai ketarik ke pemain
     public float jarakAmbil = 0.5f;   // langsung dipungut
     public float kecepatanTarik = 9f; // kecepatan ketarik ke pemain
@@ -30,7 +31,7 @@ public class XpGem : MonoBehaviour
         sr.sprite = BuatPermata(32);
         sr.color = new Color(0.4f, 1f, 1f, 1f); // cyan
         sr.sortingOrder = 40;
-        transform.localScale = Vector3.one * 0.4f;
+        transform.localScale = Vector3.one * ukuran;
     }
 
     void Update()
