@@ -23,18 +23,23 @@ public class Bullet : MonoBehaviour
     {
         if (other.CompareTag("Enemy"))
         {
-            Vector3 posMusuh = other.transform.position;
+            // cari EnemyChase (ada di objek induk musuh)
+            EnemyChase musuh = other.GetComponentInParent<EnemyChase>();
+            if (musuh != null)
+            {
+                // musuh main animasi mati, jatuhkan permata, tambah skor (diatur di EnemyChase.Mati)
+                musuh.Mati();
+            }
+            else
+            {
+                // cadangan kalau musuh tidak punya EnemyChase
+                HitEffect.Munculkan(other.transform.position);
+                XpGem.Munculkan(other.transform.position, 1);
+                if (ScoreManager.Instance != null) ScoreManager.Instance.AddScore(10);
+                Destroy(other.gameObject);
+            }
 
-            // efek ledakan kecil + jatuhkan permata XP
-            HitEffect.Munculkan(posMusuh);
-            XpGem.Munculkan(posMusuh, 1);
-
-            Destroy(other.gameObject); // hancurkan zombie
-            Destroy(gameObject);       // hancurkan peluru
-
-            // tambah skor tiap zombie mati
-            if (ScoreManager.Instance != null)
-                ScoreManager.Instance.AddScore(10);
+            Destroy(gameObject); // peluru hancur
         }
     }
 }
