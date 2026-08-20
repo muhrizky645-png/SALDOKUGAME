@@ -6,12 +6,13 @@ public class ZombieSpawner : MonoBehaviour
     public float spawnDistance = 10f;    // jarak spawn dari pemain
 
     [Header("Kesulitan mengikuti Level pemain")]
-    public float spawnAwal = 1.5f;            // jeda spawn di Level 1 (detik)
-    public float penguranganTiapLevel = 0.12f;// jeda spawn berkurang tiap naik level
-    public float spawnTercepat = 0.35f;       // batas jeda spawn tercepat
-    public int maxAwal = 10;                  // batas musuh di layar Level 1
-    public int tambahMaxTiapLevel = 3;        // batas musuh nambah tiap level
-    public int maxMutlak = 50;                // batas musuh paling banyak
+    public float spawnAwal = 0.9f;            // jeda spawn di Level 1 (detik) - lebih kecil = lebih ramai
+    public float penguranganTiapLevel = 0.1f; // jeda spawn berkurang tiap naik level
+    public float spawnTercepat = 0.2f;        // batas jeda spawn tercepat
+    public int maxAwal = 20;                  // batas musuh di layar Level 1
+    public int tambahMaxTiapLevel = 5;        // batas musuh nambah tiap level
+    public int maxMutlak = 90;                // batas musuh paling banyak
+    public int spawnSekaligus = 2;            // berapa musuh muncul tiap spawn
 
     private Transform player;
     private float timer = 0f;
@@ -36,7 +37,8 @@ public class ZombieSpawner : MonoBehaviour
         if (timer >= jedaSpawn)
         {
             timer = 0f;
-            SpawnZombie(maxSekarang);
+            for (int i = 0; i < spawnSekaligus; i++)
+                SpawnZombie(maxSekarang);
         }
     }
 
