@@ -4,6 +4,9 @@ using UnityEngine;
 // Kalau pemain mendekat, permata otomatis ketarik lalu terpungut (nambah XP).
 public class XpGem : MonoBehaviour
 {
+    // pengali jarak magnet dari skill (diatur SkillManager). 1 = normal.
+    public static float MagnetMult = 1f;
+
     public static void Munculkan(Vector3 pos, int nilai = 1)
     {
         GameObject go = new GameObject("XpGem");
@@ -13,7 +16,7 @@ public class XpGem : MonoBehaviour
     }
 
     public int nilai = 1;             // XP yang diberikan
-    public float ukuran = 1.2f;       // besar permata (sebelumnya 0.4)
+    public float ukuran = 1.2f;       // besar permata
     public float jarakMagnet = 2.5f;  // mulai ketarik ke pemain
     public float jarakAmbil = 0.5f;   // langsung dipungut
     public float kecepatanTarik = 9f; // kecepatan ketarik ke pemain
@@ -26,6 +29,8 @@ public class XpGem : MonoBehaviour
     {
         GameObject p = GameObject.FindWithTag("Player");
         if (p != null) player = p.transform;
+
+        jarakMagnet *= MagnetMult; // terapkan skill Magnet (kalau ada)
 
         sr = gameObject.AddComponent<SpriteRenderer>();
         sr.sprite = BuatPermata(32);
