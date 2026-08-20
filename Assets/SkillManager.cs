@@ -103,32 +103,35 @@ public class SkillManager : MonoBehaviour
         GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
         GUI.color = simpan;
 
-        // judul
+        // hitung kotak: 3 kartu 1:1 (persegi) sejajar horizontal, di tengah layar
+        float margin = Screen.width * 0.05f;
+        float gap = Screen.width * 0.03f;
+        float totalW = Screen.width - margin * 2f;
+        float cardW = (totalW - gap * 2f) / 3f;
+        float cardH = cardW; // 1:1 (persegi)
+        float y = (Screen.height - cardH) / 2f;
+
+        // judul di atas kartu
         GUIStyle judul = new GUIStyle();
         judul.fontSize = Mathf.RoundToInt(Screen.height * 0.045f);
         judul.fontStyle = FontStyle.Bold;
         judul.alignment = TextAnchor.MiddleCenter;
         judul.normal.textColor = new Color(1f, 0.9f, 0.2f, 1f);
-        GUI.Label(new Rect(0, Screen.height * 0.12f, Screen.width, judul.fontSize * 2f), "PILIH SKILL!", judul);
+        GUI.Label(new Rect(0, y - Screen.height * 0.12f, Screen.width, judul.fontSize * 2f), "PILIH SKILL!", judul);
 
-        // kartu-kartu
-        float cardW = Screen.width * 0.8f;
-        float cardH = Screen.height * 0.13f;
-        float startY = Screen.height * 0.28f;
-        float gap = Screen.height * 0.04f;
-        float x = (Screen.width - cardW) / 2f;
-
+        // gaya teks kartu
         GUIStyle kartu = new GUIStyle(GUI.skin.button);
-        kartu.fontSize = Mathf.RoundToInt(Screen.height * 0.028f);
+        kartu.fontSize = Mathf.RoundToInt(cardW * 0.11f);
         kartu.fontStyle = FontStyle.Bold;
         kartu.alignment = TextAnchor.MiddleCenter;
         kartu.wordWrap = true;
+        kartu.padding = new RectOffset(8, 8, 8, 8);
 
         for (int i = 0; i < pilihanSekarang.Count; i++)
         {
-            float y = startY + i * (cardH + gap);
+            float x = margin + i * (cardW + gap);
             Skill s = pilihanSekarang[i];
-            string label = s.nama + "\n" + s.deskripsi;
+            string label = s.nama + "\n\n" + s.deskripsi;
             if (GUI.Button(new Rect(x, y, cardW, cardH), label, kartu))
             {
                 Pilih(s);
