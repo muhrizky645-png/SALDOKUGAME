@@ -3,7 +3,7 @@ using UnityEngine;
 public class PlayerShooting : MonoBehaviour
 {
     public GameObject bulletPrefab;
-    public float fireRate = 0.5f;   // nembak tiap 0.5 detik
+    public float fireRate = 0.8f;   // nembak tiap 0.8 detik (makin besar = makin pelan)
     public float range = 1f;        // jarak deteksi zombie (makin kecil = musuh harus lebih dekat dulu)
 
     void Start()
