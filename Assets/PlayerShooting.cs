@@ -3,12 +3,23 @@ using UnityEngine;
 public class PlayerShooting : MonoBehaviour
 {
     public GameObject bulletPrefab;
-    public float fireRate = 0.8f;   // nembak tiap 0.8 detik (makin besar = makin pelan)
-    public float range = 1f;        // jarak deteksi zombie (makin kecil = musuh harus lebih dekat dulu)
+    public float fireRate = 0.8f;   // jeda antar tembakan (makin kecil = makin cepat)
+    public float range = 1f;        // jarak deteksi zombie
+    public int jumlahPeluru = 1;    // berapa peluru sekali tembak (naik lewat skill)
+    public float sudutSebar = 12f;  // sebaran sudut antar peluru (derajat)
 
-    void Start()
+    private float timer = 0.5f;      // sedikit jeda sebelum tembakan pertama
+
+    void Update()
     {
-        InvokeRepeating(nameof(Shoot), 0.5f, fireRate);
+        // pakai timer manual (bukan InvokeRepeating) supaya perubahan fireRate
+        // dari skill langsung terasa saat itu juga
+        timer -= Time.deltaTime;
+        if (timer <= 0f)
+        {
+            Shoot();
+            timer = fireRate;
+        }
     }
 
     void Shoot()
@@ -31,9 +42,18 @@ public class PlayerShooting : MonoBehaviour
 
         if (terdekat == null) return;
 
-        // tembak ke arah zombie terdekat
         Vector3 arah = (terdekat.transform.position - transform.position).normalized;
-        GameObject peluru = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
-        peluru.GetComponent<Bullet>().direction = arah;
+
+        // tembak beberapa peluru sekaligus dengan sedikit sebaran (kalau punya skill)
+        int n = Mathf.Max(1, jumlahPeluru);
+        float total = (n - 1) * sudutSebar;
+        float mulai = -total / 2f;
+        for (int i = 0; i < n; i++)
+        {
+            float sudut = mulai + i * sudutSebar;
+            Vector3 arahPeluru = Quaternion.Euler(0f, 0f, sudut) * arah;
+            GameObject peluru = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
+            peluru.GetComponent<Bullet>().direction = arahPeluru;
+        }
     }
 }
