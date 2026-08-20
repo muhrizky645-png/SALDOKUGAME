@@ -14,8 +14,8 @@ public class EnemyChase : MonoBehaviour
     public int xp = 1;               // XP yang dijatuhkan saat mati
 
     [Header("Serang pemain")]
-    public float jarakSerang = 0.7f; // sedekat apa musuh mulai menyerang (berhenti jalan)
-    public float jedaSerang = 1f;    // jeda antar animasi serang (detik)
+    public float jarakSerang = 0.9f; // sedekat apa musuh mulai menyerang (berhenti jalan)
+    public float jedaSerang = 0.8f;  // jeda antar animasi serang (detik)
 
     private Rigidbody2D rb;
     private SpriteRenderer sr;

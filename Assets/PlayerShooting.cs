@@ -3,7 +3,7 @@ using UnityEngine;
 public class PlayerShooting : MonoBehaviour
 {
     public GameObject bulletPrefab;
-    public float fireRate = 0.8f;   // jeda antar tembakan (makin kecil = makin cepat)
+    public float fireRate = 1.2f;   // jeda antar tembakan (makin besar = makin pelan)
     public float range = 1f;        // jarak deteksi zombie
     public int jumlahPeluru = 1;    // berapa peluru sekali tembak (naik lewat skill)
     public float sudutSebar = 12f;  // sebaran sudut antar peluru (derajat)
