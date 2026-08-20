@@ -13,11 +13,17 @@ public class EnemyChase : MonoBehaviour
     public int skor = 10;            // skor saat musuh mati
     public int xp = 1;               // XP yang dijatuhkan saat mati
 
+    [Header("Serang pemain")]
+    public float jarakSerang = 0.7f; // sedekat apa musuh mulai menyerang (berhenti jalan)
+    public float jedaSerang = 1f;    // jeda antar animasi serang (detik)
+
     private Rigidbody2D rb;
     private SpriteRenderer sr;
     private Animator anim;
     private Vector3 visualBaseScale = Vector3.one;
     private bool sudahMati = false;
+    private bool lagiGerak = false;   // sedang animasi jalan?
+    private float timerSerang = 0f;   // hitung mundur jeda serang
 
     void Start()
     {
@@ -44,9 +50,9 @@ public class EnemyChase : MonoBehaviour
         }
         if (visual != null) visualBaseScale = visual.localScale;
 
-        // animator untuk animasi jalan / mati
+        // animator untuk animasi jalan / serang / mati
         anim = GetComponentInChildren<Animator>();
-        if (anim != null) anim.SetTrigger("MoveTrigger"); // mulai animasi JALAN
+        MulaiGerak(); // mulai animasi JALAN
     }
 
     void FixedUpdate()
@@ -55,11 +61,45 @@ public class EnemyChase : MonoBehaviour
         if (target == null) return;
 
         Vector2 arah = ((Vector2)target.position - rb.position).normalized;
-        rb.MovePosition(rb.position + arah * moveSpeed * Time.fixedDeltaTime);
+        float jarak = Vector2.Distance(target.position, rb.position);
 
+        // hadapkan gambar ke arah pemain (baik saat jalan maupun serang)
+        HadapkanKe(arah);
+
+        if (jarak <= jarakSerang)
+        {
+            // cukup dekat -> berhenti & serang
+            lagiGerak = false;
+            timerSerang -= Time.fixedDeltaTime;
+            if (timerSerang <= 0f)
+            {
+                if (anim != null) anim.SetTrigger("AttackTrigger");
+                timerSerang = jedaSerang;
+            }
+        }
+        else
+        {
+            // masih jauh -> kejar pemain
+            rb.MovePosition(rb.position + arah * moveSpeed * Time.fixedDeltaTime);
+            if (!lagiGerak) MulaiGerak();
+        }
+    }
+
+    void MulaiGerak()
+    {
+        lagiGerak = true;
+        timerSerang = 0f;
+        if (anim != null) anim.SetTrigger("MoveTrigger");
+    }
+
+    void HadapkanKe(Vector2 arah)
+    {
         // untuk sprite bawaan (kalau dipakai)
-        if (arah.x < 0) sr.flipX = false;
-        else if (arah.x > 0) sr.flipX = true;
+        if (sr != null)
+        {
+            if (arah.x < 0) sr.flipX = false;
+            else if (arah.x > 0) sr.flipX = true;
+        }
 
         // balik badan gambar monster (arah dibalik biar tidak menghadap mundur)
         if (visual != null)
