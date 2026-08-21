@@ -128,9 +128,13 @@ public class PlayerHealth : MonoBehaviour
             Tema.Redup, TextAnchor.MiddleCenter, true);
         Tema.Teks(new Rect(px, py + ph * 0.45f, colW, ph * 0.5f), skor.ToString(), Mathf.RoundToInt(h * 0.05f),
             Tema.Tulang, TextAnchor.MiddleCenter, true);
-        Tema.Teks(new Rect(px + colW, py + ph * 0.14f, colW, ph * 0.35f), "REKOR", Mathf.RoundToInt(h * 0.026f),
+
+        // ikon bintang kecil di atas label REKOR
+        float ik = ph * 0.22f;
+        Ikon.Gambar(new Rect(px + colW + (colW - ik) / 2f, py + ph * 0.02f, ik, ik), Ikon.Bintang, Tema.Amber);
+        Tema.Teks(new Rect(px + colW, py + ph * 0.24f, colW, ph * 0.30f), "REKOR", Mathf.RoundToInt(h * 0.024f),
             Tema.Redup, TextAnchor.MiddleCenter, true);
-        Tema.Teks(new Rect(px + colW, py + ph * 0.45f, colW, ph * 0.5f), rekor.ToString(), Mathf.RoundToInt(h * 0.05f),
+        Tema.Teks(new Rect(px + colW, py + ph * 0.50f, colW, ph * 0.5f), rekor.ToString(), Mathf.RoundToInt(h * 0.05f),
             Tema.Amber, TextAnchor.MiddleCenter, true);
 
         // badge rekor baru
