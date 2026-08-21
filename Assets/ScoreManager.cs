@@ -43,11 +43,17 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
-    // Tampilkan skor di TENGAH ATAS layar (ukuran menyesuaikan tinggi layar)
+    // Tata letak UI:
+    //  - Level  : pojok KIRI atas   (diatur di LevelSystem.cs)
+    //  - Rekor  : pojok KANAN atas  (High Score)
+    //  - Skor   : TENGAH, diturunkan sedikit biar tidak tabrakan dengan Level/bar XP
     void OnGUI()
     {
+        float pad = Screen.height * 0.02f;
+
+        // ---- SKOR BERJALAN (tengah atas, diturunkan sedikit) ----
         int fontSize = Mathf.RoundToInt(Screen.height * 0.045f); // otomatis pas di HP
-        float atas = Screen.height * 0.02f;
+        float atas = Screen.height * 0.09f;   // diturunkan biar di bawah Level & bar XP
         float tinggi = fontSize * 1.6f;
         float lebar = Screen.width;
         string teks = "Skor: " + score;
@@ -66,17 +72,20 @@ public class ScoreManager : MonoBehaviour
         style.normal.textColor = Color.white;
         GUI.Label(new Rect(0, atas, lebar, tinggi), teks, style);
 
-        // rekor (lebih kecil, di bawah skor)
-        int fontKecil = Mathf.RoundToInt(fontSize * 0.55f);
-        float atasRekor = atas + tinggi * 0.85f;
+        // ---- REKOR / HIGH SCORE (pojok KANAN atas) ----
+        int fontRekor = Mathf.RoundToInt(Screen.height * 0.032f);
+        float tinggiRekor = fontRekor * 2f;
+        float lebarRekor = Screen.width * 0.5f;
+        float kananX = Screen.width - lebarRekor - pad; // rata kanan dengan jarak dari tepi
         string teksRekor = "Rekor: " + rekor;
-        GUIStyle styleKecil = new GUIStyle();
-        styleKecil.fontSize = fontKecil;
-        styleKecil.fontStyle = FontStyle.Bold;
-        styleKecil.alignment = TextAnchor.UpperCenter;
-        styleKecil.normal.textColor = new Color(0f, 0f, 0f, 0.6f);
-        GUI.Label(new Rect(o, atasRekor + o, lebar, tinggi), teksRekor, styleKecil);
-        styleKecil.normal.textColor = new Color(1f, 0.95f, 0.4f, 1f); // kuning emas
-        GUI.Label(new Rect(0, atasRekor, lebar, tinggi), teksRekor, styleKecil);
+
+        GUIStyle styleKanan = new GUIStyle();
+        styleKanan.fontSize = fontRekor;
+        styleKanan.fontStyle = FontStyle.Bold;
+        styleKanan.alignment = TextAnchor.UpperRight; // menempel ke tepi kanan rect
+        styleKanan.normal.textColor = new Color(0f, 0f, 0f, 0.6f);
+        GUI.Label(new Rect(kananX + 2, pad + 2, lebarRekor, tinggiRekor), teksRekor, styleKanan);
+        styleKanan.normal.textColor = new Color(1f, 0.95f, 0.4f, 1f); // kuning emas
+        GUI.Label(new Rect(kananX, pad, lebarRekor, tinggiRekor), teksRekor, styleKanan);
     }
 }
