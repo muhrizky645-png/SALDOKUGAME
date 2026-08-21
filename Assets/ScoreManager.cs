@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ScoreManager : MonoBehaviour
 {
@@ -10,14 +11,17 @@ public class ScoreManager : MonoBehaviour
     public int SkorSekarang { get { return score; } }
     public int RekorTertinggi { get { return rekor; } }
 
-    // Otomatis membuat ScoreManager saat game mulai (tanpa perlu setting di Editor)
+    // Otomatis membuat ScoreManager saat game mulai DAN tiap scene di-reload
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
     {
-        if (Instance == null)
-        {
-            new GameObject("ScoreManager", typeof(ScoreManager));
-        }
+        Buat();
+        SceneManager.sceneLoaded += (scene, mode) => Buat();
+    }
+
+    static void Buat()
+    {
+        if (Instance == null) new GameObject("ScoreManager", typeof(ScoreManager));
     }
 
     void Awake()
@@ -49,8 +53,8 @@ public class ScoreManager : MonoBehaviour
     //  - Skor   : TENGAH, diturunkan sedikit biar tidak tabrakan dengan Level/bar XP
     void OnGUI()
     {
-        // sembunyikan HUD selama menu awal masih tampil
-        if (!GameMenu.SedangMain) return;
+        // sembunyikan HUD selama menu awal / menu jeda tampil
+        if (!GameMenu.SedangMain || GameMenu.SedangJeda) return;
 
         float pad = Screen.height * 0.02f;
 
