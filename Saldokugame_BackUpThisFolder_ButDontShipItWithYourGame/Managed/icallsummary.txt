@@ -319,6 +319,7 @@ UnityEngine.Animator::Play_Injected
 UnityEngine.Animator::ResetTriggerString_Injected
 UnityEngine.Animator::SetTriggerString_Injected
 UnityEngine.Animator::set_speed_Injected
+UnityEngine.Animator::get_parameters_Injected
 UnityEngine.Application::get_isBatchMode
 UnityEngine.Application::get_isFocused
 UnityEngine.Application::get_isPlaying
@@ -460,6 +461,7 @@ UnityEngine.CanvasRenderer::set_cull_Injected
 UnityEngine.CanvasRenderer::set_hasPopInstruction_Injected
 UnityEngine.CanvasRenderer::set_materialCount_Injected
 UnityEngine.CanvasRenderer::set_popMaterialCount_Injected
+UnityEngine.CircleCollider2D::set_radius_Injected
 UnityEngine.Collider::get_enabled_Injected
 UnityEngine.Collider::ClosestPoint_Injected
 UnityEngine.Collider::set_isTrigger_Injected
@@ -468,6 +470,7 @@ UnityEngine.Collider2D::get_shapeCount_Injected
 UnityEngine.Collider2D::get_attachedRigidbody_Injected
 UnityEngine.Collider2D::GetShapeHash_Injected
 UnityEngine.Collider2D::GetShapeBounds_Injected
+UnityEngine.Collider2D::set_offset_Injected
 UnityEngine.ColorGamutUtility::GetColorPrimaries
 UnityEngine.ColorGamutUtility::GetTransferFunction
 UnityEngine.ColorGamutUtility::GetWhitePoint
@@ -615,6 +618,7 @@ UnityEngine.GameObject::SendMessage_Injected
 UnityEngine.GameObject::SetActive_Injected
 UnityEngine.GameObject::get_scene_Injected
 UnityEngine.GameObject::set_layer_Injected
+UnityEngine.GameObject::set_tag_Injected
 UnityEngine.GameObject::GetComponentFastPath_Injected
 UnityEngine.GameObject::TryGetComponentFastPath_Injected
 UnityEngine.GameObject::FindGameObjectsWithTag_Injected
@@ -1462,6 +1466,8 @@ UnityEngine.ResourcesAPIInternal::LoadAll_Injected
 UnityEngine.Rigidbody2D::MovePosition_Injected
 UnityEngine.Rigidbody2D::get_localToWorldMatrix_Injected
 UnityEngine.Rigidbody2D::get_position_Injected
+UnityEngine.Rigidbody2D::set_constraints_Injected
+UnityEngine.Rigidbody2D::set_gravityScale_Injected
 UnityEngine.Rigidbody2D::set_linearVelocity_Injected
 UnityEngine.ScalableBufferManager::get_heightScaleFactor
 UnityEngine.ScalableBufferManager::get_widthScaleFactor
