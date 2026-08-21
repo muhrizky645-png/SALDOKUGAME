@@ -7,8 +7,9 @@ public class VirtualJoystick : MonoBehaviour
     public static Vector2 Direction = Vector2.zero;
 
     [Header("Pengaturan (opsional)")]
-    public float skala = 1f;                              // besar-kecil joystick (1 = normal)
-    [Range(0f, 1f)] public float transparansi = 0.3f;    // transparansi lingkaran saat muncul
+    public float skala = 0.5f;                           // besar-kecil joystick (1 = normal, 0.5 = setengah)
+    [Range(0f, 1f)] public float transparansi = 0.25f;   // transparansi lingkaran saat muncul (kecil = lebih transparan)
+    [Range(1f, 3f)] public float sensitivitas = 1.6f;    // makin besar = makin responsif (arah cepat penuh)
     [Range(0.1f, 1f)] public float areaAktif = 1f;       // bagian layar dari kiri yang bisa dipakai (1 = seluruh layar)
     public bool selaluTersembunyi = false;               // true = gambar joystick tidak pernah muncul (kontrol geser murni)
 
@@ -149,7 +150,8 @@ public class VirtualJoystick : MonoBehaviour
         Vector2 offset = screenPos - pusat;
         offset = Vector2.ClampMagnitude(offset, maxHandle);
         if (handle != null) handle.anchoredPosition = offset;
-        Direction = offset / maxHandle;
+        // lebih responsif: arah mencapai nilai penuh sebelum handle sampai ke tepi
+        Direction = Vector2.ClampMagnitude(offset / maxHandle * sensitivitas, 1f);
     }
 
     void Lepas()
