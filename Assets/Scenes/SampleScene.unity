@@ -213,13 +213,13 @@ MonoBehaviour:
   zombiePrefab: {fileID: 5876629510968562606, guid: a5826430ce8d6f14597fb0b3092c0b38, type: 3}
   spawnDistance: 8
   ukuranMusuh: 1
-  spawnAwal: 0.9
+  spawnAwal: 1.5
   penguranganTiapLevel: 0.1
   spawnTercepat: 0.2
-  maxAwal: 20
+  maxAwal: 10
   tambahMaxTiapLevel: 5
   maxMutlak: 90
-  spawnSekaligus: 2
+  spawnSekaligus: 1
 --- !u!4 &475604592
 Transform:
   m_ObjectHideFlags: 0
@@ -907,7 +907,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   bulletPrefab: {fileID: 3806289023921724618, guid: ac74ee38600178742a90decfea76bc51, type: 3}
-  fireRate: 0.5
+  fireRate: 0.25
   range: 8
   jumlahPeluru: 1
   sudutSebar: 12
@@ -923,9 +923,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6a0c78684b94c8438c8c13d0b237099, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  maxHealth: 100
+  maxHealth: 150
   health: 0
-  damagePerSecond: 20
+  damagePerSecond: 8
   hpFill: {fileID: 1282483680}
 --- !u!58 &1450080302
 CircleCollider2D:
