@@ -27,8 +27,8 @@ public class ZombieSpawner : MonoBehaviour
 
     public float spawnDistance = 10f;    // jarak spawn dari pemain
 
-    [Header("Ukuran musuh (tinggi gambar dalam satuan dunia)")]
-    [Tooltip("Semua musuh otomatis diskalakan supaya tingginya kira-kira segini. Kalau musuh terasa masih kegedean, kecilkan angka ini (mis. 0.8). Kalau kekecilan, besarkan (mis. 1.5).")]
+    [Header("Ukuran musuh (sisi terpanjang gambar dalam satuan dunia)")]
+    [Tooltip("Semua musuh otomatis diskalakan supaya sisi terpanjangnya (lebar atau tinggi) kira-kira segini. Kalau musuh terasa masih kegedean, kecilkan angka ini (mis. 0.8). Kalau kekecilan, besarkan (mis. 1.5).")]
     public float ukuranMusuh = 1f;
 
     [Header("Kesulitan mengikuti Level pemain")]
@@ -134,20 +134,20 @@ public class ZombieSpawner : MonoBehaviour
         go.layer = 0;
 
         // === ATUR UKURAN OTOMATIS ===
-        // Ukur tinggi gambar musuh saat ini, lalu skalakan supaya tingginya seragam.
-        // Ini bikin gambar sebesar apapun otomatis dikecilkan/dibesarkan ke ukuran wajar.
+        // Ukur sisi TERPANJANG gambar (lebar atau tinggi), lalu skalakan supaya seragam.
+        // Pakai sisi terpanjang biar monster lebar (mis. tikus) tidak jadi melar kegedean.
         float pengali = (tier.skala > 0f) ? tier.skala : 1f;
-        float tinggiTarget = ukuranMusuh * pengali;
-        if (tinggiTarget > 0f)
+        float ukuranTarget = ukuranMusuh * pengali;
+        if (ukuranTarget > 0f)
         {
             Renderer[] rendUkur = go.GetComponentsInChildren<Renderer>();
             if (rendUkur.Length > 0)
             {
                 Bounds b = rendUkur[0].bounds;
                 for (int i = 1; i < rendUkur.Length; i++) b.Encapsulate(rendUkur[i].bounds);
-                float tinggiSekarang = b.size.y;
-                if (tinggiSekarang > 0.0001f)
-                    go.transform.localScale *= (tinggiTarget / tinggiSekarang);
+                float dimSekarang = Mathf.Max(b.size.x, b.size.y); // sisi terpanjang
+                if (dimSekarang > 0.0001f)
+                    go.transform.localScale *= (ukuranTarget / dimSekarang);
             }
         }
 
