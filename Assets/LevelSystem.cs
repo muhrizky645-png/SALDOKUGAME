@@ -38,13 +38,16 @@ public class LevelSystem : MonoBehaviour
     public void AddXp(int jumlah)
     {
         xp += jumlah;
+        bool naik = false;
         while (xp >= xpUntukNaik)
         {
             xp -= xpUntukNaik;
             level++;
             xpUntukNaik = Mathf.RoundToInt(xpUntukNaik * 1.3f) + 2; // tiap level butuh lebih banyak XP
             levelUpFlash = 1.5f;
+            naik = true;
         }
+        if (naik) SoundManager.LevelUp(); // suara naik level
     }
 
     void Update()
