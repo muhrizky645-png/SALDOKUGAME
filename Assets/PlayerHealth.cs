@@ -3,6 +3,9 @@ using UnityEngine.SceneManagement;
 
 public class PlayerHealth : MonoBehaviour
 {
+    // dibaca script lain (GameMenu/joystick) untuk tahu game sedang Game Over
+    public static bool GameOver = false;
+
     public float maxHealth = 100f;
     public float health;
     public float damagePerSecond = 20f;
@@ -20,7 +23,10 @@ public class PlayerHealth : MonoBehaviour
     void Start()
     {
         health = maxHealth;
-        Time.timeScale = 1f;
+        isDead = false;
+        GameOver = false; // reset tiap scene mulai/di-reload
+        // Catatan: timeScale diatur oleh GameMenu (menu awal / jeda / restart),
+        // jadi TIDAK dipaksa 1 di sini supaya menu awal tetap beku.
         if (hpFill != null) fillWidth = hpFill.localScale.x;
         UpdateBar();
 
@@ -43,6 +49,7 @@ public class PlayerHealth : MonoBehaviour
             {
                 health = 0;
                 isDead = true;
+                GameOver = true;
                 Time.timeScale = 0f;
             }
             UpdateBar();
@@ -80,13 +87,8 @@ public class PlayerHealth : MonoBehaviour
             if (flashTimer > 0f) flashTimer -= Time.unscaledDeltaTime;
         }
 
-        if (isDead && Input.GetKeyDown(KeyCode.R)) RestartGame();
-    }
-
-    void RestartGame()
-    {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        // tekan R saat game over = main lagi (restart lalu langsung main)
+        if (isDead && Input.GetKeyDown(KeyCode.R)) GameMenu.UlangiDanMain();
     }
 
     void OnGUI()
@@ -116,7 +118,11 @@ public class PlayerHealth : MonoBehaviour
             btnStyle.fontSize = 40;
             if (GUI.Button(new Rect(Screen.width / 2 - 150, Screen.height / 2 + 90, 300, 90), "MAIN LAGI (R)", btnStyle))
             {
-                RestartGame();
+                GameMenu.UlangiDanMain();
+            }
+            if (GUI.Button(new Rect(Screen.width / 2 - 150, Screen.height / 2 + 195, 300, 90), "KE HOME", btnStyle))
+            {
+                GameMenu.KeHome();
             }
         }
     }
