@@ -5,6 +5,8 @@ public class PlayerHealth : MonoBehaviour
 {
     // dibaca script lain (GameMenu/joystick) untuk tahu game sedang Game Over
     public static bool GameOver = false;
+    // referensi ke pemain (dipakai Ledakan & PeluruMusuh untuk memberi damage)
+    public static PlayerHealth Instance;
 
     public float maxHealth = 100f;
     public float health;
@@ -21,8 +23,14 @@ public class PlayerHealth : MonoBehaviour
     private float flashTimer = 0f;
     private float sfxKenaTimer = 0f; // jeda antar suara \"kena\" biar tidak spam
 
+    void Awake()
+    {
+        Instance = this;
+    }
+
     void Start()
     {
+        Instance = this;
         health = maxHealth;
         isDead = false;
         GameOver = false; // reset tiap scene mulai/di-reload
@@ -38,29 +46,33 @@ public class PlayerHealth : MonoBehaviour
         for (int i = 0; i < srs.Length; i++) warnaAsli[i] = srs[i].color;
     }
 
+    // Kurangi nyawa pemain sebesar dmg. Dipakai oleh musuh sentuh, ledakan, dan peluru musuh.
+    public void Kurangi(float dmg)
+    {
+        if (isDead) return;
+        health -= dmg;
+        flashTimer = 0.12f; // picu kedip merah
+        if (sfxKenaTimer <= 0f)
+        {
+            SoundManager.PlayerKena(); // suara pemain kena (dibatasi biar tidak spam)
+            sfxKenaTimer = 0.4f;
+        }
+        if (health <= 0)
+        {
+            health = 0;
+            isDead = true;
+            GameOver = true;
+            Time.timeScale = 0f;
+            SoundManager.GameOver(); // suara game over
+        }
+        UpdateBar();
+    }
+
     void OnTriggerStay2D(Collider2D other)
     {
         if (isDead) return;
-
         if (other.CompareTag("Enemy"))
-        {
-            health -= damagePerSecond * Time.deltaTime;
-            flashTimer = 0.12f; // picu kedip merah
-            if (sfxKenaTimer <= 0f)
-            {
-                SoundManager.PlayerKena(); // suara pemain kena (dibatasi biar tidak spam)
-                sfxKenaTimer = 0.4f;
-            }
-            if (health <= 0)
-            {
-                health = 0;
-                isDead = true;
-                GameOver = true;
-                Time.timeScale = 0f;
-                SoundManager.GameOver(); // suara game over
-            }
-            UpdateBar();
-        }
+            Kurangi(damagePerSecond * Time.deltaTime);
     }
 
     void UpdateBar()
