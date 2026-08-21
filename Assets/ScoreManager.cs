@@ -49,7 +49,7 @@ public class ScoreManager : MonoBehaviour
 
     // Tata letak HUD (tema survival):
     //  - Skor  : plat gelap di TENGAH atas (di bawah tombol jeda)
-    //  - Rekor : panel gelap di pojok KANAN atas
+    //  - Rekor : panel gelap di pojok KANAN atas (dengan ikon bintang)
     //  (Level + bar XP diatur di LevelSystem.cs, pojok KIRI atas)
     void OnGUI()
     {
@@ -76,6 +76,11 @@ public class ScoreManager : MonoBehaviour
         float rX = Screen.width - rW - pad;
         float rY = pad;
         Tema.Panel9(new Rect(rX, rY, rW, rH), Tema.Plate, Tema.GarisRedup, 2f);
+
+        // ikon bintang di kiri panel rekor
+        float ik = rH * 0.5f;
+        Ikon.Gambar(new Rect(rX + rW * 0.06f, rY + (rH - ik) / 2f, ik, ik), Ikon.Bintang, Tema.Amber);
+
         Tema.Teks(new Rect(rX, rY + rH * 0.10f, rW - pad * 0.5f, rH * 0.45f), "REKOR", fRek,
             Tema.Redup, TextAnchor.UpperRight, true);
         Tema.Teks(new Rect(rX, rY + rH * 0.44f, rW - pad * 0.5f, rH * 0.55f), rekor.ToString(),
