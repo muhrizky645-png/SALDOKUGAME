@@ -1,9 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// Menu awal + menu jeda (pause). Otomatis dibuat saat game mulai DAN tiap scene
-// di-reload (tanpa setting di Editor). Game dibekukan (Time.timeScale = 0) selama
-// menu awal / menu jeda tampil.
+// Menu awal (Home) + menu jeda (Pause), tema "SURVIVAL". Otomatis dibuat saat game
+// mulai DAN tiap scene di-reload. Game dibekukan (Time.timeScale = 0) selama menu tampil.
 public class GameMenu : MonoBehaviour
 {
     public static GameMenu Instance;
@@ -37,7 +36,7 @@ public class GameMenu : MonoBehaviour
 
         if (langsungMainSetelahLoad)
         {
-            // dipanggil setelah "Ulangi" / "Main Lagi": langsung main tanpa menu awal
+            // dipanggil setelah \"Ulangi\" / \"Main Lagi\": langsung main tanpa menu awal
             langsungMainSetelahLoad = false;
             tampilHome = false;
             SedangMain = true;
@@ -98,14 +97,33 @@ public class GameMenu : MonoBehaviour
 
     void OnGUI()
     {
-        // ====== MENU AWAL ======
+        float h = Screen.height;
+        float w = Screen.width;
+
+        // ====== MENU AWAL (HOME) ======
         if (tampilHome)
         {
-            GambarPanel(new Color(0.04f, 0.12f, 0.06f, 0.92f));
-            GambarJudul("SALDOKU\nLAST STAND");
+            Tema.LatarGelap(new Color(0.04f, 0.10f, 0.05f, 0.35f)); // semburat hijau gelap
+
+            Tema.Teks(new Rect(0, h * 0.16f, w, h * 0.12f), "SALDOKU", Mathf.RoundToInt(h * 0.085f),
+                Tema.Darah, TextAnchor.MiddleCenter, true);
+            Tema.Teks(new Rect(0, h * 0.27f, w, h * 0.09f), "LAST STAND", Mathf.RoundToInt(h * 0.062f),
+                Tema.Army, TextAnchor.MiddleCenter, true);
+            Tema.Teks(new Rect(0, h * 0.37f, w, h * 0.05f), "BERTAHAN SELAMA MUNGKIN", Mathf.RoundToInt(h * 0.026f),
+                Tema.Redup, TextAnchor.MiddleCenter, true);
+
+            // panel rekor
             if (ScoreManager.Instance != null)
-                GambarInfo("Rekor Tertinggi: " + ScoreManager.Instance.RekorTertinggi, 0.40f);
-            if (Tombol("MAIN", 0.5f)) { SoundManager.Klik(); Mulai(); }
+            {
+                float rw = w * 0.7f, rh = h * 0.09f, rx = (w - rw) / 2f, ry = h * 0.46f;
+                Tema.Panel9(new Rect(rx, ry, rw, rh), Tema.Plate, Tema.GarisRedup, 2f);
+                Tema.Teks(new Rect(rx, ry + rh * 0.10f, rw, rh * 0.45f), "REKOR TERTINGGI",
+                    Mathf.RoundToInt(h * 0.024f), Tema.Redup, TextAnchor.MiddleCenter, true);
+                Tema.Teks(new Rect(rx, ry + rh * 0.44f, rw, rh * 0.55f), ScoreManager.Instance.RekorTertinggi.ToString(),
+                    Mathf.RoundToInt(h * 0.038f), Tema.Amber, TextAnchor.MiddleCenter, true);
+            }
+
+            if (Tombol("MAIN", 0.62f, 0.55f)) { SoundManager.Klik(); Mulai(); }
             return;
         }
 
@@ -114,69 +132,37 @@ public class GameMenu : MonoBehaviour
         // ====== MENU JEDA (PAUSE) ======
         if (SedangJeda)
         {
-            GambarPanel(new Color(0f, 0f, 0f, 0.85f));
-            GambarJudul("JEDA");
-            if (Tombol("LANJUT", 0.40f)) { SoundManager.Klik(); Lanjut(); }
-            if (Tombol("ULANGI", 0.55f)) { SoundManager.Klik(); UlangiDanMain(); }
-            if (Tombol("KEMBALI KE HOME", 0.70f)) { SoundManager.Klik(); KeHome(); }
+            Tema.LatarGelap();
+            Tema.Teks(new Rect(0, h * 0.18f, w, h * 0.1f), "JEDA", Mathf.RoundToInt(h * 0.075f),
+                Tema.Army, TextAnchor.MiddleCenter, true);
+            if (Tombol("LANJUT", 0.38f, 0.62f)) { SoundManager.Klik(); Lanjut(); }
+            if (Tombol("ULANGI", 0.53f, 0.62f)) { SoundManager.Klik(); UlangiDanMain(); }
+            if (Tombol("KE HOME", 0.68f, 0.62f)) { SoundManager.Klik(); KeHome(); }
             return;
         }
 
-        // ====== TOMBOL PAUSE SAAT MAIN ======
-        // sembunyikan kalau sedang Game Over (PlayerHealth yang pegang layar)
-        if (PlayerHealth.GameOver) return;
+        // ====== TOMBOL JEDA SAAT MAIN ======
+        // sembunyikan saat Game Over atau saat memilih skill
+        if (PlayerHealth.GameOver || SkillManager.AktifMemilih) return;
 
-        float sz = Screen.height * 0.055f;
-        float pad = Screen.height * 0.02f;
-        float x = (Screen.width - sz) / 2f; // tengah atas
-        GUIStyle tp = new GUIStyle(GUI.skin.button);
-        tp.fontSize = Mathf.RoundToInt(Screen.height * 0.03f);
-        tp.fontStyle = FontStyle.Bold;
-        if (GUI.Button(new Rect(x, pad, sz, sz), "II", tp)) { SoundManager.Klik(); Jeda(); }
+        float sz = h * 0.055f;
+        float pad = h * 0.02f;
+        float x = (w - sz) / 2f; // tengah atas
+        if (GUI.Button(new Rect(x, pad, sz, sz), "II", Tema.GayaTombol(Mathf.RoundToInt(h * 0.028f))))
+        {
+            SoundManager.Klik();
+            Jeda();
+        }
     }
 
-    // ---------- util gambar ----------
-    void GambarPanel(Color c)
+    // tombol menu bertema (lebar cukup supaya teks tidak kepotong)
+    bool Tombol(string teks, float posY, float lebarFrac)
     {
-        Color simpan = GUI.color;
-        GUI.color = c;
-        GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
-        GUI.color = simpan;
-    }
-
-    void GambarJudul(string teks)
-    {
-        int f = Mathf.RoundToInt(Screen.height * 0.06f);
-        GUIStyle st = new GUIStyle();
-        st.fontSize = f;
-        st.fontStyle = FontStyle.Bold;
-        st.alignment = TextAnchor.MiddleCenter;
-        st.wordWrap = true;
-        st.normal.textColor = new Color(0f, 0f, 0f, 0.6f);
-        GUI.Label(new Rect(3, Screen.height * 0.20f + 3, Screen.width, f * 3f), teks, st);
-        st.normal.textColor = new Color(0.5f, 1f, 0.5f, 1f);
-        GUI.Label(new Rect(0, Screen.height * 0.20f, Screen.width, f * 3f), teks, st);
-    }
-
-    void GambarInfo(string teks, float posY)
-    {
-        GUIStyle st = new GUIStyle();
-        st.fontSize = Mathf.RoundToInt(Screen.height * 0.03f);
-        st.fontStyle = FontStyle.Bold;
-        st.alignment = TextAnchor.MiddleCenter;
-        st.normal.textColor = new Color(1f, 0.95f, 0.4f, 1f);
-        GUI.Label(new Rect(0, Screen.height * posY, Screen.width, st.fontSize * 2f), teks, st);
-    }
-
-    bool Tombol(string teks, float posY)
-    {
-        float bw = Screen.width * 0.55f;
-        float bh = Screen.height * 0.08f;
+        float bw = Screen.width * lebarFrac;
+        float bh = Screen.height * 0.085f;
         float bx = (Screen.width - bw) / 2f;
         float by = Screen.height * posY;
-        GUIStyle st = new GUIStyle(GUI.skin.button);
-        st.fontSize = Mathf.RoundToInt(Screen.height * 0.04f);
-        st.fontStyle = FontStyle.Bold;
-        return GUI.Button(new Rect(bx, by, bw, bh), teks, st);
+        int f = Mathf.RoundToInt(Screen.height * 0.036f);
+        return GUI.Button(new Rect(bx, by, bw, bh), teks, Tema.GayaTombol(f));
     }
 }
