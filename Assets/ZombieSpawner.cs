@@ -28,33 +28,49 @@ public class ZombieSpawner : MonoBehaviour
     public float spawnDistance = 10f;    // jarak spawn dari pemain
 
     [Header("Ukuran musuh (sisi terpanjang gambar dalam satuan dunia)")]
-    [Tooltip("Semua musuh otomatis diskalakan supaya sisi terpanjangnya (lebar atau tinggi) kira-kira segini. Kalau musuh terasa masih kegedean, kecilkan angka ini (mis. 0.8). Kalau kekecilan, besarkan (mis. 1.5).")]
+    [Tooltip("Semua musuh otomatis diskalakan supaya sisi terpanjangnya (lebar atau tinggi) kira-kira segini.")]
     public float ukuranMusuh = 1f;
 
     [Header("Kesulitan mengikuti Level pemain")]
-    public float spawnAwal = 0.9f;            // jeda spawn di Level 1 (detik) - lebih kecil = lebih ramai
-    public float penguranganTiapLevel = 0.1f; // jeda spawn berkurang tiap naik level
-    public float spawnTercepat = 0.2f;        // batas jeda spawn tercepat
-    public int maxAwal = 20;                  // batas musuh di layar Level 1
-    public int tambahMaxTiapLevel = 5;        // batas musuh nambah tiap level
-    public int maxMutlak = 90;                // batas musuh paling banyak
-    public int spawnSekaligus = 2;            // berapa musuh muncul tiap spawn
+    public float spawnAwal = 0.9f;
+    public float penguranganTiapLevel = 0.1f;
+    public float spawnTercepat = 0.2f;
+    public int maxAwal = 20;
+    public int tambahMaxTiapLevel = 5;
+    public int maxMutlak = 90;
+    public int spawnSekaligus = 2;
+
+    [Header("BOSS (muncul mengikuti waktu bertahan)")]
+    [Tooltip("Jeda kemunculan boss dalam detik.")]
+    public float jedaBoss = 45f;
+    [Tooltip("Pengali ukuran boss dibanding musuh biasa.")]
+    public float skalaBoss = 2.4f;
 
     private Transform player;
     private float timer = 0f;
+    private float bossBerikut = 0f;
+    private int bossKe = 0;
 
     void Start()
     {
         GameObject p = GameObject.FindWithTag("Player");
         if (p != null) player = p.transform;
+        bossBerikut = jedaBoss; // boss pertama setelah 'jedaBoss' detik
+        bossKe = 0;
     }
 
     void Update()
     {
         if (player == null) return;
 
-        // level diambil dari LevelSystem (naik dari XP permata)
         int level = (LevelSystem.Instance != null) ? LevelSystem.Instance.Level : 1;
+
+        // ==== BOSS mengikuti waktu ====
+        if (GameTimer.Detik >= bossBerikut)
+        {
+            bossBerikut += jedaBoss;
+            SpawnBos(level);
+        }
 
         float jedaSpawn = Mathf.Max(spawnTercepat, spawnAwal - penguranganTiapLevel * (level - 1));
         int maxSekarang = Mathf.Min(maxMutlak, maxAwal + tambahMaxTiapLevel * (level - 1));
@@ -68,24 +84,27 @@ public class ZombieSpawner : MonoBehaviour
         }
     }
 
-    // Level di mana musuh ini mulai muncul (otomatis dari urutan kalau mulaiLevel <= 0)
     int LevelBuka(int index, MusuhTier t)
     {
         return (t.mulaiLevel > 0) ? t.mulaiLevel : (index + 1);
     }
 
-    // Nyawa musuh (otomatis makin tebal tiap tingkat kalau nyawa <= 0)
     int NyawaTier(int index, MusuhTier t)
     {
         return (t.nyawa > 0) ? t.nyawa : (index + 1);
+    }
+
+    Vector3 PosisiSpawn()
+    {
+        Vector2 arahAcak = Random.insideUnitCircle.normalized;
+        return player.position + new Vector3(arahAcak.x, arahAcak.y, 0f) * spawnDistance;
     }
 
     void Spawn(int level, int maxSekarang)
     {
         if (GameObject.FindGameObjectsWithTag("Enemy").Length >= maxSekarang) return;
 
-        Vector2 arahAcak = Random.insideUnitCircle.normalized;
-        Vector3 posisi = player.position + new Vector3(arahAcak.x, arahAcak.y, 0f) * spawnDistance;
+        Vector3 posisi = PosisiSpawn();
 
         int index;
         MusuhTier tier = PilihTier(level, out index);
@@ -94,12 +113,43 @@ public class ZombieSpawner : MonoBehaviour
 
         GameObject musuh = Instantiate(prefab, posisi, Quaternion.identity);
 
-        // kalau dari daftar tier -> lengkapi komponennya otomatis
         if (tier != null && tier.prefab != null)
             SiapkanMusuh(musuh, tier, index);
     }
 
-    // Pilih acak salah satu musuh yang sudah terbuka di level ini
+    // Spawn satu BOSS: prefab terkuat, ukuran besar, nyawa banyak
+    void SpawnBos(int level)
+    {
+        GameObject prefab = PrefabTerkuat();
+        if (prefab == null) prefab = zombiePrefab;
+        if (prefab == null) return;
+
+        bossKe++;
+        Vector3 posisi = PosisiSpawn();
+        GameObject go = Instantiate(prefab, posisi, Quaternion.identity);
+
+        go.tag = "Enemy";
+        go.layer = 0;
+        AturFisikDanUkuran(go, ukuranMusuh * Mathf.Max(1f, skalaBoss));
+
+        EnemyChase ec = go.GetComponent<EnemyChase>();
+        if (ec == null) ec = go.AddComponent<EnemyChase>();
+        ec.moveSpeed = 1.3f;
+        ec.nyawa = 60 + level * 8 + (bossKe - 1) * 40;
+        ec.skor = 500;
+        ec.xp = 25;
+        ec.bos = true; // ditandai boss (diproses di EnemyChase.Start)
+    }
+
+    GameObject PrefabTerkuat()
+    {
+        if (daftarMusuh == null) return null;
+        for (int i = daftarMusuh.Length - 1; i >= 0; i--)
+            if (daftarMusuh[i] != null && daftarMusuh[i].prefab != null)
+                return daftarMusuh[i].prefab;
+        return null;
+    }
+
     MusuhTier PilihTier(int level, out int indexTerpilih)
     {
         indexTerpilih = -1;
@@ -126,18 +176,26 @@ public class ZombieSpawner : MonoBehaviour
         return null;
     }
 
-    // Melengkapi prefab musuh "mentah" jadi musuh yang berfungsi (tag, ukuran, fisika, collider, EnemyChase)
     void SiapkanMusuh(GameObject go, MusuhTier tier, int index)
     {
-        // tag & layer biar bisa kena peluru (samakan dengan ZOMBIE yang sudah jalan)
         go.tag = "Enemy";
         go.layer = 0;
 
-        // === ATUR UKURAN OTOMATIS ===
-        // Ukur sisi TERPANJANG gambar (lebar atau tinggi), lalu skalakan supaya seragam.
-        // Pakai sisi terpanjang biar monster lebar (mis. tikus) tidak jadi melar kegedean.
         float pengali = (tier.skala > 0f) ? tier.skala : 1f;
-        float ukuranTarget = ukuranMusuh * pengali;
+        AturFisikDanUkuran(go, ukuranMusuh * pengali);
+
+        EnemyChase ec = go.GetComponent<EnemyChase>();
+        if (ec == null) ec = go.AddComponent<EnemyChase>();
+        ec.moveSpeed = tier.kecepatan;
+        ec.nyawa = NyawaTier(index, tier);
+        ec.skor = tier.skor;
+        ec.xp = tier.xp;
+    }
+
+    // Atur ukuran seragam + Rigidbody2D + Collider2D untuk sebuah musuh
+    void AturFisikDanUkuran(GameObject go, float ukuranTarget)
+    {
+        // === UKURAN OTOMATIS (pakai sisi terpanjang) ===
         if (ukuranTarget > 0f)
         {
             Renderer[] rendUkur = go.GetComponentsInChildren<Renderer>();
@@ -145,19 +203,17 @@ public class ZombieSpawner : MonoBehaviour
             {
                 Bounds b = rendUkur[0].bounds;
                 for (int i = 1; i < rendUkur.Length; i++) b.Encapsulate(rendUkur[i].bounds);
-                float dimSekarang = Mathf.Max(b.size.x, b.size.y); // sisi terpanjang
+                float dimSekarang = Mathf.Max(b.size.x, b.size.y);
                 if (dimSekarang > 0.0001f)
                     go.transform.localScale *= (ukuranTarget / dimSekarang);
             }
         }
 
-        // Rigidbody2D (biar bisa digerakkan tanpa gravitasi & tidak berputar)
         Rigidbody2D rb = go.GetComponent<Rigidbody2D>();
         if (rb == null) rb = go.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
 
-        // Collider2D (untuk deteksi peluru). Dihitung SETELAH ukuran diatur.
         Collider2D col = go.GetComponent<Collider2D>();
         if (col == null)
         {
@@ -177,13 +233,5 @@ public class ZombieSpawner : MonoBehaviour
                 cc.radius = 0.5f;
             }
         }
-
-        // EnemyChase (otak musuh: kejar + serang + nyawa)
-        EnemyChase ec = go.GetComponent<EnemyChase>();
-        if (ec == null) ec = go.AddComponent<EnemyChase>();
-        ec.moveSpeed = tier.kecepatan;
-        ec.nyawa = NyawaTier(index, tier);
-        ec.skor = tier.skor;
-        ec.xp = tier.xp;
     }
 }
