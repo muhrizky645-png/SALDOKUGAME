@@ -6,6 +6,7 @@ public class Bullet : MonoBehaviour
     public float lifeTime = 3f;
     public Vector3 direction = Vector3.right;
     public float putaran = 720f; // kecepatan putar shuriken (derajat per detik)
+    public int damage = 1;       // seberapa banyak nyawa musuh yang dikurangi tiap kena
 
     void Start()
     {
@@ -27,8 +28,8 @@ public class Bullet : MonoBehaviour
             EnemyChase musuh = other.GetComponentInParent<EnemyChase>();
             if (musuh != null)
             {
-                // musuh main animasi mati, jatuhkan permata, tambah skor (diatur di EnemyChase.Mati)
-                musuh.Mati();
+                // kurangi nyawa musuh; kalau habis, musuh mati (diatur di EnemyChase)
+                musuh.KenaSerangan(damage);
             }
             else
             {
