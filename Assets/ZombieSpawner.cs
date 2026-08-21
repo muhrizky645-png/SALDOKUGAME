@@ -15,7 +15,7 @@ public class ZombieSpawner : MonoBehaviour
         public float kecepatan = 2f;
         public int skor = 10;
         public int xp = 1;
-        [Tooltip("Ukuran musuh di layar (pengali skala prefab).")]
+        [Tooltip("Pengali ukuran. 1 = ukuran normal seragam. Lebih dari 1 = lebih besar, kurang dari 1 = lebih kecil.")]
         public float skala = 1f;
     }
 
@@ -26,6 +26,10 @@ public class ZombieSpawner : MonoBehaviour
     public GameObject zombiePrefab;
 
     public float spawnDistance = 10f;    // jarak spawn dari pemain
+
+    [Header("Ukuran musuh (tinggi gambar dalam satuan dunia)")]
+    [Tooltip("Semua musuh otomatis diskalakan supaya tingginya kira-kira segini. Kalau musuh terasa masih kegedean, kecilkan angka ini (mis. 0.8). Kalau kekecilan, besarkan (mis. 1.5).")]
+    public float ukuranMusuh = 1f;
 
     [Header("Kesulitan mengikuti Level pemain")]
     public float spawnAwal = 0.9f;            // jeda spawn di Level 1 (detik) - lebih kecil = lebih ramai
@@ -122,16 +126,30 @@ public class ZombieSpawner : MonoBehaviour
         return null;
     }
 
-    // Melengkapi prefab musuh "mentah" jadi musuh yang berfungsi (tag, fisika, collider, EnemyChase)
+    // Melengkapi prefab musuh "mentah" jadi musuh yang berfungsi (tag, ukuran, fisika, collider, EnemyChase)
     void SiapkanMusuh(GameObject go, MusuhTier tier, int index)
     {
         // tag & layer biar bisa kena peluru (samakan dengan ZOMBIE yang sudah jalan)
         go.tag = "Enemy";
         go.layer = 0;
 
-        // ukuran di layar
-        if (tier.skala > 0f && tier.skala != 1f)
-            go.transform.localScale *= tier.skala;
+        // === ATUR UKURAN OTOMATIS ===
+        // Ukur tinggi gambar musuh saat ini, lalu skalakan supaya tingginya seragam.
+        // Ini bikin gambar sebesar apapun otomatis dikecilkan/dibesarkan ke ukuran wajar.
+        float pengali = (tier.skala > 0f) ? tier.skala : 1f;
+        float tinggiTarget = ukuranMusuh * pengali;
+        if (tinggiTarget > 0f)
+        {
+            Renderer[] rendUkur = go.GetComponentsInChildren<Renderer>();
+            if (rendUkur.Length > 0)
+            {
+                Bounds b = rendUkur[0].bounds;
+                for (int i = 1; i < rendUkur.Length; i++) b.Encapsulate(rendUkur[i].bounds);
+                float tinggiSekarang = b.size.y;
+                if (tinggiSekarang > 0.0001f)
+                    go.transform.localScale *= (tinggiTarget / tinggiSekarang);
+            }
+        }
 
         // Rigidbody2D (biar bisa digerakkan tanpa gravitasi & tidak berputar)
         Rigidbody2D rb = go.GetComponent<Rigidbody2D>();
@@ -139,7 +157,7 @@ public class ZombieSpawner : MonoBehaviour
         rb.gravityScale = 0f;
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
 
-        // Collider2D (untuk deteksi peluru). Kalau belum ada, buat lingkaran seukuran gambar.
+        // Collider2D (untuk deteksi peluru). Dihitung SETELAH ukuran diatur.
         Collider2D col = go.GetComponent<Collider2D>();
         if (col == null)
         {
