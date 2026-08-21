@@ -70,6 +70,17 @@ public class SkillManager : MonoBehaviour
             new Skill("Magnet Permata", "Jarak tarik permata +30%", "berlian", () => {
                 XpGem.MagnetMult *= 1.3f;
             }),
+
+            // ===== SENJATA OTOMATIS (ala Survivor.io) - evolusi otomatis di level 5+ =====
+            new Skill("Pisau Berputar", "Bilah berputar melukai musuh. Lv5: evolusi!", "pisau", () => {
+                if (SenjataManager.Instance != null) SenjataManager.Instance.TambahOrbit();
+            }),
+            new Skill("Aura Setrum", "Medan setrum di sekitarmu. Lv5: evolusi!", "aura", () => {
+                if (SenjataManager.Instance != null) SenjataManager.Instance.TambahAura();
+            }),
+            new Skill("Roket Pelacak", "Roket meledak mengejar musuh. Lv5: evolusi!", "roket", () => {
+                if (SenjataManager.Instance != null) SenjataManager.Instance.TambahRoket();
+            }),
         };
     }
 
