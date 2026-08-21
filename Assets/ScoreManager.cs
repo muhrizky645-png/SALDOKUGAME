@@ -49,6 +49,9 @@ public class ScoreManager : MonoBehaviour
     //  - Skor   : TENGAH, diturunkan sedikit biar tidak tabrakan dengan Level/bar XP
     void OnGUI()
     {
+        // sembunyikan HUD selama menu awal masih tampil
+        if (!GameMenu.SedangMain) return;
+
         float pad = Screen.height * 0.02f;
 
         // ---- SKOR BERJALAN (tengah atas, diturunkan sedikit) ----
