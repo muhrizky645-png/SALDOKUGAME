@@ -55,6 +55,7 @@ public static class Ikon
 
     // ====== IKON (lazy + cache) ======
     static Texture2D _bintang, _petir, _peluru, _target, _chevron, _hati, _berlian, _tengkorak;
+    static Texture2D _bom, _magnet, _peti, _aura;
 
     public static Texture2D Bintang { get { if (_bintang == null) _bintang = Buat(FBintang, 72); return _bintang; } }
     public static Texture2D Petir { get { if (_petir == null) _petir = Buat(FPetir, 72); return _petir; } }
@@ -64,6 +65,10 @@ public static class Ikon
     public static Texture2D Hati { get { if (_hati == null) _hati = Buat(FHati, 72); return _hati; } }
     public static Texture2D Berlian { get { if (_berlian == null) _berlian = Buat(FBerlian, 72); return _berlian; } }
     public static Texture2D Tengkorak { get { if (_tengkorak == null) _tengkorak = Buat(FTengkorak, 72); return _tengkorak; } }
+    public static Texture2D Bom { get { if (_bom == null) _bom = Buat(FBom, 72); return _bom; } }
+    public static Texture2D Magnet { get { if (_magnet == null) _magnet = Buat(FMagnet, 72); return _magnet; } }
+    public static Texture2D Peti { get { if (_peti == null) _peti = Buat(FPeti, 72); return _peti; } }
+    public static Texture2D Aura { get { if (_aura == null) _aura = Buat(FAura, 72); return _aura; } }
 
     // Bintang 5 sudut (rekor / high score)
     static bool FBintang(float x, float y)
@@ -77,7 +82,7 @@ public static class Ikon
         return r <= radius;
     }
 
-    // Petir (serang lebih cepat)
+    // Petir (serang lebih cepat / roket)
     static bool FPetir(float x, float y)
     {
         float w = 0.17f;
@@ -98,7 +103,7 @@ public static class Ikon
         return false;
     }
 
-    // Target / crosshair (jangkauan lebih jauh)
+    // Target / crosshair (jangkauan lebih jauh / aura)
     static bool FTarget(float x, float y)
     {
         return Cincin(x, y, 0.72f, 0.96f)
@@ -130,23 +135,49 @@ public static class Ikon
         return Mathf.Abs(x) + Mathf.Abs(y) <= 0.92f;
     }
 
-    // Tengkorak sederhana (opsional, buat aksen skor/game over)
+    // Tengkorak sederhana
     static bool FTengkorak(float x, float y)
     {
-        // kepala
         bool kepala = Disc(x, y, 0f, 0.15f, 0.72f);
-        // rahang
         bool rahang = Kotak(x, y, -0.35f, -0.75f, 0.35f, 0.05f);
         bool badan = kepala || rahang;
         if (!badan) return false;
-        // mata (lubang)
         if (Disc(x, y, -0.28f, 0.20f, 0.20f)) return false;
         if (Disc(x, y, 0.28f, 0.20f, 0.20f)) return false;
-        // hidung
         if (Disc(x, y, 0f, -0.05f, 0.10f)) return false;
-        // celah gigi
         if (Kotak(x, y, -0.08f, -0.75f, 0.08f, -0.20f)) return false;
         return true;
+    }
+
+    // Bom (item bersihkan layar): badan bulat + sumbu + percik
+    static bool FBom(float x, float y)
+    {
+        if (Disc(x, y, 0f, -0.15f, 0.62f)) return true;               // badan bom
+        if (Garis(x, y, 0.25f, 0.45f, 0.45f, 0.85f, 0.09f)) return true; // sumbu
+        if (Disc(x, y, 0.5f, 0.9f, 0.13f)) return true;                // percik api
+        return false;
+    }
+
+    // Magnet (tapal kuda U)
+    static bool FMagnet(float x, float y)
+    {
+        bool arc = Cincin(x, y, 0.42f, 0.8f) && y <= 0.15f;
+        bool legs = (y > 0.15f) && ((x >= -0.8f && x <= -0.42f) || (x >= 0.42f && x <= 0.8f));
+        return arc || legs;
+    }
+
+    // Peti / chest (badan + tutup)
+    static bool FPeti(float x, float y)
+    {
+        bool badan = Kotak(x, y, -0.75f, -0.65f, 0.75f, 0.28f);
+        bool tutup = Kotak(x, y, -0.8f, 0.28f, 0.8f, 0.62f);
+        return badan || tutup;
+    }
+
+    // Aura / medan setrum (cincin ganda) - untuk skill aura
+    static bool FAura(float x, float y)
+    {
+        return Cincin(x, y, 0.78f, 0.96f) || Cincin(x, y, 0.40f, 0.56f) || Disc(x, y, 0f, 0f, 0.14f);
     }
 
     // Ambil ikon berdasarkan id skill
@@ -160,6 +191,9 @@ public static class Ikon
             case "chevron": return Chevron;
             case "hati": return Hati;
             case "berlian": return Berlian;
+            case "pisau": return Bintang;
+            case "aura": return Aura;
+            case "roket": return Petir;
             default: return Bintang;
         }
     }
