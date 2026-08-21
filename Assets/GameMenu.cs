@@ -163,7 +163,7 @@ public class GameMenu : MonoBehaviour
 
         float sz = h * 0.055f;
         float pad = h * 0.02f;
-        float x = (w - sz) / 2f; // tengah atas
+        float x = w - sz - pad; // POJOK KANAN ATAS (ruang tengah dipakai timer)
         if (GUI.Button(new Rect(x, pad, sz, sz), "II", Tema.GayaTombol(Mathf.RoundToInt(h * 0.028f))))
         {
             SoundManager.Klik();
