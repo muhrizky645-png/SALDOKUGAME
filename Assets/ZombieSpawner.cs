@@ -41,8 +41,8 @@ public class ZombieSpawner : MonoBehaviour
     public int spawnSekaligus = 2;
 
     [Header("BOSS (muncul mengikuti waktu bertahan)")]
-    [Tooltip("Prefab KHUSUS boss (mis. DragonRed dari DungeonMonsters2D/Characters). Kalau kosong, otomatis pakai musuh terkuat di daftar.")]
-    public GameObject bossPrefab;
+    [Tooltip("Daftar prefab BOSS gahar (mis. DragonRed, Demon, MagmaGolem, StoneGolem). Tiap boss muncul, dipilih ACAK dari daftar ini. Kalau kosong, otomatis pakai musuh terkuat di daftar musuh.")]
+    public GameObject[] bossPrefabs;
     [Tooltip("Jeda kemunculan boss dalam detik.")]
     public float jedaBoss = 45f;
     [Tooltip("Pengali ukuran boss dibanding musuh biasa. Boss sengaja dibuat besar.")]
@@ -52,6 +52,7 @@ public class ZombieSpawner : MonoBehaviour
     private float timer = 0f;
     private float bossBerikut = 0f;
     private int bossKe = 0;
+    private int bossTerakhir = -1;
 
     void Start()
     {
@@ -119,10 +120,11 @@ public class ZombieSpawner : MonoBehaviour
             SiapkanMusuh(musuh, tier, index);
     }
 
-    // Spawn satu BOSS: prefab khusus (bossPrefab) kalau ada, kalau tidak pakai yang terkuat.
+    // Spawn satu BOSS: dipilih ACAK dari daftar bossPrefabs, kalau kosong pakai yang terkuat.
     void SpawnBos(int level)
     {
-        GameObject prefab = (bossPrefab != null) ? bossPrefab : PrefabTerkuat();
+        GameObject prefab = PilihBoss();
+        if (prefab == null) prefab = PrefabTerkuat();
         if (prefab == null) prefab = zombiePrefab;
         if (prefab == null) return;
 
@@ -141,6 +143,40 @@ public class ZombieSpawner : MonoBehaviour
         ec.skor = 500;
         ec.xp = 25;
         ec.bos = true; // ditandai boss (diproses di EnemyChase.Start)
+    }
+
+    // Pilih boss acak dari daftar; hindari mengulang boss yang sama dua kali berturut-turut bila memungkinkan.
+    GameObject PilihBoss()
+    {
+        if (bossPrefabs == null || bossPrefabs.Length == 0) return null;
+
+        int jumlah = 0;
+        for (int i = 0; i < bossPrefabs.Length; i++)
+            if (bossPrefabs[i] != null) jumlah++;
+        if (jumlah == 0) return null;
+
+        int pilih = Random.Range(0, jumlah);
+        int hitung = 0;
+        int indexTerpilih = -1;
+        for (int i = 0; i < bossPrefabs.Length; i++)
+        {
+            if (bossPrefabs[i] == null) continue;
+            if (hitung == pilih) { indexTerpilih = i; break; }
+            hitung++;
+        }
+
+        // Kalau kebetulan sama dengan boss sebelumnya dan ada lebih dari satu pilihan, geser satu.
+        if (indexTerpilih == bossTerakhir && jumlah > 1)
+        {
+            for (int i = 1; i <= bossPrefabs.Length; i++)
+            {
+                int cek = (indexTerpilih + i) % bossPrefabs.Length;
+                if (bossPrefabs[cek] != null && cek != bossTerakhir) { indexTerpilih = cek; break; }
+            }
+        }
+
+        bossTerakhir = indexTerpilih;
+        return (indexTerpilih >= 0) ? bossPrefabs[indexTerpilih] : null;
     }
 
     GameObject PrefabTerkuat()
