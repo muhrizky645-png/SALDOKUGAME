@@ -47,27 +47,27 @@ public class SkillManager : MonoBehaviour
     {
         semuaSkill = new List<Skill>()
         {
-            new Skill("Serang Lebih Cepat", "Kecepatan tembak +15%", () => {
+            new Skill("Serang Lebih Cepat", "Kecepatan tembak +15%", "petir", () => {
                 PlayerShooting ps = FindFirstObjectByType<PlayerShooting>();
                 if (ps != null) ps.fireRate *= 0.85f;
             }),
-            new Skill("Peluru Tambahan", "+1 peluru tiap tembak", () => {
+            new Skill("Peluru Tambahan", "+1 peluru tiap tembak", "peluru", () => {
                 PlayerShooting ps = FindFirstObjectByType<PlayerShooting>();
                 if (ps != null) ps.jumlahPeluru += 1;
             }),
-            new Skill("Jangkauan Lebih Jauh", "Jarak tembak +20%", () => {
+            new Skill("Jangkauan Lebih Jauh", "Jarak tembak +20%", "target", () => {
                 PlayerShooting ps = FindFirstObjectByType<PlayerShooting>();
                 if (ps != null) ps.range *= 1.2f;
             }),
-            new Skill("Kaki Lebih Cepat", "Kecepatan lari +12%", () => {
+            new Skill("Kaki Lebih Cepat", "Kecepatan lari +12%", "chevron", () => {
                 PlayerMovement pm = FindFirstObjectByType<PlayerMovement>();
                 if (pm != null) pm.moveSpeed *= 1.12f;
             }),
-            new Skill("Badan Lebih Kuat", "Max HP +20 & pulih", () => {
+            new Skill("Badan Lebih Kuat", "Max HP +20 & pulih", "hati", () => {
                 PlayerHealth ph = FindFirstObjectByType<PlayerHealth>();
                 if (ph != null) { ph.maxHealth += 20f; ph.health = Mathf.Min(ph.health + 20f, ph.maxHealth); }
             }),
-            new Skill("Magnet Permata", "Jarak tarik permata +30%", () => {
+            new Skill("Magnet Permata", "Jarak tarik permata +30%", "berlian", () => {
                 XpGem.MagnetMult *= 1.3f;
             }),
         };
@@ -129,18 +129,18 @@ public class SkillManager : MonoBehaviour
         float gap = w * 0.03f;
         float totalW = w - margin * 2f;
         float cardW = (totalW - gap * 2f) / 3f;
-        float cardH = cardW * 1.15f;
+        float cardH = cardW * 1.25f;
         float y = (h - cardH) / 2f;
 
         // ---- HEADER GABUNGAN (tidak lagi tabrakan) ----
         int fBig = Mathf.RoundToInt(h * 0.055f);
         int fSub = Mathf.RoundToInt(h * 0.032f);
-        float headY = y - h * 0.20f;
+        float headY = y - h * 0.22f;
         Tema.Teks(new Rect(0, headY, w, fBig * 1.4f), "LEVEL UP!", fBig, Tema.Darah, TextAnchor.MiddleCenter, true);
         Tema.Teks(new Rect(0, headY + fBig * 1.25f, w, fSub * 1.6f), "PILIH SKILL", fSub, Tema.Army, TextAnchor.MiddleCenter, true);
 
-        int fNama = Mathf.RoundToInt(cardW * 0.115f);
-        int fDesk = Mathf.RoundToInt(cardW * 0.095f);
+        int fNama = Mathf.RoundToInt(cardW * 0.11f);
+        int fDesk = Mathf.RoundToInt(cardW * 0.088f);
 
         for (int i = 0; i < pilihanSekarang.Count; i++)
         {
@@ -152,12 +152,17 @@ public class SkillManager : MonoBehaviour
 
             // kartu bertema
             Tema.Panel9(cr, hover ? Tema.PanelTerang : Tema.Panel, hover ? Tema.Army : Tema.Garis, Mathf.Max(2f, cardW * 0.02f));
-            Tema.StripAtas(cr, Tema.Army, cardH * 0.05f); // strip aksen di atas
+            Tema.StripAtas(cr, Tema.Army, cardH * 0.045f); // strip aksen di atas
+
+            // IKON skill (dibuat lewat kode)
+            float isz = cardH * 0.30f;
+            Ikon.Gambar(new Rect(cr.x + (cardW - isz) / 2f, cr.y + cardH * 0.10f, isz, isz),
+                Ikon.UntukSkill(s.ikon), hover ? Tema.Amber : Tema.Army);
 
             // nama skill (hijau army) + deskripsi (putih tulang)
-            Tema.Teks(new Rect(cr.x + 6, cr.y + cardH * 0.12f, cr.width - 12, cardH * 0.42f),
+            Tema.Teks(new Rect(cr.x + 6, cr.y + cardH * 0.46f, cr.width - 12, cardH * 0.24f),
                 s.nama, fNama, Tema.Army, TextAnchor.MiddleCenter, true);
-            Tema.Teks(new Rect(cr.x + 6, cr.y + cardH * 0.52f, cr.width - 12, cardH * 0.44f),
+            Tema.Teks(new Rect(cr.x + 6, cr.y + cardH * 0.70f, cr.width - 12, cardH * 0.28f),
                 s.deskripsi, fDesk, Tema.Tulang, TextAnchor.MiddleCenter, false);
 
             // tombol transparan di atas kartu untuk deteksi klik/sentuh
@@ -173,7 +178,8 @@ public class SkillManager : MonoBehaviour
     {
         public string nama;
         public string deskripsi;
+        public string ikon;
         public System.Action efek;
-        public Skill(string n, string d, System.Action e) { nama = n; deskripsi = d; efek = e; }
+        public Skill(string n, string d, string ik, System.Action e) { nama = n; deskripsi = d; ikon = ik; efek = e; }
     }
 }
