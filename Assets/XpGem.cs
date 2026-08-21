@@ -56,6 +56,7 @@ public class XpGem : MonoBehaviour
         if (d <= jarakAmbil)
         {
             if (LevelSystem.Instance != null) LevelSystem.Instance.AddXp(nilai);
+            SoundManager.AmbilXp(); // suara ambil XP
             Destroy(gameObject);
             return;
         }
