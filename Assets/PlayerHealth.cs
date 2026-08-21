@@ -19,6 +19,7 @@ public class PlayerHealth : MonoBehaviour
     private SpriteRenderer[] srs;
     private Color[] warnaAsli;
     private float flashTimer = 0f;
+    private float sfxKenaTimer = 0f; // jeda antar suara "kena" biar tidak spam
 
     void Start()
     {
@@ -45,12 +46,18 @@ public class PlayerHealth : MonoBehaviour
         {
             health -= damagePerSecond * Time.deltaTime;
             flashTimer = 0.12f; // picu kedip merah
+            if (sfxKenaTimer <= 0f)
+            {
+                SoundManager.PlayerKena(); // suara pemain kena (dibatasi biar tidak spam)
+                sfxKenaTimer = 0.4f;
+            }
             if (health <= 0)
             {
                 health = 0;
                 isDead = true;
                 GameOver = true;
                 Time.timeScale = 0f;
+                SoundManager.GameOver(); // suara game over
             }
             UpdateBar();
         }
@@ -75,6 +82,8 @@ public class PlayerHealth : MonoBehaviour
 
     void Update()
     {
+        if (sfxKenaTimer > 0f) sfxKenaTimer -= Time.unscaledDeltaTime;
+
         // efek kedip merah saat kena musuh
         if (srs != null && srs.Length > 0)
         {
@@ -118,10 +127,12 @@ public class PlayerHealth : MonoBehaviour
             btnStyle.fontSize = 40;
             if (GUI.Button(new Rect(Screen.width / 2 - 150, Screen.height / 2 + 90, 300, 90), "MAIN LAGI (R)", btnStyle))
             {
+                SoundManager.Klik();
                 GameMenu.UlangiDanMain();
             }
             if (GUI.Button(new Rect(Screen.width / 2 - 150, Screen.height / 2 + 195, 300, 90), "KE HOME", btnStyle))
             {
+                SoundManager.Klik();
                 GameMenu.KeHome();
             }
         }
