@@ -3,11 +3,19 @@ using UnityEngine;
 // Backsound + sound effect yang DI-GENERATE lewat kode (tanpa file audio sama sekali).
 // Otomatis dibuat saat game mulai dan tetap hidup antar scene (DontDestroyOnLoad),
 // jadi musik tidak putus saat restart.
+// Mendukung: volume musik & efek (besar/kecil) + mute terpisah, tersimpan otomatis.
 public class SoundManager : MonoBehaviour
 {
     public static SoundManager Instance;
 
-    const int SR = 22050; // sample rate
+    const int SR = 22050;            // sample rate
+    const float BASE_MUSIK = 0.5f;   // batas atas volume musik (biar tidak terlalu keras)
+
+    // ---- pengaturan suara (0..1) + mute, dibaca/ditulis UI pengaturan ----
+    public static float VolMusik = 0.8f;
+    public static float VolEfek = 0.9f;
+    public static bool MuteMusik = false;
+    public static bool MuteEfek = false;
 
     private AudioSource musik;
     private AudioSource efek;
@@ -26,10 +34,15 @@ public class SoundManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject); // musik tetap jalan walau scene di-reload
 
+        // muat pengaturan tersimpan
+        VolMusik = PlayerPrefs.GetFloat("volMusik", 0.8f);
+        VolEfek = PlayerPrefs.GetFloat("volEfek", 0.9f);
+        MuteMusik = PlayerPrefs.GetInt("muteMusik", 0) == 1;
+        MuteEfek = PlayerPrefs.GetInt("muteEfek", 0) == 1;
+
         musik = gameObject.AddComponent<AudioSource>();
         musik.loop = true;
         musik.playOnAwake = false;
-        musik.volume = 0.40f;
 
         efek = gameObject.AddComponent<AudioSource>();
         efek.playOnAwake = false;
@@ -37,7 +50,44 @@ public class SoundManager : MonoBehaviour
 
         BuatSemuaSuara();
         musik.clip = BuatMusik();
+        TerapkanMusik();
         musik.Play();
+    }
+
+    void TerapkanMusik()
+    {
+        if (musik != null) musik.volume = MuteMusik ? 0f : VolMusik * BASE_MUSIK;
+    }
+
+    // ---------------- API pengaturan (dipanggil menu) ----------------
+    public static void SetVolMusik(float v)
+    {
+        VolMusik = Mathf.Clamp01(v);
+        PlayerPrefs.SetFloat("volMusik", VolMusik);
+        PlayerPrefs.Save();
+        if (Instance != null) Instance.TerapkanMusik();
+    }
+
+    public static void SetVolEfek(float v)
+    {
+        VolEfek = Mathf.Clamp01(v);
+        PlayerPrefs.SetFloat("volEfek", VolEfek);
+        PlayerPrefs.Save();
+    }
+
+    public static void ToggleMuteMusik()
+    {
+        MuteMusik = !MuteMusik;
+        PlayerPrefs.SetInt("muteMusik", MuteMusik ? 1 : 0);
+        PlayerPrefs.Save();
+        if (Instance != null) Instance.TerapkanMusik();
+    }
+
+    public static void ToggleMuteEfek()
+    {
+        MuteEfek = !MuteEfek;
+        PlayerPrefs.SetInt("muteEfek", MuteEfek ? 1 : 0);
+        PlayerPrefs.Save();
     }
 
     // ---------------- API statis dipanggil script lain ----------------
@@ -52,7 +102,8 @@ public class SoundManager : MonoBehaviour
 
     static void Play(AudioClip c)
     {
-        if (Instance != null && c != null) Instance.efek.PlayOneShot(c);
+        if (Instance != null && c != null && !MuteEfek)
+            Instance.efek.PlayOneShot(c, VolEfek);
     }
 
     // ---------------- generator suara ----------------
