@@ -142,6 +142,7 @@ public class EnemyChase : MonoBehaviour
         else
         {
             // masih hidup -> kedip merah sebagai tanda kena
+            SoundManager.MusuhKena();
             if (gameObject.activeInHierarchy) StartCoroutine(Kedip());
         }
     }
@@ -160,6 +161,8 @@ public class EnemyChase : MonoBehaviour
     {
         if (sudahMati) return;
         sudahMati = true;
+
+        SoundManager.MusuhMati(); // suara musuh mati
 
         Vector3 pos = transform.position;
         HitEffect.Munculkan(pos);
