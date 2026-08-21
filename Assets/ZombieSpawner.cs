@@ -41,10 +41,12 @@ public class ZombieSpawner : MonoBehaviour
     public int spawnSekaligus = 2;
 
     [Header("BOSS (muncul mengikuti waktu bertahan)")]
+    [Tooltip("Prefab KHUSUS boss (mis. DragonRed dari DungeonMonsters2D/Characters). Kalau kosong, otomatis pakai musuh terkuat di daftar.")]
+    public GameObject bossPrefab;
     [Tooltip("Jeda kemunculan boss dalam detik.")]
     public float jedaBoss = 45f;
-    [Tooltip("Pengali ukuran boss dibanding musuh biasa.")]
-    public float skalaBoss = 2.4f;
+    [Tooltip("Pengali ukuran boss dibanding musuh biasa. Boss sengaja dibuat besar.")]
+    public float skalaBoss = 3.2f;
 
     private Transform player;
     private float timer = 0f;
@@ -117,10 +119,10 @@ public class ZombieSpawner : MonoBehaviour
             SiapkanMusuh(musuh, tier, index);
     }
 
-    // Spawn satu BOSS: prefab terkuat, ukuran besar, nyawa banyak
+    // Spawn satu BOSS: prefab khusus (bossPrefab) kalau ada, kalau tidak pakai yang terkuat.
     void SpawnBos(int level)
     {
-        GameObject prefab = PrefabTerkuat();
+        GameObject prefab = (bossPrefab != null) ? bossPrefab : PrefabTerkuat();
         if (prefab == null) prefab = zombiePrefab;
         if (prefab == null) return;
 
