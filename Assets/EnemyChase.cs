@@ -3,11 +3,20 @@ using UnityEngine;
 
 public class EnemyChase : MonoBehaviour
 {
+    public enum Tipe { Biasa, Cepat, Tank, Peledak, Penembak }
+
     public Transform target;
     public float moveSpeed = 2f;
 
     [Header("Nyawa musuh")]
     public int nyawa = 1;             // berapa kali kena tembak untuk mati (diatur oleh Spawner)
+
+    [Header("Variasi / Boss")]
+    public Tipe tipe = Tipe.Biasa;   // diacak otomatis saat Start (kecuali boss)
+    public bool bos = false;         // diset oleh Spawner untuk musuh boss
+
+    public static int JumlahBos = 0;         // berapa boss hidup sekarang
+    public static EnemyChase BosSaatIni = null; // boss terakhir (untuk bar nyawa)
 
     [Header("Gambar musuh (biar bisa balik badan)")]
     public Transform visual;   // gambar monster (objek anak). Kalau kosong, dicari otomatis.
@@ -32,13 +41,19 @@ public class EnemyChase : MonoBehaviour
     private bool lagiGerak = false;   // sedang animasi jalan?
     private float timerSerang = 0f;   // hitung mundur jeda serang
     private int nyawaSekarang;        // sisa nyawa saat ini
+    private int nyawaMaks;            // nyawa penuh (untuk bar boss)
     private SpriteRenderer[] semuaSprite; // untuk efek kedip merah
+    private Color[] warnaDasar;       // warna asli tiap sprite (untuk balik setelah kedip)
+    private float tTembak = 1.2f;     // timer untuk musuh Penembak
+    private float jedaTembak = 2f;
+
+    public int NyawaSisa { get { return nyawaSekarang; } }
+    public int NyawaMaks { get { return nyawaMaks; } }
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
-        nyawaSekarang = Mathf.Max(1, nyawa);
 
         if (target == null)
         {
@@ -47,9 +62,6 @@ public class EnemyChase : MonoBehaviour
         }
 
         // Cari gambar monster otomatis untuk dibalik badannya.
-        // Prefab pack ini menaruh gambar di OBJEK ANAK (induknya kosong),
-        // jadi cari anak pertama yang punya Animator ATAU Renderer (gambar).
-        // Kalau tetap tidak ketemu, pakai anak pertama sebagai cadangan.
         if (visual == null)
         {
             foreach (Transform child in transform)
@@ -66,10 +78,72 @@ public class EnemyChase : MonoBehaviour
         }
         if (visual != null) visualBaseScale = visual.localScale;
 
-        // animator untuk animasi jalan / serang / mati
         anim = GetComponentInChildren<Animator>();
         semuaSprite = GetComponentsInChildren<SpriteRenderer>();
+
+        // === VARIASI MUSUH ===
+        if (!bos) RollTipe();
+        TerapkanVarian();
+
+        nyawaSekarang = Mathf.Max(1, nyawa);
+        nyawaMaks = nyawaSekarang;
+
+        // simpan warna dasar SETELAH tint variasi dipasang
+        if (semuaSprite != null)
+        {
+            warnaDasar = new Color[semuaSprite.Length];
+            for (int i = 0; i < semuaSprite.Length; i++)
+                if (semuaSprite[i] != null) warnaDasar[i] = semuaSprite[i].color;
+        }
+
+        if (bos)
+        {
+            JumlahBos++;
+            BosSaatIni = this;
+        }
+
         MulaiGerak(); // mulai animasi JALAN
+    }
+
+    // Acak tipe musuh; peluang tipe khusus naik seiring waktu bertahan
+    void RollTipe()
+    {
+        float menit = GameTimer.Detik / 60f;
+        float peluang = Mathf.Clamp01(0.12f + menit * 0.05f);
+        if (Random.value < peluang)
+            tipe = (Tipe)Random.Range(1, 5); // Cepat/Tank/Peledak/Penembak
+        else
+            tipe = Tipe.Biasa;
+    }
+
+    // Terapkan pengali stat + warna sesuai tipe / boss
+    void TerapkanVarian()
+    {
+        Color tint = Color.white;
+        float skala = 1f;
+
+        switch (tipe)
+        {
+            case Tipe.Cepat:
+                moveSpeed *= 1.6f; skala = 0.8f; tint = new Color(0.6f, 1f, 1f); break;
+            case Tipe.Tank:
+                moveSpeed *= 0.6f; nyawa = nyawa * 3 + 2; skor += 15; xp += 1;
+                skala = 1.4f; tint = new Color(0.8f, 0.6f, 1f); break;
+            case Tipe.Peledak:
+                skala = 1.1f; skor += 5; tint = new Color(1f, 0.6f, 0.3f); break;
+            case Tipe.Penembak:
+                moveSpeed *= 0.85f; skor += 10; tint = new Color(1f, 0.9f, 0.4f); break;
+        }
+
+        if (bos)
+        {
+            tint = new Color(1f, 0.4f, 0.4f);
+            skala = 1f; // ukuran boss sudah diatur Spawner
+        }
+
+        transform.localScale *= skala;
+        if (tint != Color.white && semuaSprite != null)
+            foreach (var s in semuaSprite) if (s != null) s.color = tint;
     }
 
     void FixedUpdate()
@@ -80,12 +154,10 @@ public class EnemyChase : MonoBehaviour
         Vector2 arah = ((Vector2)target.position - rb.position).normalized;
         float jarak = Vector2.Distance(target.position, rb.position);
 
-        // hadapkan gambar ke arah pemain (baik saat jalan maupun serang)
         HadapkanKe(arah);
 
         if (jarak <= jarakSerang)
         {
-            // cukup dekat -> berhenti & serang
             lagiGerak = false;
             timerSerang -= Time.fixedDeltaTime;
             if (timerSerang <= 0f)
@@ -96,9 +168,28 @@ public class EnemyChase : MonoBehaviour
         }
         else
         {
-            // masih jauh -> kejar pemain
             rb.MovePosition(rb.position + arah * moveSpeed * Time.fixedDeltaTime);
             if (!lagiGerak) MulaiGerak();
+        }
+    }
+
+    // Musuh Penembak melempar proyektil ke pemain dari jauh
+    void Update()
+    {
+        if (sudahMati || tipe != Tipe.Penembak || target == null) return;
+        if (!GameMenu.SedangMain) return;
+
+        tTembak -= Time.deltaTime;
+        if (tTembak <= 0f)
+        {
+            float jarak = Vector3.Distance(target.position, transform.position);
+            if (jarak <= 8f)
+            {
+                Vector3 a = (target.position - transform.position).normalized;
+                PeluruMusuh.Tembak(transform.position, a, 4.5f, 7f);
+                tTembak = jedaTembak;
+            }
+            else tTembak = 0.3f;
         }
     }
 
@@ -111,16 +202,14 @@ public class EnemyChase : MonoBehaviour
 
     void HadapkanKe(Vector2 arah)
     {
-        if (Mathf.Abs(arah.x) < 0.01f) return; // hampir vertikal, jangan balik badan
+        if (Mathf.Abs(arah.x) < 0.01f) return;
 
-        // untuk sprite bawaan (kalau dipakai)
         if (sr != null)
         {
             if (arah.x < 0) sr.flipX = false;
             else if (arah.x > 0) sr.flipX = true;
         }
 
-        // balik badan gambar monster (arah dibalik biar tidak menghadap mundur)
         if (visual != null)
         {
             if (arah.x < 0)
@@ -130,7 +219,6 @@ public class EnemyChase : MonoBehaviour
         }
     }
 
-    // Dipanggil peluru saat musuh kena tembak. Kurangi nyawa; mati kalau habis.
     public void KenaSerangan(int damage)
     {
         if (sudahMati) return;
@@ -141,7 +229,6 @@ public class EnemyChase : MonoBehaviour
         }
         else
         {
-            // masih hidup -> kedip merah sebagai tanda kena
             SoundManager.MusuhKena();
             if (gameObject.activeInHierarchy) StartCoroutine(Kedip());
         }
@@ -153,34 +240,51 @@ public class EnemyChase : MonoBehaviour
             foreach (var s in semuaSprite) if (s != null) s.color = Color.red;
         yield return new WaitForSeconds(lamaKedip);
         if (!sudahMati && semuaSprite != null)
-            foreach (var s in semuaSprite) if (s != null) s.color = Color.white;
+            for (int i = 0; i < semuaSprite.Length; i++)
+                if (semuaSprite[i] != null)
+                    semuaSprite[i].color = (warnaDasar != null && i < warnaDasar.Length) ? warnaDasar[i] : Color.white;
     }
 
-    // Musuh benar-benar mati (nyawa habis)
     public void Mati()
     {
         if (sudahMati) return;
         sudahMati = true;
 
-        SoundManager.MusuhMati(); // suara musuh mati
+        SoundManager.MusuhMati();
 
         Vector3 pos = transform.position;
         HitEffect.Munculkan(pos);
         XpGem.Munculkan(pos, xp);
         if (ScoreManager.Instance != null) ScoreManager.Instance.AddScore(skor);
 
-        // matikan tabrakan biar tidak menyerang pemain saat sekarat
+        // musuh Peledak: meledak melukai pemain di sekitarnya
+        if (tipe == Tipe.Peledak)
+            Ledakan.Munculkan(pos, 1.9f, 0, 16f, new Color(1f, 0.6f, 0.2f, 0.85f));
+
+        // === HADIAH / DROP ITEM ===
+        if (bos)
+        {
+            JumlahBos = Mathf.Max(0, JumlahBos - 1);
+            if (BosSaatIni == this) BosSaatIni = null;
+            // boss jatuhkan banyak XP + PETI
+            for (int i = 0; i < 6; i++)
+                XpGem.Munculkan(pos + (Vector3)(Random.insideUnitCircle * 1.2f), 5);
+            ItemLapangan.Jatuhkan(pos, ItemLapangan.Jenis.Peti);
+        }
+        else
+        {
+            float roll = Random.value;
+            if (roll < 0.02f) ItemLapangan.Jatuhkan(pos, ItemLapangan.Jenis.Bom);
+            else if (roll < 0.05f) ItemLapangan.Jatuhkan(pos, ItemLapangan.Jenis.Magnet);
+        }
+
         Collider2D col = GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
 
-        // mainkan animasi MATI
         Trig("DeathTrigger");
-
-        // hapus objek setelah animasi mati selesai
         Destroy(gameObject, waktuHancur);
     }
 
-    // Set trigger animator hanya kalau parameternya memang ada (hindari warning)
     void Trig(string nama)
     {
         if (anim == null) return;
