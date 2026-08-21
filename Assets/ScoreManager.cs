@@ -47,52 +47,38 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
-    // Tata letak UI:
-    //  - Level  : pojok KIRI atas   (diatur di LevelSystem.cs)
-    //  - Rekor  : pojok KANAN atas  (High Score)
-    //  - Skor   : TENGAH, diturunkan sedikit biar tidak tabrakan dengan Level/bar XP
+    // Tata letak HUD (tema survival):
+    //  - Skor  : plat gelap di TENGAH atas (di bawah tombol jeda)
+    //  - Rekor : panel gelap di pojok KANAN atas
+    //  (Level + bar XP diatur di LevelSystem.cs, pojok KIRI atas)
     void OnGUI()
     {
-        // sembunyikan HUD selama menu awal / menu jeda tampil
-        if (!GameMenu.SedangMain || GameMenu.SedangJeda) return;
+        // sembunyikan HUD selama menu awal / jeda / saat memilih skill
+        if (!GameMenu.SedangMain || GameMenu.SedangJeda || SkillManager.AktifMemilih) return;
 
-        float pad = Screen.height * 0.02f;
+        float h = Screen.height;
+        float pad = h * 0.02f;
 
-        // ---- SKOR BERJALAN (tengah atas, diturunkan sedikit) ----
-        int fontSize = Mathf.RoundToInt(Screen.height * 0.045f); // otomatis pas di HP
-        float atas = Screen.height * 0.09f;   // diturunkan biar di bawah Level & bar XP
-        float tinggi = fontSize * 1.6f;
-        float lebar = Screen.width;
-        string teks = "Skor: " + score;
+        // ---- SKOR (plat tengah atas, di bawah tombol jeda) ----
+        int fSkor = Mathf.RoundToInt(h * 0.05f);
+        float plW = Screen.width * 0.44f;
+        float plH = fSkor * 1.5f;
+        float plX = (Screen.width - plW) / 2f;
+        float plY = h * 0.085f;
+        Tema.Panel9(new Rect(plX, plY, plW, plH), Tema.Plate, Tema.GarisRedup, 2f);
+        Tema.Teks(new Rect(plX, plY + plH * 0.14f, plW, plH), score.ToString(), fSkor,
+            Tema.Tulang, TextAnchor.UpperCenter, true);
 
-        GUIStyle style = new GUIStyle();
-        style.fontSize = fontSize;
-        style.fontStyle = FontStyle.Bold;
-        style.alignment = TextAnchor.UpperCenter; // rata tengah
-
-        // bayangan gelap biar kebaca di background apa pun
-        float o = Mathf.Max(2f, fontSize * 0.06f);
-        style.normal.textColor = new Color(0f, 0f, 0f, 0.6f);
-        GUI.Label(new Rect(o, atas + o, lebar, tinggi), teks, style);
-
-        // teks utama (putih)
-        style.normal.textColor = Color.white;
-        GUI.Label(new Rect(0, atas, lebar, tinggi), teks, style);
-
-        // ---- REKOR / HIGH SCORE (pojok KANAN atas) ----
-        int fontRekor = Mathf.RoundToInt(Screen.height * 0.032f);
-        float tinggiRekor = fontRekor * 2f;
-        float lebarRekor = Screen.width * 0.5f;
-        float kananX = Screen.width - lebarRekor - pad; // rata kanan dengan jarak dari tepi
-        string teksRekor = "Rekor: " + rekor;
-
-        GUIStyle styleKanan = new GUIStyle();
-        styleKanan.fontSize = fontRekor;
-        styleKanan.fontStyle = FontStyle.Bold;
-        styleKanan.alignment = TextAnchor.UpperRight; // menempel ke tepi kanan rect
-        styleKanan.normal.textColor = new Color(0f, 0f, 0f, 0.6f);
-        GUI.Label(new Rect(kananX + 2, pad + 2, lebarRekor, tinggiRekor), teksRekor, styleKanan);
-        styleKanan.normal.textColor = new Color(1f, 0.95f, 0.4f, 1f); // kuning emas
-        GUI.Label(new Rect(kananX, pad, lebarRekor, tinggiRekor), teksRekor, styleKanan);
+        // ---- REKOR / HIGH SCORE (panel pojok kanan atas) ----
+        int fRek = Mathf.RoundToInt(h * 0.026f);
+        float rW = Screen.width * 0.34f;
+        float rH = fRek * 3.1f;
+        float rX = Screen.width - rW - pad;
+        float rY = pad;
+        Tema.Panel9(new Rect(rX, rY, rW, rH), Tema.Plate, Tema.GarisRedup, 2f);
+        Tema.Teks(new Rect(rX, rY + rH * 0.10f, rW - pad * 0.5f, rH * 0.45f), "REKOR", fRek,
+            Tema.Redup, TextAnchor.UpperRight, true);
+        Tema.Teks(new Rect(rX, rY + rH * 0.44f, rW - pad * 0.5f, rH * 0.55f), rekor.ToString(),
+            Mathf.RoundToInt(fRek * 1.25f), Tema.Amber, TextAnchor.UpperRight, true);
     }
 }
