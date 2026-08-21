@@ -211,7 +211,11 @@ MonoBehaviour:
     xp: 5
     skala: 4
   zombiePrefab: {fileID: 5876629510968562606, guid: a5826430ce8d6f14597fb0b3092c0b38, type: 3}
-  bossPrefab: {fileID: 5650423630096164307, guid: ed7afb02a2246614da8d0e93b155ef48, type: 3}
+  bossPrefabs:
+  - {fileID: 5650423630096164307, guid: ed7afb02a2246614da8d0e93b155ef48, type: 3}
+  - {fileID: 3676971076677257608, guid: 0b5757230de2ac846926c905719e30e3, type: 3}
+  - {fileID: 6828922712980065891, guid: 0c7fdddfb0724a241be092dac8fdf9dc, type: 3}
+  - {fileID: 3945939611434538402, guid: 42e8d62848b3a7c4c93521c2a038e3da, type: 3}
   spawnDistance: 8
   ukuranMusuh: 1
   spawnAwal: 1.5
