@@ -153,7 +153,63 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b40d43bfbef14444499a6ff050425ab9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZombieSpawner
-  daftarMusuh: []
+  daftarMusuh:
+  - prefab: {fileID: 2695397109250390434, guid: e755b6ac08a90bd43bda31f4eaabfb36, type: 3}
+    mulaiLevel: 1
+    nyawa: 1
+    kecepatan: 2.2
+    skor: 10
+    xp: 1
+    skala: 1
+  - prefab: {fileID: 5840038882737305133, guid: f4602107911282542bfd45e2bf6bb648, type: 3}
+    mulaiLevel: 2
+    nyawa: 2
+    kecepatan: 2.6
+    skor: 20
+    xp: 1
+    skala: 1
+  - prefab: {fileID: 7641684595017193777, guid: 1cf0c6b0174163042a1a2c98be28bf1a, type: 3}
+    mulaiLevel: 3
+    nyawa: 3
+    kecepatan: 2.4
+    skor: 10
+    xp: 1
+    skala: 1
+  - prefab: {fileID: 3969665838359622139, guid: c68d316493781284bb1e2f62f16d006c, type: 3}
+    mulaiLevel: 4
+    nyawa: 5
+    kecepatan: 2.3
+    skor: 15
+    xp: 2
+    skala: 1
+  - prefab: {fileID: 7773741634138198696, guid: e3f10a49adf9da94196f359c3bc3cece, type: 3}
+    mulaiLevel: 5
+    nyawa: 7
+    kecepatan: 2
+    skor: 20
+    xp: 2
+    skala: 1
+  - prefab: {fileID: 6679783802021260202, guid: 0f9692da27a35e64fb6c73920e21165e, type: 3}
+    mulaiLevel: 7
+    nyawa: 10
+    kecepatan: 2
+    skor: 25
+    xp: 3
+    skala: 1
+  - prefab: {fileID: 6981722426433150837, guid: c7ba699d54ffef146a65ae69b8cb2961, type: 3}
+    mulaiLevel: 9
+    nyawa: 14
+    kecepatan: 2.5
+    skor: 30
+    xp: 4
+    skala: 1
+  - prefab: {fileID: 5284643900520674695, guid: 027b1c9cd4f5b4344995f03cc92fd18e, type: 3}
+    mulaiLevel: 11
+    nyawa: 20
+    kecepatan: 1.8
+    skor: 40
+    xp: 5
+    skala: 1
   zombiePrefab: {fileID: 5876629510968562606, guid: a5826430ce8d6f14597fb0b3092c0b38, type: 3}
   spawnDistance: 8
   spawnAwal: 0.9
