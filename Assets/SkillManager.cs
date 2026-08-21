@@ -1,12 +1,15 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
 // Menawarkan 3 kartu skill acak setiap kali pemain naik level (mirip Survivor.io).
 // Game berhenti sejenak (pause) saat memilih, lalu lanjut setelah dipilih.
-// Dibuat otomatis saat game mulai, tanpa perlu setting di Editor.
+// Dibuat otomatis saat game mulai DAN tiap scene di-reload (biar tetap muncul setelah restart).
 public class SkillManager : MonoBehaviour
 {
     public static SkillManager Instance;
+    // dibaca HUD & GameMenu supaya sembunyi saat kartu skill tampil
+    public static bool AktifMemilih = false;
 
     private List<Skill> semuaSkill = new List<Skill>();
     private List<Skill> pilihanSekarang = new List<Skill>();
@@ -16,6 +19,14 @@ public class SkillManager : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
     {
+        Buat();
+        // PENTING: RuntimeInitialize cuma jalan sekali. Supaya SkillManager tetap ada
+        // setiap kali scene di-reload (restart / main lagi), buat ulang lewat sceneLoaded.
+        SceneManager.sceneLoaded += (scene, mode) => Buat();
+    }
+
+    static void Buat()
+    {
         if (Instance == null) new GameObject("SkillManager", typeof(SkillManager));
     }
 
@@ -23,7 +34,12 @@ public class SkillManager : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-        XpGem.MagnetMult = 1f; // reset pengali magnet saat mulai
+
+        // reset semua state biar benar-benar mulai dari awal setiap game baru
+        sedangMemilih = false;
+        AktifMemilih = false;
+        levelTerakhir = 1;
+        XpGem.MagnetMult = 1f; // reset pengali magnet
         BuatDaftarSkill();
     }
 
@@ -59,6 +75,8 @@ public class SkillManager : MonoBehaviour
 
     void Update()
     {
+        // jangan tawarkan skill saat menu awal / jeda / game over
+        if (!GameMenu.SedangMain || GameMenu.SedangJeda || PlayerHealth.GameOver) return;
         if (sedangMemilih) return;
         if (LevelSystem.Instance == null) return;
 
@@ -82,13 +100,16 @@ public class SkillManager : MonoBehaviour
             kolam.RemoveAt(idx);
         }
         sedangMemilih = true;
+        AktifMemilih = true;
         Time.timeScale = 0f; // pause saat memilih
     }
 
     void Pilih(Skill s)
     {
         if (s.efek != null) s.efek.Invoke();
+        SoundManager.LevelUp(); // suara konfirmasi ambil skill
         sedangMemilih = false;
+        AktifMemilih = false;
         Time.timeScale = 1f;
         // kalau naik beberapa level sekaligus, Update akan menawarkan lagi otomatis
     }
@@ -97,42 +118,50 @@ public class SkillManager : MonoBehaviour
     {
         if (!sedangMemilih) return;
 
-        // latar gelap transparan
-        Color simpan = GUI.color;
-        GUI.color = new Color(0f, 0f, 0f, 0.75f);
-        GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
-        GUI.color = simpan;
+        float h = Screen.height;
+        float w = Screen.width;
 
-        // hitung kotak: 3 kartu 1:1 (persegi) sejajar horizontal, di tengah layar
-        float margin = Screen.width * 0.05f;
-        float gap = Screen.width * 0.03f;
-        float totalW = Screen.width - margin * 2f;
+        // latar gelap survival
+        Tema.LatarGelap();
+
+        // ukuran kartu: 3 kartu persegi sejajar di tengah
+        float margin = w * 0.05f;
+        float gap = w * 0.03f;
+        float totalW = w - margin * 2f;
         float cardW = (totalW - gap * 2f) / 3f;
-        float cardH = cardW; // 1:1 (persegi)
-        float y = (Screen.height - cardH) / 2f;
+        float cardH = cardW * 1.15f;
+        float y = (h - cardH) / 2f;
 
-        // judul di atas kartu
-        GUIStyle judul = new GUIStyle();
-        judul.fontSize = Mathf.RoundToInt(Screen.height * 0.045f);
-        judul.fontStyle = FontStyle.Bold;
-        judul.alignment = TextAnchor.MiddleCenter;
-        judul.normal.textColor = new Color(1f, 0.9f, 0.2f, 1f);
-        GUI.Label(new Rect(0, y - Screen.height * 0.12f, Screen.width, judul.fontSize * 2f), "PILIH SKILL!", judul);
+        // ---- HEADER GABUNGAN (tidak lagi tabrakan) ----
+        int fBig = Mathf.RoundToInt(h * 0.055f);
+        int fSub = Mathf.RoundToInt(h * 0.032f);
+        float headY = y - h * 0.20f;
+        Tema.Teks(new Rect(0, headY, w, fBig * 1.4f), "LEVEL UP!", fBig, Tema.Darah, TextAnchor.MiddleCenter, true);
+        Tema.Teks(new Rect(0, headY + fBig * 1.25f, w, fSub * 1.6f), "PILIH SKILL", fSub, Tema.Army, TextAnchor.MiddleCenter, true);
 
-        // gaya teks kartu
-        GUIStyle kartu = new GUIStyle(GUI.skin.button);
-        kartu.fontSize = Mathf.RoundToInt(cardW * 0.11f);
-        kartu.fontStyle = FontStyle.Bold;
-        kartu.alignment = TextAnchor.MiddleCenter;
-        kartu.wordWrap = true;
-        kartu.padding = new RectOffset(8, 8, 8, 8);
+        int fNama = Mathf.RoundToInt(cardW * 0.115f);
+        int fDesk = Mathf.RoundToInt(cardW * 0.095f);
 
         for (int i = 0; i < pilihanSekarang.Count; i++)
         {
             float x = margin + i * (cardW + gap);
+            Rect cr = new Rect(x, y, cardW, cardH);
             Skill s = pilihanSekarang[i];
-            string label = s.nama + "\n\n" + s.deskripsi;
-            if (GUI.Button(new Rect(x, y, cardW, cardH), label, kartu))
+
+            bool hover = cr.Contains(Event.current.mousePosition);
+
+            // kartu bertema
+            Tema.Panel9(cr, hover ? Tema.PanelTerang : Tema.Panel, hover ? Tema.Army : Tema.Garis, Mathf.Max(2f, cardW * 0.02f));
+            Tema.StripAtas(cr, Tema.Army, cardH * 0.05f); // strip aksen di atas
+
+            // nama skill (hijau army) + deskripsi (putih tulang)
+            Tema.Teks(new Rect(cr.x + 6, cr.y + cardH * 0.12f, cr.width - 12, cardH * 0.42f),
+                s.nama, fNama, Tema.Army, TextAnchor.MiddleCenter, true);
+            Tema.Teks(new Rect(cr.x + 6, cr.y + cardH * 0.52f, cr.width - 12, cardH * 0.44f),
+                s.deskripsi, fDesk, Tema.Tulang, TextAnchor.MiddleCenter, false);
+
+            // tombol transparan di atas kartu untuk deteksi klik/sentuh
+            if (GUI.Button(cr, "", GUIStyle.none))
             {
                 Pilih(s);
             }
