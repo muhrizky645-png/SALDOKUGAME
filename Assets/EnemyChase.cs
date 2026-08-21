@@ -46,17 +46,23 @@ public class EnemyChase : MonoBehaviour
             if (p != null) target = p.transform;
         }
 
-        // cari gambar monster otomatis: anak yang punya Animator
+        // Cari gambar monster otomatis untuk dibalik badannya.
+        // Prefab pack ini menaruh gambar di OBJEK ANAK (induknya kosong),
+        // jadi cari anak pertama yang punya Animator ATAU Renderer (gambar).
+        // Kalau tetap tidak ketemu, pakai anak pertama sebagai cadangan.
         if (visual == null)
         {
             foreach (Transform child in transform)
             {
-                if (child.GetComponentInChildren<Animator>() != null)
+                if (child.GetComponentInChildren<Animator>() != null ||
+                    child.GetComponentInChildren<Renderer>() != null)
                 {
                     visual = child;
                     break;
                 }
             }
+            if (visual == null && transform.childCount > 0)
+                visual = transform.GetChild(0);
         }
         if (visual != null) visualBaseScale = visual.localScale;
 
@@ -105,6 +111,8 @@ public class EnemyChase : MonoBehaviour
 
     void HadapkanKe(Vector2 arah)
     {
+        if (Mathf.Abs(arah.x) < 0.01f) return; // hampir vertikal, jangan balik badan
+
         // untuk sprite bawaan (kalau dipakai)
         if (sr != null)
         {
