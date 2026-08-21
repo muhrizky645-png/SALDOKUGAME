@@ -105,7 +105,7 @@ public class GameMenu : MonoBehaviour
             GambarJudul("SALDOKU\nLAST STAND");
             if (ScoreManager.Instance != null)
                 GambarInfo("Rekor Tertinggi: " + ScoreManager.Instance.RekorTertinggi, 0.40f);
-            if (Tombol("MAIN", 0.5f)) Mulai();
+            if (Tombol("MAIN", 0.5f)) { SoundManager.Klik(); Mulai(); }
             return;
         }
 
@@ -116,9 +116,9 @@ public class GameMenu : MonoBehaviour
         {
             GambarPanel(new Color(0f, 0f, 0f, 0.85f));
             GambarJudul("JEDA");
-            if (Tombol("LANJUT", 0.40f)) Lanjut();
-            if (Tombol("ULANGI", 0.55f)) UlangiDanMain();
-            if (Tombol("KEMBALI KE HOME", 0.70f)) KeHome();
+            if (Tombol("LANJUT", 0.40f)) { SoundManager.Klik(); Lanjut(); }
+            if (Tombol("ULANGI", 0.55f)) { SoundManager.Klik(); UlangiDanMain(); }
+            if (Tombol("KEMBALI KE HOME", 0.70f)) { SoundManager.Klik(); KeHome(); }
             return;
         }
 
@@ -132,7 +132,7 @@ public class GameMenu : MonoBehaviour
         GUIStyle tp = new GUIStyle(GUI.skin.button);
         tp.fontSize = Mathf.RoundToInt(Screen.height * 0.03f);
         tp.fontStyle = FontStyle.Bold;
-        if (GUI.Button(new Rect(x, pad, sz, sz), "II", tp)) Jeda();
+        if (GUI.Button(new Rect(x, pad, sz, sz), "II", tp)) { SoundManager.Klik(); Jeda(); }
     }
 
     // ---------- util gambar ----------
