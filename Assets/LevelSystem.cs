@@ -47,6 +47,9 @@ public class LevelSystem : MonoBehaviour
 
     void OnGUI()
     {
+        // sembunyikan HUD selama menu awal masih tampil
+        if (!GameMenu.SedangMain) return;
+
         int fontSize = Mathf.RoundToInt(Screen.height * 0.032f);
         float pad = Screen.height * 0.02f;
         string teks = "Level " + level;
