@@ -55,5 +55,7 @@ public class PlayerShooting : MonoBehaviour
             GameObject peluru = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
             peluru.GetComponent<Bullet>().direction = arahPeluru;
         }
+
+        SoundManager.Tembak(); // suara tembak
     }
 }
