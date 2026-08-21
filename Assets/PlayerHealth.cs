@@ -19,7 +19,7 @@ public class PlayerHealth : MonoBehaviour
     private SpriteRenderer[] srs;
     private Color[] warnaAsli;
     private float flashTimer = 0f;
-    private float sfxKenaTimer = 0f; // jeda antar suara "kena" biar tidak spam
+    private float sfxKenaTimer = 0f; // jeda antar suara \"kena\" biar tidak spam
 
     void Start()
     {
@@ -102,39 +102,56 @@ public class PlayerHealth : MonoBehaviour
 
     void OnGUI()
     {
-        if (isDead)
+        if (!isDead) return;
+
+        float h = Screen.height;
+        float w = Screen.width;
+
+        // latar gelap + semburat merah darah
+        Tema.LatarGelap(new Color(0.35f, 0.03f, 0.03f, 0.30f));
+
+        // judul GAME OVER
+        Tema.Teks(new Rect(0, h * 0.14f, w, h * 0.13f), "GAME OVER", Mathf.RoundToInt(h * 0.095f),
+            Tema.Darah, TextAnchor.MiddleCenter, true);
+
+        // panel skor akhir + rekor
+        int skor = (ScoreManager.Instance != null) ? ScoreManager.Instance.SkorSekarang : 0;
+        int rekor = (ScoreManager.Instance != null) ? ScoreManager.Instance.RekorTertinggi : 0;
+        bool rekorBaru = (skor > 0 && skor >= rekor);
+
+        float pw = w * 0.7f, ph = h * 0.16f, px = (w - pw) / 2f, py = h * 0.30f;
+        Tema.Panel9(new Rect(px, py, pw, ph), Tema.Plate, Tema.GarisRedup, 2f);
+
+        // dua kolom: SKOR (kiri) & REKOR (kanan)
+        float colW = pw / 2f;
+        Tema.Teks(new Rect(px, py + ph * 0.14f, colW, ph * 0.35f), "SKOR", Mathf.RoundToInt(h * 0.026f),
+            Tema.Redup, TextAnchor.MiddleCenter, true);
+        Tema.Teks(new Rect(px, py + ph * 0.45f, colW, ph * 0.5f), skor.ToString(), Mathf.RoundToInt(h * 0.05f),
+            Tema.Tulang, TextAnchor.MiddleCenter, true);
+        Tema.Teks(new Rect(px + colW, py + ph * 0.14f, colW, ph * 0.35f), "REKOR", Mathf.RoundToInt(h * 0.026f),
+            Tema.Redup, TextAnchor.MiddleCenter, true);
+        Tema.Teks(new Rect(px + colW, py + ph * 0.45f, colW, ph * 0.5f), rekor.ToString(), Mathf.RoundToInt(h * 0.05f),
+            Tema.Amber, TextAnchor.MiddleCenter, true);
+
+        // badge rekor baru
+        if (rekorBaru)
         {
-            GUIStyle overStyle = new GUIStyle();
-            overStyle.fontSize = 120;
-            overStyle.fontStyle = FontStyle.Bold;
-            overStyle.normal.textColor = Color.red;
-            overStyle.alignment = TextAnchor.MiddleCenter;
-            GUI.Label(new Rect(0, -Screen.height * 0.12f, Screen.width, Screen.height), "GAME OVER", overStyle);
+            Tema.Teks(new Rect(0, py + ph + h * 0.01f, w, h * 0.045f), "* REKOR BARU! *",
+                Mathf.RoundToInt(h * 0.03f), Tema.Amber, TextAnchor.MiddleCenter, true);
+        }
 
-            // skor akhir + rekor
-            if (ScoreManager.Instance != null)
-            {
-                GUIStyle skorStyle = new GUIStyle();
-                skorStyle.fontSize = 48;
-                skorStyle.fontStyle = FontStyle.Bold;
-                skorStyle.alignment = TextAnchor.MiddleCenter;
-                skorStyle.normal.textColor = Color.white;
-                string t = "Skor: " + ScoreManager.Instance.SkorSekarang + "    Rekor: " + ScoreManager.Instance.RekorTertinggi;
-                GUI.Label(new Rect(0, Screen.height / 2 - 20, Screen.width, 80), t, skorStyle);
-            }
-
-            GUIStyle btnStyle = new GUIStyle(GUI.skin.button);
-            btnStyle.fontSize = 40;
-            if (GUI.Button(new Rect(Screen.width / 2 - 150, Screen.height / 2 + 90, 300, 90), "MAIN LAGI (R)", btnStyle))
-            {
-                SoundManager.Klik();
-                GameMenu.UlangiDanMain();
-            }
-            if (GUI.Button(new Rect(Screen.width / 2 - 150, Screen.height / 2 + 195, 300, 90), "KE HOME", btnStyle))
-            {
-                SoundManager.Klik();
-                GameMenu.KeHome();
-            }
+        // tombol
+        float bw = w * 0.6f, bh = h * 0.08f, bx = (w - bw) / 2f;
+        int fb = Mathf.RoundToInt(h * 0.034f);
+        if (GUI.Button(new Rect(bx, h * 0.56f, bw, bh), "MAIN LAGI (R)", Tema.GayaTombol(fb)))
+        {
+            SoundManager.Klik();
+            GameMenu.UlangiDanMain();
+        }
+        if (GUI.Button(new Rect(bx, h * 0.66f, bw, bh), "KE HOME", Tema.GayaTombol(fb)))
+        {
+            SoundManager.Klik();
+            GameMenu.KeHome();
         }
     }
 }
