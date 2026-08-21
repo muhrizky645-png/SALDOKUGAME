@@ -8,7 +8,7 @@ public class VirtualJoystick : MonoBehaviour
     public static Vector2 Direction = Vector2.zero;
 
     [Header("Pengaturan (opsional)")]
-    public float skala = 0.5f;                           // besar-kecil joystick (1 = normal, 0.5 = setengah)
+    public float skala = 0.75f;                          // besar-kecil joystick (1 = normal, 0.75 = 3/4)
     [Range(0f, 1f)] public float transparansi = 0.25f;   // transparansi lingkaran saat muncul (kecil = lebih transparan)
     [Range(1f, 3f)] public float sensitivitas = 1.6f;    // makin besar = makin responsif (arah cepat penuh)
     [Range(0.1f, 1f)] public float areaAktif = 1f;       // bagian layar dari kiri yang bisa dipakai (1 = seluruh layar)
