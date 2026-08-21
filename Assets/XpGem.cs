@@ -25,6 +25,13 @@ public class XpGem : MonoBehaviour
     private SpriteRenderer sr;
     private float t = 0f;
 
+    // Dipanggil item Magnet: paksa permata langsung terbang ke pemain
+    public void PaksaTarik()
+    {
+        jarakMagnet = 9999f;
+        kecepatanTarik = Mathf.Max(kecepatanTarik, 16f);
+    }
+
     void Start()
     {
         GameObject p = GameObject.FindWithTag("Player");
