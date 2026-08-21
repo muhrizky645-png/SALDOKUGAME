@@ -1,7 +1,8 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 // Mengatur Level & XP pemain. XP didapat dari memungut permata (XpGem).
-// Otomatis dibuat saat game mulai, tanpa perlu setting di Editor.
+// Otomatis dibuat saat game mulai DAN tiap scene di-reload.
 public class LevelSystem : MonoBehaviour
 {
     public static LevelSystem Instance;
@@ -17,6 +18,12 @@ public class LevelSystem : MonoBehaviour
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
+    {
+        Buat();
+        SceneManager.sceneLoaded += (scene, mode) => Buat();
+    }
+
+    static void Buat()
     {
         if (Instance == null) new GameObject("LevelSystem", typeof(LevelSystem));
     }
@@ -47,8 +54,8 @@ public class LevelSystem : MonoBehaviour
 
     void OnGUI()
     {
-        // sembunyikan HUD selama menu awal masih tampil
-        if (!GameMenu.SedangMain) return;
+        // sembunyikan HUD selama menu awal / menu jeda tampil
+        if (!GameMenu.SedangMain || GameMenu.SedangJeda) return;
 
         int fontSize = Mathf.RoundToInt(Screen.height * 0.032f);
         float pad = Screen.height * 0.02f;
