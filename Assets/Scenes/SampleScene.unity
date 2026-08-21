@@ -813,7 +813,7 @@ MonoBehaviour:
   moveSpeed: 5
   bobAmount: 0.08
   bobSpeed: 12
-  visual: {fileID: 0}
+  visual: {fileID: 151773566}
   goyangSudut: 8
   goyangKecepatan: 12
 --- !u!212 &1450080298
