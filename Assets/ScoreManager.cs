@@ -48,8 +48,9 @@ public class ScoreManager : MonoBehaviour
     }
 
     // Tata letak HUD (tema survival):
-    //  - Skor  : plat gelap di TENGAH atas (di bawah tombol jeda)
-    //  - Rekor : panel gelap di pojok KANAN atas (dengan ikon bintang)
+    //  - Timer : tengah atas (diatur GameTimer.cs)
+    //  - Skor  : plat gelap di TENGAH atas (di bawah timer)
+    //  - Rekor : panel gelap di pojok KANAN atas, DI BAWAH tombol jeda
     //  (Level + bar XP diatur di LevelSystem.cs, pojok KIRI atas)
     void OnGUI()
     {
@@ -59,22 +60,22 @@ public class ScoreManager : MonoBehaviour
         float h = Screen.height;
         float pad = h * 0.02f;
 
-        // ---- SKOR (plat tengah atas, di bawah tombol jeda) ----
+        // ---- SKOR (plat tengah atas, di bawah timer) ----
         int fSkor = Mathf.RoundToInt(h * 0.05f);
         float plW = Screen.width * 0.44f;
         float plH = fSkor * 1.5f;
         float plX = (Screen.width - plW) / 2f;
-        float plY = h * 0.085f;
+        float plY = h * 0.10f; // sedikit turun supaya timer (tengah paling atas) tidak tertimpa
         Tema.Panel9(new Rect(plX, plY, plW, plH), Tema.Plate, Tema.GarisRedup, 2f);
         Tema.Teks(new Rect(plX, plY + plH * 0.14f, plW, plH), score.ToString(), fSkor,
             Tema.Tulang, TextAnchor.UpperCenter, true);
 
-        // ---- REKOR / HIGH SCORE (panel pojok kanan atas) ----
+        // ---- REKOR / HIGH SCORE (panel pojok kanan atas, DI BAWAH tombol jeda) ----
         int fRek = Mathf.RoundToInt(h * 0.026f);
         float rW = Screen.width * 0.34f;
         float rH = fRek * 3.1f;
         float rX = Screen.width - rW - pad;
-        float rY = pad;
+        float rY = pad + h * 0.055f + h * 0.012f; // di bawah tombol jeda (sz 0.055h)
         Tema.Panel9(new Rect(rX, rY, rW, rH), Tema.Plate, Tema.GarisRedup, 2f);
 
         // ikon bintang di kiri panel rekor
