@@ -181,37 +181,38 @@ MonoBehaviour:
     kecepatan: 2.3
     skor: 15
     xp: 2
-    skala: 1
+    skala: 3
   - prefab: {fileID: 7773741634138198696, guid: e3f10a49adf9da94196f359c3bc3cece, type: 3}
     mulaiLevel: 5
     nyawa: 7
     kecepatan: 2
     skor: 20
     xp: 2
-    skala: 1
+    skala: 3
   - prefab: {fileID: 6679783802021260202, guid: 0f9692da27a35e64fb6c73920e21165e, type: 3}
     mulaiLevel: 7
     nyawa: 10
     kecepatan: 2
     skor: 25
     xp: 3
-    skala: 1
+    skala: 3
   - prefab: {fileID: 6981722426433150837, guid: c7ba699d54ffef146a65ae69b8cb2961, type: 3}
     mulaiLevel: 9
     nyawa: 14
     kecepatan: 2.5
     skor: 30
     xp: 4
-    skala: 1
+    skala: 3
   - prefab: {fileID: 5284643900520674695, guid: 027b1c9cd4f5b4344995f03cc92fd18e, type: 3}
     mulaiLevel: 11
     nyawa: 20
     kecepatan: 1.8
     skor: 40
     xp: 5
-    skala: 1
+    skala: 4
   zombiePrefab: {fileID: 5876629510968562606, guid: a5826430ce8d6f14597fb0b3092c0b38, type: 3}
   spawnDistance: 8
+  ukuranMusuh: 1
   spawnAwal: 0.9
   penguranganTiapLevel: 0.1
   spawnTercepat: 0.2
