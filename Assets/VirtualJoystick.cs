@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class VirtualJoystick : MonoBehaviour
 {
@@ -21,9 +22,15 @@ public class VirtualJoystick : MonoBehaviour
     private Vector2 pusat;       // titik awal sentuh (pusat joystick)
     private int pointerId = -99; // -99 = nonaktif, -1 = mouse, >=0 = jari
 
-    // Otomatis dibuat saat game mulai (tanpa setup di Editor)
+    // Otomatis dibuat saat game mulai DAN tiap scene di-reload (tanpa setup di Editor)
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
+    {
+        Buat();
+        SceneManager.sceneLoaded += (scene, mode) => Buat();
+    }
+
+    static void Buat()
     {
         if (FindObjectOfType<VirtualJoystick>() == null)
         {
@@ -85,6 +92,13 @@ public class VirtualJoystick : MonoBehaviour
 
     void Update()
     {
+        // nonaktif saat menu awal / menu jeda / game over
+        if (!GameMenu.SedangMain || GameMenu.SedangJeda || PlayerHealth.GameOver)
+        {
+            if (pointerId != -99) Lepas();
+            return;
+        }
+
         if (pointerId == -99) CekMulaiTekan();
 
         if (pointerId != -99)
