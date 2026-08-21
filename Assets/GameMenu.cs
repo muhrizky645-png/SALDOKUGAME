@@ -112,7 +112,7 @@ public class GameMenu : MonoBehaviour
             Tema.Teks(new Rect(0, h * 0.37f, w, h * 0.05f), "BERTAHAN SELAMA MUNGKIN", Mathf.RoundToInt(h * 0.026f),
                 Tema.Redup, TextAnchor.MiddleCenter, true);
 
-            // panel rekor
+            // panel rekor (dengan ikon bintang mengapit angka)
             if (ScoreManager.Instance != null)
             {
                 float rw = w * 0.7f, rh = h * 0.09f, rx = (w - rw) / 2f, ry = h * 0.46f;
@@ -121,6 +121,10 @@ public class GameMenu : MonoBehaviour
                     Mathf.RoundToInt(h * 0.024f), Tema.Redup, TextAnchor.MiddleCenter, true);
                 Tema.Teks(new Rect(rx, ry + rh * 0.44f, rw, rh * 0.55f), ScoreManager.Instance.RekorTertinggi.ToString(),
                     Mathf.RoundToInt(h * 0.038f), Tema.Amber, TextAnchor.MiddleCenter, true);
+
+                float ik = rh * 0.42f;
+                Ikon.Gambar(new Rect(rx + rw * 0.13f, ry + rh * 0.44f, ik, ik), Ikon.Bintang, Tema.Amber);
+                Ikon.Gambar(new Rect(rx + rw * 0.87f - ik, ry + rh * 0.44f, ik, ik), Ikon.Bintang, Tema.Amber);
             }
 
             if (Tombol("MAIN", 0.62f, 0.55f)) { SoundManager.Klik(); Mulai(); }
