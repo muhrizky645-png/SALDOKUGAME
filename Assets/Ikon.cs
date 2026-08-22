@@ -1,7 +1,8 @@
 using UnityEngine;
 
 // Kumpulan IKON/logo yang dibuat lewat KODE (tanpa file gambar).
-// Digambar putih (dengan anti-alias), lalu diberi warna saat dipakai.
+// Bentuk dipanggang jadi tekstur dengan GRADASI (atas lebih terang) + anti-alias,
+// lalu saat digambar diberi OUTLINE gelap supaya lebih \"tergambar\" / berdimensi.
 public static class Ikon
 {
     // ====== PRIMITIF BANTU (ruang normal -1..1, y ke atas) ======
@@ -31,12 +32,17 @@ public static class Ikon
         return dx * dx + dy * dy <= w * w;
     }
 
-    // Render fungsi bentuk (true = di dalam) jadi tekstur putih + anti-alias 2x2
+    // Render fungsi bentuk (true = di dalam) jadi tekstur + anti-alias 2x2.
+    // RGB dipanggang GRADASI vertikal (atas terang, bawah gelap) supaya saat
+    // diberi warna, ikon terlihat punya bayangan/dimensi (bukan flat 1 warna).
     static Texture2D Buat(System.Func<float, float, bool> f, int size)
     {
         Texture2D t = new Texture2D(size, size, TextureFormat.RGBA32, false);
         t.wrapMode = TextureWrapMode.Clamp;
         for (int y = 0; y < size; y++)
+        {
+            float ny = ((y + 0.5f) / size) * 2f - 1f;        // -1 bawah .. 1 atas
+            float g = 0.70f + 0.30f * ((ny + 1f) * 0.5f);     // 0.70 bawah .. 1.0 atas
             for (int x = 0; x < size; x++)
             {
                 int hit = 0;
@@ -44,18 +50,19 @@ public static class Ikon
                     for (int sx = 0; sx < 2; sx++)
                     {
                         float nx = ((x + (sx + 0.5f) / 2f) / size) * 2f - 1f;
-                        float ny = ((y + (sy + 0.5f) / 2f) / size) * 2f - 1f;
-                        if (f(nx, ny)) hit++;
+                        float my = ((y + (sy + 0.5f) / 2f) / size) * 2f - 1f;
+                        if (f(nx, my)) hit++;
                     }
-                t.SetPixel(x, y, new Color(1f, 1f, 1f, hit / 4f));
+                t.SetPixel(x, y, new Color(g, g, g, hit / 4f));
             }
+        }
         t.Apply();
         return t;
     }
 
     // ====== IKON (lazy + cache) ======
     static Texture2D _bintang, _petir, _peluru, _target, _chevron, _hati, _berlian, _tengkorak;
-    static Texture2D _bom, _magnet, _peti, _aura;
+    static Texture2D _bom, _magnet, _peti, _aura, _roket, _pisau;
 
     public static Texture2D Bintang { get { if (_bintang == null) _bintang = Buat(FBintang, 72); return _bintang; } }
     public static Texture2D Petir { get { if (_petir == null) _petir = Buat(FPetir, 72); return _petir; } }
@@ -69,6 +76,8 @@ public static class Ikon
     public static Texture2D Magnet { get { if (_magnet == null) _magnet = Buat(FMagnet, 72); return _magnet; } }
     public static Texture2D Peti { get { if (_peti == null) _peti = Buat(FPeti, 72); return _peti; } }
     public static Texture2D Aura { get { if (_aura == null) _aura = Buat(FAura, 72); return _aura; } }
+    public static Texture2D Roket { get { if (_roket == null) _roket = Buat(FRoket, 72); return _roket; } }
+    public static Texture2D Pisau { get { if (_pisau == null) _pisau = Buat(FPisau, 72); return _pisau; } }
 
     // Bintang 5 sudut (rekor / high score)
     static bool FBintang(float x, float y)
@@ -82,7 +91,7 @@ public static class Ikon
         return r <= radius;
     }
 
-    // Petir (serang lebih cepat / roket)
+    // Petir (serang lebih cepat)
     static bool FPetir(float x, float y)
     {
         float w = 0.17f;
@@ -103,7 +112,7 @@ public static class Ikon
         return false;
     }
 
-    // Target / crosshair (jangkauan lebih jauh / aura)
+    // Target / crosshair (jangkauan lebih jauh)
     static bool FTarget(float x, float y)
     {
         return Cincin(x, y, 0.72f, 0.96f)
@@ -180,7 +189,52 @@ public static class Ikon
         return Cincin(x, y, 0.78f, 0.96f) || Cincin(x, y, 0.40f, 0.56f) || Disc(x, y, 0f, 0f, 0.14f);
     }
 
-    // Ambil ikon berdasarkan id skill
+    // Roket (skill Roket Pelacak): badan silinder + hidung kerucut + sirip + nyala + jendela
+    static bool FRoket(float x, float y)
+    {
+        float ax = Mathf.Abs(x);
+        bool inside = false;
+
+        // badan silinder
+        if (y >= -0.48f && y <= 0.45f && ax <= 0.22f) inside = true;
+        // hidung kerucut
+        if (y > 0.45f && y <= 0.92f)
+        {
+            float t = (y - 0.45f) / 0.47f;
+            if (ax <= Mathf.Lerp(0.22f, 0f, t)) inside = true;
+        }
+        // sirip kiri-kanan
+        if (y >= -0.74f && y <= -0.30f)
+        {
+            float t = (y + 0.74f) / 0.44f;
+            float outer = Mathf.Lerp(0.55f, 0.22f, t);
+            if (ax >= 0.20f && ax <= outer) inside = true;
+        }
+        // nyala api di bawah
+        if (y >= -0.98f && y < -0.74f)
+        {
+            float t = (y + 0.98f) / 0.24f;
+            if (ax <= Mathf.Lerp(0.04f, 0.15f, t)) inside = true;
+        }
+        // jendela (lubang) di badan
+        if (inside && Disc(x, y, 0f, 0.12f, 0.11f)) return false;
+        return inside;
+    }
+
+    // Pisau berputar (shuriken 4 sudut + lubang tengah) - ganti bintang biar tidak kembar
+    static bool FPisau(float x, float y)
+    {
+        float r = Mathf.Sqrt(x * x + y * y);
+        float ang = Mathf.Atan2(y, x);
+        float step = Mathf.PI * 2f / 4f;
+        float a = Mathf.Repeat(ang, step);
+        float tt = a / (step / 2f); if (tt > 1f) tt = 2f - tt;
+        float radius = Mathf.Lerp(0.98f, 0.28f, tt); // sudut tajam
+        if (Disc(x, y, 0f, 0f, 0.16f)) return false; // lubang tengah
+        return r <= radius;
+    }
+
+    // Ambil ikon berdasarkan id skill (tiap skill bentuknya BEDA)
     public static Texture2D UntukSkill(string id)
     {
         switch (id)
@@ -191,20 +245,41 @@ public static class Ikon
             case "chevron": return Chevron;
             case "hati": return Hati;
             case "berlian": return Berlian;
-            case "pisau": return Bintang;
+            case "pisau": return Pisau;
             case "aura": return Aura;
-            case "roket": return Petir;
+            case "roket": return Roket;
             default: return Bintang;
         }
     }
 
-    // Gambar ikon di layar dengan warna tertentu
+    // Gambar ikon (versi ringkas: outline gelap otomatis)
     public static void Gambar(Rect r, Texture2D tex, Color c)
     {
+        Gambar(r, tex, c, new Color(0f, 0f, 0f, 0.55f));
+    }
+
+    // Gambar ikon dengan warna isi + warna outline (biar lebih \"tergambar\")
+    public static void Gambar(Rect r, Texture2D tex, Color isi, Color garis)
+    {
         if (tex == null) return;
-        Color s = GUI.color;
-        GUI.color = c;
+        Color simpan = GUI.color;
+
+        // OUTLINE: gambar tekstur gelap di 8 arah offset kecil
+        float o = Mathf.Max(1f, r.width * 0.03f);
+        GUI.color = garis;
+        GUI.DrawTexture(new Rect(r.x - o, r.y, r.width, r.height), tex, ScaleMode.StretchToFill, true);
+        GUI.DrawTexture(new Rect(r.x + o, r.y, r.width, r.height), tex, ScaleMode.StretchToFill, true);
+        GUI.DrawTexture(new Rect(r.x, r.y - o, r.width, r.height), tex, ScaleMode.StretchToFill, true);
+        GUI.DrawTexture(new Rect(r.x, r.y + o, r.width, r.height), tex, ScaleMode.StretchToFill, true);
+        GUI.DrawTexture(new Rect(r.x - o, r.y - o, r.width, r.height), tex, ScaleMode.StretchToFill, true);
+        GUI.DrawTexture(new Rect(r.x + o, r.y - o, r.width, r.height), tex, ScaleMode.StretchToFill, true);
+        GUI.DrawTexture(new Rect(r.x - o, r.y + o, r.width, r.height), tex, ScaleMode.StretchToFill, true);
+        GUI.DrawTexture(new Rect(r.x + o, r.y + o, r.width, r.height), tex, ScaleMode.StretchToFill, true);
+
+        // ISI di atas outline
+        GUI.color = isi;
         GUI.DrawTexture(r, tex, ScaleMode.StretchToFill, true);
-        GUI.color = s;
+
+        GUI.color = simpan;
     }
 }
