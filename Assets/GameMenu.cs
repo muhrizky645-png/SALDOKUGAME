@@ -115,30 +115,32 @@ public class GameMenu : MonoBehaviour
         {
             Tema.LatarGelap(new Color(0.04f, 0.10f, 0.05f, 0.35f)); // semburat hijau gelap
 
-            Tema.Teks(new Rect(0, h * 0.14f, w, h * 0.12f), "SALDOKU", Mathf.RoundToInt(h * 0.085f),
+            // ---- JUDUL ----
+            Tema.Teks(new Rect(0, h * 0.11f, w, h * 0.11f), "SALDOKU", Mathf.RoundToInt(h * 0.082f),
                 Tema.Darah, TextAnchor.MiddleCenter, true);
-            Tema.Teks(new Rect(0, h * 0.25f, w, h * 0.09f), "LAST STAND", Mathf.RoundToInt(h * 0.062f),
+            Tema.Teks(new Rect(0, h * 0.215f, w, h * 0.085f), "LAST STAND", Mathf.RoundToInt(h * 0.058f),
                 Tema.Army, TextAnchor.MiddleCenter, true);
-            Tema.Teks(new Rect(0, h * 0.35f, w, h * 0.05f), "BERTAHAN SELAMA MUNGKIN", Mathf.RoundToInt(h * 0.026f),
+            Tema.Teks(new Rect(0, h * 0.315f, w, h * 0.045f), "BERTAHAN SELAMA MUNGKIN", Mathf.RoundToInt(h * 0.026f),
                 Tema.Redup, TextAnchor.MiddleCenter, true);
 
-            // panel rekor (dengan ikon bintang mengapit angka)
+            // ---- PANEL REKOR (ikon bintang mengapit angka) ----
             if (ScoreManager.Instance != null)
             {
-                float rw = w * 0.7f, rh = h * 0.09f, rx = (w - rw) / 2f, ry = h * 0.43f;
+                float rw = w * 0.7f, rh = h * 0.10f, rx = (w - rw) / 2f, ry = h * 0.40f;
                 Tema.Panel9(new Rect(rx, ry, rw, rh), Tema.Plate, Tema.GarisRedup, 2f);
-                Tema.Teks(new Rect(rx, ry + rh * 0.10f, rw, rh * 0.45f), "REKOR TERTINGGI",
+                Tema.Teks(new Rect(rx, ry + rh * 0.12f, rw, rh * 0.40f), "REKOR TERTINGGI",
                     Mathf.RoundToInt(h * 0.024f), Tema.Redup, TextAnchor.MiddleCenter, true);
-                Tema.Teks(new Rect(rx, ry + rh * 0.44f, rw, rh * 0.55f), ScoreManager.Instance.RekorTertinggi.ToString(),
+                Tema.Teks(new Rect(rx, ry + rh * 0.46f, rw, rh * 0.50f), ScoreManager.Instance.RekorTertinggi.ToString(),
                     Mathf.RoundToInt(h * 0.038f), Tema.Amber, TextAnchor.MiddleCenter, true);
 
-                float ik = rh * 0.42f;
-                Ikon.Gambar(new Rect(rx + rw * 0.13f, ry + rh * 0.44f, ik, ik), Ikon.Bintang, Tema.Amber);
-                Ikon.Gambar(new Rect(rx + rw * 0.87f - ik, ry + rh * 0.44f, ik, ik), Ikon.Bintang, Tema.Amber);
+                float ik = rh * 0.38f;
+                Ikon.Gambar(new Rect(rx + rw * 0.14f, ry + rh * 0.48f, ik, ik), Ikon.Bintang, Tema.Amber);
+                Ikon.Gambar(new Rect(rx + rw * 0.86f - ik, ry + rh * 0.48f, ik, ik), Ikon.Bintang, Tema.Amber);
             }
 
-            if (Tombol("MAIN", 0.58f, 0.55f)) { SoundManager.Klik(); Mulai(); }
-            if (Tombol("PENGATURAN", 0.69f, 0.55f)) { SoundManager.Klik(); tampilPengaturan = true; }
+            // ---- TOMBOL (lebar seragam, jarak konsisten) ----
+            if (Tombol("MAIN", 0.60f, 0.62f)) { SoundManager.Klik(); Mulai(); }
+            if (Tombol("PENGATURAN", 0.72f, 0.62f)) { SoundManager.Klik(); tampilPengaturan = true; }
             return;
         }
 
@@ -233,7 +235,7 @@ public class GameMenu : MonoBehaviour
         float bh = Screen.height * 0.085f;
         float bx = (Screen.width - bw) / 2f;
         float by = Screen.height * posY;
-        int f = Mathf.RoundToInt(Screen.height * 0.036f);
+        int f = Mathf.RoundToInt(Screen.height * 0.034f);
         return GUI.Button(new Rect(bx, by, bw, bh), teks, Tema.GayaTombol(f));
     }
 }
