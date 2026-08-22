@@ -3,6 +3,11 @@ using UnityEngine;
 // Tema visual BERSAMA bergaya "SURVIVAL" (gelap, gritty, aksen merah darah + hijau army).
 // Semua digambar lewat kode (IMGUI) + tekstur dibuat saat runtime, TANPA file gambar.
 // Dipakai oleh HUD, menu Home, menu Jeda, Game Over, dan kartu Skill.
+//
+// PENTING: semua tekstur runtime ditandai HideFlags.HideAndDontSave supaya TIDAK ikut
+// dihapus Unity saat scene di-reload (restart / tonton iklan). Tanpa ini, background
+// tombol (GayaTombol) hilang setelah main ulang karena GUIStyle di-cache tapi tekstur
+// di dalamnya sudah dihancurkan -> border/kotak tombol jadi lenyap.
 public static class Tema
 {
     // ====== PALET WARNA ======
@@ -64,6 +69,7 @@ public static class Tema
             if (_putih == null)
             {
                 _putih = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+                _putih.hideFlags = HideFlags.HideAndDontSave; // bertahan saat scene reload
                 _putih.SetPixel(0, 0, Color.white);
                 _putih.Apply();
             }
@@ -129,6 +135,7 @@ public static class Tema
     {
         int size = 20;
         Texture2D t = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        t.hideFlags = HideFlags.HideAndDontSave; // bertahan saat scene reload (border tombol tak hilang)
         t.wrapMode = TextureWrapMode.Clamp;
         t.filterMode = FilterMode.Point;
         for (int y = 0; y < size; y++)
