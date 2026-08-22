@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 // ====== MODE DEWA (Peti Dewa) ======
 // Peti muncul saat pemain sudah bertahan cukup lama. Dibuka dengan "tonton iklan"
 // (sekarang PLACEHOLDER -> langsung buka; untuk iklan ASLI cukup panggil Aktifkan()
-// pada callback reward Unity Ads/AdMob). Memberi 4 SKILL DI LUAR NALAR selama 2 MENIT:
+// pada callback reward Unity Ads/AdMob). Memberi 4 SKILL DI LUAR NALAR selama 30 DETIK:
 //   1) KEBAL          - tidak bisa mati
 //   2) BADAI PELURU   - tembakan super cepat + banyak + jauh
 //   3) MAGNET SEMESTA - semua permata langsung tersedot
@@ -18,7 +18,7 @@ public class ModeDewa : MonoBehaviour
     public static bool Aktif = false;
     public static float SisaDetik = 0f;
 
-    const float DURASI = 120f;        // 2 menit
+    const float DURASI = 30f;         // durasi skill dewa = 30 detik
     const float JedaIsiUlang = 30f;   // peti muncul lagi tiap 30 detik bermain
 
     private bool tersedia = false;    // peti siap dibuka
@@ -211,32 +211,35 @@ public class ModeDewa : MonoBehaviour
         float pw = w * 0.84f, ph = h * 0.62f, px = (w - pw) / 2f, py = h * 0.19f;
         Tema.Panel9(new Rect(px, py, pw, ph), Tema.Panel, Tema.Amber, 3f);
 
+        // judul
         Tema.Teks(new Rect(px, py + ph * 0.03f, pw, ph * 0.10f), "PETI DEWA",
-            Mathf.RoundToInt(ph * 0.09f), Tema.Amber, TextAnchor.MiddleCenter, true);
+            Mathf.RoundToInt(ph * 0.085f), Tema.Amber, TextAnchor.MiddleCenter, true);
 
-        float isz = ph * 0.16f;
-        Rect ir = new Rect(px + (pw - isz) / 2f, py + ph * 0.13f, isz, isz);
+        // ikon peti
+        float isz = ph * 0.15f;
+        Rect ir = new Rect(px + (pw - isz) / 2f, py + ph * 0.14f, isz, isz);
         if (Chest != null) GUI.DrawTexture(ir, Chest, ScaleMode.ScaleToFit, true);
         else Ikon.Gambar(ir, Ikon.Peti, Tema.Amber);
 
+        // daftar skill: satu baris tiap poin biar rapi (tidak turun baris)
         string[] baris = new string[] {
             "KEBAL - tak bisa mati",
-            "BADAI PELURU - tembakan gila",
-            "MAGNET SEMESTA - semua permata",
-            "AURA MAUT - musnahkan sekitar",
+            "BADAI PELURU - tembak brutal",
+            "MAGNET - tarik semua permata",
+            "AURA MAUT - musnah sekitar",
         };
-        float ly = py + ph * 0.34f;
+        float ly = py + ph * 0.32f;
         float lh = ph * 0.072f;
-        int fl = Mathf.RoundToInt(ph * 0.045f);
+        int fl = Mathf.RoundToInt(ph * 0.032f);
         for (int i = 0; i < baris.Length; i++)
             Tema.Teks(new Rect(px + pw * 0.09f, ly + i * lh, pw * 0.82f, lh),
                 baris[i], fl, Tema.Tulang, TextAnchor.MiddleLeft, false);
 
-        Tema.Teks(new Rect(px, py + ph * 0.65f, pw, ph * 0.07f), "AKTIF SELAMA 2 MENIT",
+        Tema.Teks(new Rect(px, py + ph * 0.63f, pw, ph * 0.07f), "AKTIF SELAMA 30 DETIK",
             Mathf.RoundToInt(ph * 0.05f), Tema.Army, TextAnchor.MiddleCenter, true);
 
         float bw = pw * 0.82f, bx = px + (pw - bw) / 2f;
-        float b1y = py + ph * 0.74f, b1h = ph * 0.13f;
+        float b1y = py + ph * 0.73f, b1h = ph * 0.13f;
         Rect rIklan = new Rect(bx, b1y, bw, b1h);
         if (GUI.Button(rIklan, "", Tema.GayaTombol(1)))
         {
@@ -249,7 +252,7 @@ public class ModeDewa : MonoBehaviour
         Tema.Teks(new Rect(rIklan.x, rIklan.y + b1h * 0.54f, rIklan.width, b1h * 0.40f),
             "> TONTON IKLAN", Mathf.RoundToInt(ph * 0.035f), Tema.Amber, TextAnchor.MiddleCenter, true);
 
-        float b2y = py + ph * 0.89f, b2h = ph * 0.09f;
+        float b2y = py + ph * 0.885f, b2h = ph * 0.09f;
         if (GUI.Button(new Rect(bx, b2y, bw, b2h), "NANTI", Tema.GayaTombol(Mathf.RoundToInt(ph * 0.045f))))
         {
             SoundManager.Klik();
