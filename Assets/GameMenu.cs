@@ -38,7 +38,7 @@ public class GameMenu : MonoBehaviour
 
         if (langsungMainSetelahLoad)
         {
-            // dipanggil setelah "Ulangi" / "Main Lagi": langsung main tanpa menu awal
+            // dipanggil setelah \"Ulangi\" / \"Main Lagi\": langsung main tanpa menu awal
             langsungMainSetelahLoad = false;
             tampilHome = false;
             SedangMain = true;
@@ -61,6 +61,9 @@ public class GameMenu : MonoBehaviour
 
     void Mulai()
     {
+        // pastikan karakter yang dipilih di Home dipakai walau scene tidak di-reload
+        KarakterPemain.TerapkanPilihan();
+
         tampilHome = false;
         SedangMain = true;
         SedangJeda = false;
@@ -116,31 +119,34 @@ public class GameMenu : MonoBehaviour
             Tema.LatarGelap(new Color(0.04f, 0.10f, 0.05f, 0.35f)); // semburat hijau gelap
 
             // ---- JUDUL ----
-            Tema.Teks(new Rect(0, h * 0.11f, w, h * 0.11f), "SALDOKU", Mathf.RoundToInt(h * 0.082f),
+            Tema.Teks(new Rect(0, h * 0.05f, w, h * 0.10f), "SALDOKU", Mathf.RoundToInt(h * 0.072f),
                 Tema.Darah, TextAnchor.MiddleCenter, true);
-            Tema.Teks(new Rect(0, h * 0.215f, w, h * 0.085f), "LAST STAND", Mathf.RoundToInt(h * 0.058f),
+            Tema.Teks(new Rect(0, h * 0.145f, w, h * 0.075f), "LAST STAND", Mathf.RoundToInt(h * 0.05f),
                 Tema.Army, TextAnchor.MiddleCenter, true);
-            Tema.Teks(new Rect(0, h * 0.315f, w, h * 0.045f), "BERTAHAN SELAMA MUNGKIN", Mathf.RoundToInt(h * 0.026f),
+            Tema.Teks(new Rect(0, h * 0.222f, w, h * 0.04f), "BERTAHAN SELAMA MUNGKIN", Mathf.RoundToInt(h * 0.023f),
                 Tema.Redup, TextAnchor.MiddleCenter, true);
 
             // ---- PANEL REKOR (ikon bintang mengapit angka) ----
             if (ScoreManager.Instance != null)
             {
-                float rw = w * 0.7f, rh = h * 0.10f, rx = (w - rw) / 2f, ry = h * 0.40f;
+                float rw = w * 0.66f, rh = h * 0.075f, rx = (w - rw) / 2f, ry = h * 0.275f;
                 Tema.Panel9(new Rect(rx, ry, rw, rh), Tema.Plate, Tema.GarisRedup, 2f);
-                Tema.Teks(new Rect(rx, ry + rh * 0.12f, rw, rh * 0.40f), "REKOR TERTINGGI",
-                    Mathf.RoundToInt(h * 0.024f), Tema.Redup, TextAnchor.MiddleCenter, true);
+                Tema.Teks(new Rect(rx, ry + rh * 0.10f, rw, rh * 0.42f), "REKOR TERTINGGI",
+                    Mathf.RoundToInt(h * 0.022f), Tema.Redup, TextAnchor.MiddleCenter, true);
                 Tema.Teks(new Rect(rx, ry + rh * 0.46f, rw, rh * 0.50f), ScoreManager.Instance.RekorTertinggi.ToString(),
-                    Mathf.RoundToInt(h * 0.038f), Tema.Amber, TextAnchor.MiddleCenter, true);
+                    Mathf.RoundToInt(h * 0.034f), Tema.Amber, TextAnchor.MiddleCenter, true);
 
-                float ik = rh * 0.38f;
-                Ikon.Gambar(new Rect(rx + rw * 0.14f, ry + rh * 0.48f, ik, ik), Ikon.Bintang, Tema.Amber);
-                Ikon.Gambar(new Rect(rx + rw * 0.86f - ik, ry + rh * 0.48f, ik, ik), Ikon.Bintang, Tema.Amber);
+                float ik = rh * 0.40f;
+                Ikon.Gambar(new Rect(rx + rw * 0.13f, ry + rh * 0.46f, ik, ik), Ikon.Bintang, Tema.Amber);
+                Ikon.Gambar(new Rect(rx + rw * 0.87f - ik, ry + rh * 0.46f, ik, ik), Ikon.Bintang, Tema.Amber);
             }
 
-            // ---- TOMBOL (lebar seragam, jarak konsisten) ----
-            if (Tombol("MAIN", 0.60f, 0.62f)) { SoundManager.Klik(); Mulai(); }
-            if (Tombol("PENGATURAN", 0.72f, 0.62f)) { SoundManager.Klik(); tampilPengaturan = true; }
+            // ---- PEMILIH KARAKTER ----
+            GambarPilihKarakter(w, h);
+
+            // ---- TOMBOL (diturunkan supaya ada ruang untuk pilih karakter) ----
+            if (Tombol("MAIN", 0.665f, 0.62f)) { SoundManager.Klik(); Mulai(); }
+            if (Tombol("PENGATURAN", 0.785f, 0.62f)) { SoundManager.Klik(); tampilPengaturan = true; }
             return;
         }
 
@@ -174,7 +180,7 @@ public class GameMenu : MonoBehaviour
             SoundManager.Klik();
             Jeda();
         }
-        // ikon jeda digambar MANUAL: dua batang vertikal LURUS (bukan teks "II" yang terlihat miring)
+        // ikon jeda digambar MANUAL: dua batang vertikal LURUS (bukan teks \"II\" yang terlihat miring)
         float pbW = sz * 0.13f;                 // lebar tiap batang
         float pbH = sz * 0.42f;                 // tinggi batang
         float pbGap = sz * 0.14f;               // jarak antar batang
@@ -182,6 +188,60 @@ public class GameMenu : MonoBehaviour
         float pbCx = x + sz / 2f;
         Tema.Kotak(new Rect(pbCx - pbGap / 2f - pbW, pbY, pbW, pbH), Tema.Tulang);
         Tema.Kotak(new Rect(pbCx + pbGap / 2f, pbY, pbW, pbH), Tema.Tulang);
+    }
+
+    // ====== PEMILIH KARAKTER (Home) ======
+    void GambarPilihKarakter(float w, float h)
+    {
+        float pw = w * 0.82f, ph = h * 0.245f;
+        float px = (w - pw) / 2f, py = h * 0.37f;
+        Tema.Panel9(new Rect(px, py, pw, ph), Tema.Plate, Tema.GarisRedup, 2f);
+
+        // judul kecil
+        Tema.Teks(new Rect(px, py + ph * 0.04f, pw, ph * 0.15f), "PILIH KARAKTER",
+            Mathf.RoundToInt(h * 0.022f), Tema.Redup, TextAnchor.MiddleCenter, true);
+
+        int idx = KarakterManager.Dipilih;
+
+        // area tengah untuk portrait
+        float aY = py + ph * 0.20f;
+        float aH = ph * 0.54f;
+
+        // tombol panah kiri / kanan
+        float ab = Mathf.Min(pw * 0.15f, aH * 0.85f);
+        float ay = aY + (aH - ab) / 2f;
+        int af = Mathf.RoundToInt(h * 0.045f);
+        if (GUI.Button(new Rect(px + pw * 0.02f, ay, ab, ab), "<", Tema.GayaTombol(af)))
+        {
+            SoundManager.Klik();
+            KarakterManager.Sebelumnya();
+            KarakterPemain.TerapkanPilihan();
+        }
+        if (GUI.Button(new Rect(px + pw * 0.98f - ab, ay, ab, ab), ">", Tema.GayaTombol(af)))
+        {
+            SoundManager.Klik();
+            KarakterManager.Berikutnya();
+            KarakterPemain.TerapkanPilihan();
+        }
+
+        // portrait (kepala) karakter di tengah
+        float potH = aH;
+        float potW = aH;
+        float potX = (w - potW) / 2f;
+        Texture2D kepala = KarakterManager.Kepala(idx);
+        if (kepala != null)
+        {
+            GUI.DrawTexture(new Rect(potX, aY, potW, potH), kepala, ScaleMode.ScaleToFit, true);
+        }
+        else
+        {
+            // fallback kalau tekstur belum tersalin: ikon bintang
+            Ikon.Gambar(new Rect(potX + potW * 0.2f, aY + potH * 0.2f, potW * 0.6f, potH * 0.6f), Ikon.Bintang, Tema.Amber);
+        }
+
+        // nama karakter
+        Tema.Teks(new Rect(px, py + ph * 0.80f, pw, ph * 0.17f), KarakterManager.Nama[idx],
+            Mathf.RoundToInt(h * 0.026f), Tema.Tulang, TextAnchor.MiddleCenter, true);
     }
 
     // ====== PANEL PENGATURAN SUARA ======
