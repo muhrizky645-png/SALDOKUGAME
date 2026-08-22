@@ -18,6 +18,24 @@ public static class Tema
     public static readonly Color Amber        = new Color(1f, 0.80f, 0.22f, 1f);       // amber (rekor)
     public static readonly Color Redup        = new Color(0.72f, 0.74f, 0.64f, 1f);    // teks redup
 
+    // ====== FONT PIXEL (Thaleah) ======
+    // File font ada di Assets/Resources/ThaleahFat.fontsettings supaya bisa dimuat
+    // saat runtime. Kalau tidak ditemukan, otomatis pakai font bawaan Unity.
+    static Font _font;
+    static bool _fontDicari;
+    public static Font FontUtama
+    {
+        get
+        {
+            if (!_fontDicari)
+            {
+                _font = Resources.Load<Font>("ThaleahFat");
+                _fontDicari = true;
+            }
+            return _font;
+        }
+    }
+
     // ====== TEKSTUR DASAR ======
     static Texture2D _putih;
     public static Texture2D Putih
@@ -73,6 +91,7 @@ public static class Tema
     public static void Teks(Rect r, string teks, int ukuran, Color warna, TextAnchor anchor, bool tebal)
     {
         GUIStyle st = new GUIStyle();
+        st.font = FontUtama;
         st.fontSize = ukuran;
         st.fontStyle = tebal ? FontStyle.Bold : FontStyle.Normal;
         st.alignment = anchor;
@@ -109,6 +128,7 @@ public static class Tema
         if (_tombol == null)
         {
             _tombol = new GUIStyle();
+            _tombol.font = FontUtama;
             _tombol.normal.background = BuatTexKotak(Panel, Garis, 3);
             _tombol.hover.background = BuatTexKotak(PanelTerang, Army, 3);
             _tombol.active.background = BuatTexKotak(new Color(0.30f, 0.10f, 0.09f, 0.98f), Darah, 3);
