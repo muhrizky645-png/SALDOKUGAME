@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// Mengukur berapa lama pemain bertahan + menampilkan timer (tengah atas)
-// dan bar nyawa BOSS saat boss hidup. Otomatis dibuat & di-reset tiap scene.
+// Mengukur berapa lama pemain bertahan + menampilkan timer (di bawah tombol jeda,
+// mepet kanan) dan bar nyawa BOSS saat boss hidup. Otomatis dibuat & di-reset tiap scene.
 public class GameTimer : MonoBehaviour
 {
     public static GameTimer Instance;
@@ -25,7 +25,6 @@ public class GameTimer : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         Detik = 0f;
-        // reset status boss tiap scene baru biar tidak nyangkut
         EnemyChase.JumlahBos = 0;
         EnemyChase.BosSaatIni = null;
     }
@@ -41,23 +40,29 @@ public class GameTimer : MonoBehaviour
 
     void OnGUI()
     {
-        // hanya tampil saat benar-benar sedang main
         if (!GameMenu.SedangMain || GameMenu.SedangJeda ||
             SkillManager.AktifMemilih || PlayerHealth.GameOver) return;
 
         float w = Screen.width, h = Screen.height;
         float atas = Tema.AmanAtas; // hormati poni/notch
 
-        // ==== TIMER (tengah atas, font responsif) ====
+        // ==== TIMER (di BAWAH tombol jeda, mepet KANAN) ====
         int m = (int)(Detik / 60f);
         int s = (int)(Detik % 60f);
         string txt = string.Format("{0:00}:{1:00}", m, s);
-        int fTimer = Mathf.Min(Tema.Font(0.055f), Mathf.RoundToInt(w * 0.11f));
-        float tw = w * 0.3f;
-        Tema.Teks(new Rect((w - tw) / 2f, atas + h * 0.010f, tw, fTimer * 1.3f), txt,
-            fTimer, Tema.Tulang, TextAnchor.MiddleCenter, true);
 
-        // ==== BAR NYAWA BOSS (di BAWAH skor, tidak menabrak) ====
+        float jedaSz = Tema.Unit * 0.09f;
+        float pad = Tema.Pad;
+        float jedaBawah = atas + pad + jedaSz;
+        int fTimer = Mathf.Min(Tema.Font(0.055f), Mathf.RoundToInt(w * 0.11f));
+        float tw = w * 0.42f;
+        float tKanan = w - pad - Tema.AmanKanan;
+        float tx = tKanan - tw;
+        float ty = jedaBawah + pad * 0.6f;
+        Tema.Teks(new Rect(tx, ty, tw, fTimer * 1.3f), txt,
+            fTimer, Tema.Tulang, TextAnchor.MiddleRight, true);
+
+        // ==== BAR NYAWA BOSS (tengah, di bawah baris HUD atas) ====
         if (EnemyChase.JumlahBos > 0 && EnemyChase.BosSaatIni != null)
         {
             float bossY = atas + h * 0.150f;

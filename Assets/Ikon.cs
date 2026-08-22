@@ -5,7 +5,7 @@ using UnityEngine;
 // lalu saat digambar diberi OUTLINE gelap supaya lebih "tergambar" / berdimensi.
 //
 // TAMBAHAN: kalau ada file PNG di Assets/Resources/Icons/<id>.png (disalin otomatis
-// oleh Editor script PasangIkon dari asset pack), ikon skill akan memakai FILE itu.
+// oleh Editor script PasangIkon dari asset pack), ikon skill/item akan memakai FILE itu.
 // Kalau file belum ada, otomatis JATUH KEMBALI ke ikon kode di bawah.
 public static class Ikon
 {
@@ -37,8 +37,6 @@ public static class Ikon
     }
 
     // Render fungsi bentuk (true = di dalam) jadi tekstur + anti-alias 2x2.
-    // RGB dipanggang GRADASI vertikal (atas terang, bawah gelap) supaya saat
-    // diberi warna, ikon terlihat punya bayangan/dimensi (bukan flat 1 warna).
     static Texture2D Buat(System.Func<float, float, bool> f, int size)
     {
         Texture2D t = new Texture2D(size, size, TextureFormat.RGBA32, false);
@@ -69,7 +67,6 @@ public static class Ikon
     static Texture2D _bom, _magnet, _peti, _aura, _roket, _pisau;
 
     // ====== IKON DARI FILE (Assets/Resources/Icons), fallback ke ikon KODE ======
-    // Diisi otomatis oleh Editor script PasangIkon (menyalin PNG dari asset pack).
     static readonly System.Collections.Generic.Dictionary<string, Texture2D> _fileCache
         = new System.Collections.Generic.Dictionary<string, Texture2D>();
     static readonly System.Collections.Generic.HashSet<Texture2D> _fileSet
@@ -103,7 +100,6 @@ public static class Ikon
     public static Texture2D Roket { get { if (_roket == null) _roket = Buat(FRoket, 72); return _roket; } }
     public static Texture2D Pisau { get { if (_pisau == null) _pisau = Buat(FPisau, 72); return _pisau; } }
 
-    // Bintang 5 sudut (rekor / high score)
     static bool FBintang(float x, float y)
     {
         float r = Mathf.Sqrt(x * x + y * y);
@@ -115,7 +111,6 @@ public static class Ikon
         return r <= radius;
     }
 
-    // Petir (serang lebih cepat)
     static bool FPetir(float x, float y)
     {
         float w = 0.17f;
@@ -124,7 +119,6 @@ public static class Ikon
             || Garis(x, y, 0.12f, 0.08f, -0.18f, -0.92f, w);
     }
 
-    // Tiga peluru (peluru tambahan)
     static bool FPeluru(float x, float y)
     {
         for (int i = -1; i <= 1; i++)
@@ -136,7 +130,6 @@ public static class Ikon
         return false;
     }
 
-    // Target / crosshair (jangkauan lebih jauh)
     static bool FTarget(float x, float y)
     {
         return Cincin(x, y, 0.72f, 0.96f)
@@ -146,7 +139,6 @@ public static class Ikon
             || Garis(x, y, 0f, -0.98f, 0f, 0.98f, 0.05f);
     }
 
-    // Double chevron (kaki lebih cepat)
     static bool FChevron(float x, float y)
     {
         float w = 0.15f;
@@ -154,7 +146,6 @@ public static class Ikon
             || Garis(x, y, 0.15f, 0.6f, 0.65f, 0f, w) || Garis(x, y, 0.65f, 0f, 0.15f, -0.6f, w);
     }
 
-    // Hati (badan lebih kuat)
     static bool FHati(float x, float y)
     {
         float X = x / 0.92f; float Y = (y - 0.15f) / 0.92f;
@@ -162,13 +153,11 @@ public static class Ikon
         return a * a * a - X * X * Y * Y * Y <= 0f;
     }
 
-    // Berlian / permata (magnet permata)
     static bool FBerlian(float x, float y)
     {
         return Mathf.Abs(x) + Mathf.Abs(y) <= 0.92f;
     }
 
-    // Tengkorak sederhana
     static bool FTengkorak(float x, float y)
     {
         bool kepala = Disc(x, y, 0f, 0.15f, 0.72f);
@@ -182,7 +171,6 @@ public static class Ikon
         return true;
     }
 
-    // Bom (item bersihkan layar): badan bulat + sumbu + percik
     static bool FBom(float x, float y)
     {
         if (Disc(x, y, 0f, -0.15f, 0.62f)) return true;               // badan bom
@@ -191,7 +179,6 @@ public static class Ikon
         return false;
     }
 
-    // Magnet (tapal kuda U)
     static bool FMagnet(float x, float y)
     {
         bool arc = Cincin(x, y, 0.42f, 0.8f) && y <= 0.15f;
@@ -199,7 +186,6 @@ public static class Ikon
         return arc || legs;
     }
 
-    // Peti / chest (badan + tutup)
     static bool FPeti(float x, float y)
     {
         bool badan = Kotak(x, y, -0.75f, -0.65f, 0.75f, 0.28f);
@@ -207,45 +193,36 @@ public static class Ikon
         return badan || tutup;
     }
 
-    // Aura / medan setrum (cincin ganda) - untuk skill aura
     static bool FAura(float x, float y)
     {
         return Cincin(x, y, 0.78f, 0.96f) || Cincin(x, y, 0.40f, 0.56f) || Disc(x, y, 0f, 0f, 0.14f);
     }
 
-    // Roket (skill Roket Pelacak): badan silinder + hidung kerucut + sirip + nyala + jendela
     static bool FRoket(float x, float y)
     {
         float ax = Mathf.Abs(x);
         bool inside = false;
-
-        // badan silinder
         if (y >= -0.48f && y <= 0.45f && ax <= 0.22f) inside = true;
-        // hidung kerucut
         if (y > 0.45f && y <= 0.92f)
         {
             float t = (y - 0.45f) / 0.47f;
             if (ax <= Mathf.Lerp(0.22f, 0f, t)) inside = true;
         }
-        // sirip kiri-kanan
         if (y >= -0.74f && y <= -0.30f)
         {
             float t = (y + 0.74f) / 0.44f;
             float outer = Mathf.Lerp(0.55f, 0.22f, t);
             if (ax >= 0.20f && ax <= outer) inside = true;
         }
-        // nyala api di bawah
         if (y >= -0.98f && y < -0.74f)
         {
             float t = (y + 0.98f) / 0.24f;
             if (ax <= Mathf.Lerp(0.04f, 0.15f, t)) inside = true;
         }
-        // jendela (lubang) di badan
         if (inside && Disc(x, y, 0f, 0.12f, 0.11f)) return false;
         return inside;
     }
 
-    // Pisau berputar (shuriken 4 sudut + lubang tengah) - ganti bintang biar tidak kembar
     static bool FPisau(float x, float y)
     {
         float r = Mathf.Sqrt(x * x + y * y);
@@ -253,13 +230,12 @@ public static class Ikon
         float step = Mathf.PI * 2f / 4f;
         float a = Mathf.Repeat(ang, step);
         float tt = a / (step / 2f); if (tt > 1f) tt = 2f - tt;
-        float radius = Mathf.Lerp(0.98f, 0.28f, tt); // sudut tajam
-        if (Disc(x, y, 0f, 0f, 0.16f)) return false; // lubang tengah
+        float radius = Mathf.Lerp(0.98f, 0.28f, tt);
+        if (Disc(x, y, 0f, 0f, 0.16f)) return false;
         return r <= radius;
     }
 
-    // Ambil ikon berdasarkan id skill.
-    // Utamakan FILE (Assets/Resources/Icons/<id>.png), fallback ke ikon KODE.
+    // Ambil ikon berdasarkan id SKILL. Utamakan FILE, fallback ke ikon KODE.
     public static Texture2D UntukSkill(string id)
     {
         switch (id)
@@ -275,6 +251,24 @@ public static class Ikon
             case "roket": return Dari("roket", Roket);
             default: return Dari("bintang", Bintang);
         }
+    }
+
+    // Ambil ikon untuk ITEM lapangan (bom/magnet/peti). Utamakan FILE, fallback ke KODE.
+    public static Texture2D UntukItem(string id)
+    {
+        switch (id)
+        {
+            case "bom": return Dari("bom", Bom);
+            case "magnet": return Dari("magnet", Magnet); // belum ada padanan asset -> ikon kode
+            case "peti": return Dari("peti", Peti);
+            default: return Peti;
+        }
+    }
+
+    // true kalau tekstur ini berasal dari FILE (asset), bukan ikon kode -> pakai warna asli.
+    public static bool AdalahFile(Texture2D tex)
+    {
+        return tex != null && _fileSet.Contains(tex);
     }
 
     // Gambar ikon (versi ringkas: outline gelap otomatis)
@@ -294,7 +288,6 @@ public static class Ikon
 
         Color simpan = GUI.color;
 
-        // OUTLINE: gambar tekstur gelap di 8 arah offset kecil
         float o = Mathf.Max(1f, r.width * 0.03f);
         GUI.color = garis;
         GUI.DrawTexture(new Rect(r.x - o, r.y, r.width, r.height), tex, ScaleMode.StretchToFill, true);
@@ -306,7 +299,6 @@ public static class Ikon
         GUI.DrawTexture(new Rect(r.x - o, r.y + o, r.width, r.height), tex, ScaleMode.StretchToFill, true);
         GUI.DrawTexture(new Rect(r.x + o, r.y + o, r.width, r.height), tex, ScaleMode.StretchToFill, true);
 
-        // ISI di atas outline
         GUI.color = isi;
         GUI.DrawTexture(r, tex, ScaleMode.StretchToFill, true);
 
