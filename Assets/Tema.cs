@@ -18,6 +18,23 @@ public static class Tema
     public static readonly Color Amber        = new Color(1f, 0.80f, 0.22f, 1f);       // amber (rekor)
     public static readonly Color Redup        = new Color(0.72f, 0.74f, 0.64f, 1f);    // teks redup
 
+    // ====== RESPONSIF: SKALA & SAFE AREA (semua device) ======
+    // Sisi TERPENDEK layar dipakai sebagai satuan dasar font/elemen persegi, supaya
+    // ukuran konsisten & teks tidak meluber di rasio ekstrem (HP tinggi/lebar/tablet).
+    public static float Unit { get { return Mathf.Min(Screen.width, Screen.height); } }
+
+    // Ukuran font responsif: frac dikali sisi terpendek (minimal 1px).
+    public static int Font(float frac) { return Mathf.Max(1, Mathf.RoundToInt(Unit * frac)); }
+
+    // Jarak / padding standar HUD (relatif sisi terpendek).
+    public static float Pad { get { return Unit * 0.03f; } }
+
+    // Safe area: hindari poni/kamera & sudut melengkung. Origin GUI = kiri-atas.
+    public static float AmanKiri  { get { return Screen.safeArea.x; } }
+    public static float AmanKanan { get { return Screen.width  - (Screen.safeArea.x + Screen.safeArea.width); } }
+    public static float AmanAtas  { get { return Screen.height - (Screen.safeArea.y + Screen.safeArea.height); } }
+    public static float AmanBawah { get { return Screen.safeArea.y; } }
+
     // ====== FONT PIXEL (Thaleah) ======
     // File font ada di Assets/Resources/ThaleahFat.fontsettings supaya bisa dimuat
     // saat runtime. Kalau tidak ditemukan, otomatis pakai font bawaan Unity.

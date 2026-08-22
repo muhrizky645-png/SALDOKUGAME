@@ -2,7 +2,11 @@ using UnityEngine;
 
 // Kumpulan IKON/logo yang dibuat lewat KODE (tanpa file gambar).
 // Bentuk dipanggang jadi tekstur dengan GRADASI (atas lebih terang) + anti-alias,
-// lalu saat digambar diberi OUTLINE gelap supaya lebih \"tergambar\" / berdimensi.
+// lalu saat digambar diberi OUTLINE gelap supaya lebih "tergambar" / berdimensi.
+//
+// TAMBAHAN: kalau ada file PNG di Assets/Resources/Icons/<id>.png (disalin otomatis
+// oleh Editor script PasangIkon dari asset pack), ikon skill akan memakai FILE itu.
+// Kalau file belum ada, otomatis JATUH KEMBALI ke ikon kode di bawah.
 public static class Ikon
 {
     // ====== PRIMITIF BANTU (ruang normal -1..1, y ke atas) ======
@@ -63,6 +67,26 @@ public static class Ikon
     // ====== IKON (lazy + cache) ======
     static Texture2D _bintang, _petir, _peluru, _target, _chevron, _hati, _berlian, _tengkorak;
     static Texture2D _bom, _magnet, _peti, _aura, _roket, _pisau;
+
+    // ====== IKON DARI FILE (Assets/Resources/Icons), fallback ke ikon KODE ======
+    // Diisi otomatis oleh Editor script PasangIkon (menyalin PNG dari asset pack).
+    static readonly System.Collections.Generic.Dictionary<string, Texture2D> _fileCache
+        = new System.Collections.Generic.Dictionary<string, Texture2D>();
+    static readonly System.Collections.Generic.HashSet<Texture2D> _fileSet
+        = new System.Collections.Generic.HashSet<Texture2D>();
+
+    // Muat "Icons/<nama>" dari Resources. Kalau file belum ada, pakai ikon KODE (bawaan).
+    static Texture2D Dari(string nama, Texture2D bawaan)
+    {
+        Texture2D t;
+        if (!_fileCache.TryGetValue(nama, out t))
+        {
+            t = Resources.Load<Texture2D>("Icons/" + nama);
+            _fileCache[nama] = t;
+            if (t != null) _fileSet.Add(t);
+        }
+        return (t != null) ? t : bawaan;
+    }
 
     public static Texture2D Bintang { get { if (_bintang == null) _bintang = Buat(FBintang, 72); return _bintang; } }
     public static Texture2D Petir { get { if (_petir == null) _petir = Buat(FPetir, 72); return _petir; } }
@@ -234,21 +258,22 @@ public static class Ikon
         return r <= radius;
     }
 
-    // Ambil ikon berdasarkan id skill (tiap skill bentuknya BEDA)
+    // Ambil ikon berdasarkan id skill.
+    // Utamakan FILE (Assets/Resources/Icons/<id>.png), fallback ke ikon KODE.
     public static Texture2D UntukSkill(string id)
     {
         switch (id)
         {
-            case "petir": return Petir;
-            case "peluru": return Peluru;
-            case "target": return Target;
-            case "chevron": return Chevron;
-            case "hati": return Hati;
-            case "berlian": return Berlian;
-            case "pisau": return Pisau;
-            case "aura": return Aura;
-            case "roket": return Roket;
-            default: return Bintang;
+            case "petir": return Dari("petir", Petir);
+            case "peluru": return Dari("peluru", Peluru);
+            case "target": return Dari("target", Target);
+            case "chevron": return Chevron; // tidak ada padanan di pack -> tetap ikon kode
+            case "hati": return Dari("hati", Hati);
+            case "berlian": return Dari("berlian", Berlian);
+            case "pisau": return Dari("pisau", Pisau);
+            case "aura": return Dari("aura", Aura);
+            case "roket": return Dari("roket", Roket);
+            default: return Dari("bintang", Bintang);
         }
     }
 
@@ -258,10 +283,15 @@ public static class Ikon
         Gambar(r, tex, c, new Color(0f, 0f, 0f, 0.55f));
     }
 
-    // Gambar ikon dengan warna isi + warna outline (biar lebih \"tergambar\")
+    // Gambar ikon dengan warna isi + warna outline (biar lebih "tergambar")
     public static void Gambar(Rect r, Texture2D tex, Color isi, Color garis)
     {
         if (tex == null) return;
+
+        // Ikon dari FILE (berwarna): gambar apa adanya (warna isi diabaikan) + outline tipis,
+        // jaga rasio aspek supaya sprite senjata/permata tidak gepeng.
+        if (_fileSet.Contains(tex)) { GambarPenuh(r, tex, garis); return; }
+
         Color simpan = GUI.color;
 
         // OUTLINE: gambar tekstur gelap di 8 arah offset kecil
@@ -280,6 +310,21 @@ public static class Ikon
         GUI.color = isi;
         GUI.DrawTexture(r, tex, ScaleMode.StretchToFill, true);
 
+        GUI.color = simpan;
+    }
+
+    // Gambar ikon FILE (berwarna) apa adanya + outline gelap tipis (4 arah), jaga rasio aspek.
+    static void GambarPenuh(Rect r, Texture2D tex, Color garis)
+    {
+        Color simpan = GUI.color;
+        float o = Mathf.Max(1f, r.width * 0.03f);
+        GUI.color = garis;
+        GUI.DrawTexture(new Rect(r.x - o, r.y, r.width, r.height), tex, ScaleMode.ScaleToFit, true);
+        GUI.DrawTexture(new Rect(r.x + o, r.y, r.width, r.height), tex, ScaleMode.ScaleToFit, true);
+        GUI.DrawTexture(new Rect(r.x, r.y - o, r.width, r.height), tex, ScaleMode.ScaleToFit, true);
+        GUI.DrawTexture(new Rect(r.x, r.y + o, r.width, r.height), tex, ScaleMode.ScaleToFit, true);
+        GUI.color = Color.white; // tampilkan warna ASLI sprite
+        GUI.DrawTexture(r, tex, ScaleMode.ScaleToFit, true);
         GUI.color = simpan;
     }
 }

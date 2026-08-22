@@ -38,7 +38,7 @@ public class GameMenu : MonoBehaviour
 
         if (langsungMainSetelahLoad)
         {
-            // dipanggil setelah \"Ulangi\" / \"Main Lagi\": langsung main tanpa menu awal
+            // dipanggil setelah "Ulangi" / "Main Lagi": langsung main tanpa menu awal
             langsungMainSetelahLoad = false;
             tampilHome = false;
             SedangMain = true;
@@ -163,10 +163,12 @@ public class GameMenu : MonoBehaviour
         // sembunyikan saat Game Over atau saat memilih skill
         if (PlayerHealth.GameOver || SkillManager.AktifMemilih) return;
 
-        float sz = h * 0.055f;
-        float pad = h * 0.02f;
-        float x = w - sz - pad; // POJOK KANAN ATAS (ruang tengah dipakai timer)
-        if (GUI.Button(new Rect(x, pad, sz, sz), "II", Tema.GayaTombol(Mathf.RoundToInt(h * 0.028f))))
+        // Pojok KANAN atas, ukuran responsif (sisi terpendek) + hormati safe area
+        float sz = Tema.Unit * 0.09f;
+        float pad = Tema.Pad;
+        float x = w - sz - pad - Tema.AmanKanan;
+        float y = Tema.AmanAtas + pad;
+        if (GUI.Button(new Rect(x, y, sz, sz), "II", Tema.GayaTombol(Tema.Font(0.045f))))
         {
             SoundManager.Klik();
             Jeda();

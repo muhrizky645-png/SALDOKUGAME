@@ -45,30 +45,30 @@ public class LevelSystem : MonoBehaviour
             xpUntukNaik = Mathf.RoundToInt(xpUntukNaik * 1.3f) + 2; // tiap level butuh lebih banyak XP
             naik = true;
         }
-        if (naik) SoundManager.LevelUp(); // suara naik level (pengumuman \"LEVEL UP\" ada di kartu skill)
+        if (naik) SoundManager.LevelUp(); // suara naik level (pengumuman "LEVEL UP" ada di kartu skill)
     }
 
-    // HUD Level + bar XP, pojok KIRI atas (tema survival)
+    // HUD Level + bar XP, pojok KIRI atas (responsif + hormati safe area)
     void OnGUI()
     {
         // sembunyikan HUD selama menu awal / jeda / saat memilih skill / SAAT GAME OVER
         if (!GameMenu.SedangMain || GameMenu.SedangJeda ||
             SkillManager.AktifMemilih || PlayerHealth.GameOver) return;
 
-        float h = Screen.height;
-        float pad = h * 0.02f;
+        float w = Screen.width, h = Screen.height;
 
-        // Panel dibuat lebih lebar & font lebih kecil supaya \"LEVEL x\" muat SATU baris (tidak turun & menabrak bar).
-        int fLv = Mathf.RoundToInt(h * 0.022f);
-        float pW = Screen.width * 0.34f;
-        float pH = fLv * 3.2f;
-        float pX = pad;
-        float pY = pad;
+        // Font berbasis sisi terpendek (dibatasi lebar) supaya "LEVEL x" selalu muat 1 baris
+        // di semua device (HP tinggi/lebar/tablet) dan tidak menabrak bar XP.
+        int fLv = Mathf.Min(Tema.Font(0.030f), Mathf.RoundToInt(w * 0.055f));
+        float pW = Mathf.Max(w * 0.34f, fLv * 7f);
+        float pH = fLv * 3.4f;
+        float pX = Tema.AmanKiri + Tema.Pad;
+        float pY = Tema.AmanAtas + Tema.Pad;
 
         // panel level
         Tema.Panel9(new Rect(pX, pY, pW, pH), Tema.Plate, Tema.GarisRedup, 2f);
 
-        // teks \"LEVEL x\" di bagian ATAS panel (satu baris)
+        // teks "LEVEL x" di bagian ATAS panel (satu baris)
         Tema.Teks(new Rect(pX + pW * 0.06f, pY + pH * 0.10f, pW * 0.88f, pH * 0.42f),
             "LEVEL " + level, fLv, Tema.Army, TextAnchor.UpperLeft, true);
 

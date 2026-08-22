@@ -49,23 +49,25 @@ public class ScoreManager : MonoBehaviour
 
     // Tata letak HUD (tema survival):
     //  - Timer : tengah atas (diatur GameTimer.cs)
-    //  - Skor  : plat gelap di TENGAH atas, tepat di bawah timer
-    //  (Level + bar XP diatur di LevelSystem.cs, pojok KIRI atas)
-    //  Rekor SENGAJA tidak ditampilkan di HUD (biar rapi). Tetap disimpan & dipakai di layar Game Over.
+    //  - Skor  : plat gelap di TENGAH atas, tepat di bawah timer (diatur di sini)
+    //  - Level + bar XP : pojok KIRI atas (diatur LevelSystem.cs)
+    //  - Tombol jeda    : pojok KANAN atas (diatur GameMenu.cs)
+    //  Semua posisi responsif + hormati safe area. Rekor sengaja tidak di HUD.
     void OnGUI()
     {
         // sembunyikan HUD selama menu awal / jeda / saat memilih skill / SAAT GAME OVER
         if (!GameMenu.SedangMain || GameMenu.SedangJeda ||
             SkillManager.AktifMemilih || PlayerHealth.GameOver) return;
 
-        float h = Screen.height;
+        float w = Screen.width, h = Screen.height;
+        float atas = Tema.AmanAtas;
 
-        // ---- SKOR (plat ramping tengah atas, tepat di bawah timer, angka di tengah plat) ----
-        int fSkor = Mathf.RoundToInt(h * 0.05f);
-        float plW = Screen.width * 0.26f;
+        // ---- SKOR (plat ramping tengah atas, TEPAT di bawah timer, angka di tengah) ----
+        int fSkor = Mathf.Min(Tema.Font(0.05f), Mathf.RoundToInt(w * 0.10f));
+        float plW = Mathf.Max(w * 0.26f, fSkor * 4f);
         float plH = fSkor * 1.7f;
-        float plX = (Screen.width - plW) / 2f;
-        float plY = h * 0.105f; // di bawah timer (timer paling atas tengah)
+        float plX = (w - plW) / 2f;
+        float plY = atas + h * 0.090f; // di bawah timer (timer di baris paling atas tengah)
         Tema.Panel9(new Rect(plX, plY, plW, plH), Tema.Plate, Tema.GarisRedup, 2f);
         Tema.Teks(new Rect(plX, plY, plW, plH), score.ToString(), fSkor,
             Tema.Tulang, TextAnchor.MiddleCenter, true);
