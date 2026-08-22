@@ -4,6 +4,9 @@ using UnityEngine;
 //  - Bom    : bersihkan (bunuh) semua musuh di layar + kilat
 //  - Magnet : tarik semua permata XP ke pemain
 //  - Peti   : hadiah XP besar (biasanya menaikkan level -> pilih skill)
+//
+// Ikon: utamakan FILE dari asset pack (Assets/Resources/Icons/<id>.png) lewat
+// Ikon.UntukItem(); kalau belum ada, otomatis pakai ikon KODE (prosedural).
 public class ItemLapangan : MonoBehaviour
 {
     public enum Jenis { Bom, Magnet, Peti }
@@ -31,16 +34,23 @@ public class ItemLapangan : MonoBehaviour
         if (p != null) player = p.transform;
 
         sr = gameObject.AddComponent<SpriteRenderer>();
-        Texture2D tex;
+
+        string id;
         Color warna;
         switch (jenis)
         {
-            case Jenis.Bom: tex = Ikon.Bom; warna = new Color(1f, 0.5f, 0.3f); ukuran = 1.0f; break;
-            case Jenis.Magnet: tex = Ikon.Magnet; warna = new Color(0.5f, 0.8f, 1f); ukuran = 0.9f; break;
-            default: tex = Ikon.Peti; warna = new Color(1f, 0.82f, 0.3f); ukuran = 1.1f; break;
+            case Jenis.Bom:    id = "bom";    warna = new Color(1f, 0.5f, 0.3f); ukuran = 1.0f; break;
+            case Jenis.Magnet: id = "magnet"; warna = new Color(0.5f, 0.8f, 1f); ukuran = 0.9f; break;
+            default:           id = "peti";   warna = new Color(1f, 0.82f, 0.3f); ukuran = 1.1f; break;
         }
-        sr.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
-        sr.color = warna;
+
+        Texture2D tex = Ikon.UntukItem(id);
+        // Normalisasi ukuran: sisi terpanjang tekstur = 1 unit, biar konsisten
+        // walau resolusi PNG asset berbeda-beda.
+        float ppu = Mathf.Max(1, Mathf.Max(tex.width, tex.height));
+        sr.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), ppu);
+        // ikon dari FILE (asset) -> tampilkan warna ASLI (putih); ikon KODE -> beri warna tema
+        sr.color = Ikon.AdalahFile(tex) ? Color.white : warna;
         sr.sortingOrder = 42;
         transform.localScale = Vector3.one * ukuran;
     }
@@ -74,7 +84,6 @@ public class ItemLapangan : MonoBehaviour
         switch (jenis)
         {
             case Jenis.Bom:
-                // bunuh semua musuh di layar + kilat besar
                 GameObject[] musuh = GameObject.FindGameObjectsWithTag("Enemy");
                 foreach (var m in musuh)
                 {
@@ -93,7 +102,6 @@ public class ItemLapangan : MonoBehaviour
                 break;
 
             case Jenis.Peti:
-                // hadiah XP besar -> biasanya langsung naik level (muncul pilih skill)
                 if (LevelSystem.Instance != null)
                     LevelSystem.Instance.AddXp(Mathf.Max(5, LevelSystem.Instance.XpUntukNaik));
                 SoundManager.LevelUp();

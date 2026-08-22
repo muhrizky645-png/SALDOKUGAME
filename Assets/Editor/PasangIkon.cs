@@ -24,7 +24,7 @@ public class PasangIkon : IPreprocessBuildWithReport
 {
     public int callbackOrder { get { return 0; } }
 
-    // id skill  ->  path sumber PNG di dalam folder Assets
+    // id skill/item  ->  path sumber PNG di dalam folder Assets
     static readonly string[,] Peta = new string[,]
     {
         { "petir",   "Assets/Tiny Fantasy Icons/PowerUps/Bolt_A.png" },
@@ -34,6 +34,7 @@ public class PasangIkon : IPreprocessBuildWithReport
         { "bom",     "Assets/Tiny Fantasy Icons/Explosives/Boom_A.png" },
         { "roket",   "Assets/Tiny Fantasy Icons/Explosives/Dinamite_A.png" },
         { "target",  "Assets/Tiny Fantasy Icons/Time/Compas_A.png" },
+        { "peti",    "Assets/Tiny Fantasy Icons/Presents/Present_A.png" },
         { "peluru",  "Assets/Jovial Games/Simple 2D Cute Characters/Characters/Soldier_Character_7/Weapon.png" },
         { "pisau",   "Assets/Jovial Games/Simple 2D Cute Characters/Characters/Ninja_Character_5/Weapon.png" },
         { "aura",    "Assets/Jovial Games/Simple 2D Cute Characters/Characters/Wizard_Character_9/Weapon.png" },
@@ -43,16 +44,12 @@ public class PasangIkon : IPreprocessBuildWithReport
     const string FolderIkon = "Assets/Resources/Icons";
 
     // ====== FONT PIXEL (TTF dinamis, bisa diskalakan ke semua ukuran) ======
-    // Sumber TTF ada di dalam asset pack Thaleah. Disalin ke Resources supaya
-    // Tema.FontUtama bisa memuatnya via Resources.Load<Font>("ThaleahPixel").
     const string SumberFontTTF = "Assets/Thaleah_PixelFont/Materials/ThaleahFat_TTF.ttf";
     const string FontRes = "Assets/Resources/ThaleahPixel.ttf";
-    // font bitmap lama (.fontsettings) yang GAGAL di-load & tidak bisa diskalakan -> dibuang
     const string FontBitmapLama = "Assets/Resources/ThaleahFat.fontsettings";
 
     static PasangIkon()
     {
-        // tunda sampai AssetDatabase siap
         EditorApplication.delayCall += () => Jalan(false);
     }
 
@@ -113,15 +110,13 @@ public class PasangIkon : IPreprocessBuildWithReport
         }
     }
 
-    // Salin font TTF ke Resources & pastikan bisa dimuat (Include Font Data) + dinamis.
     static bool PasangFont(bool paksaTimpa)
     {
-        // buang font bitmap lama yang bikin error "Unable to load font face" (jika ada)
         if (File.Exists(FontBitmapLama))
             AssetDatabase.DeleteAsset(FontBitmapLama);
 
         bool adaDst = File.Exists(FontRes);
-        if (adaDst && !paksaTimpa) return false; // sudah terpasang
+        if (adaDst && !paksaTimpa) return false;
 
         if (!File.Exists(SumberFontTTF))
         {
@@ -129,7 +124,7 @@ public class PasangIkon : IPreprocessBuildWithReport
             return false;
         }
 
-        if (adaDst) AssetDatabase.DeleteAsset(FontRes); // CopyAsset tidak menimpa -> hapus dulu
+        if (adaDst) AssetDatabase.DeleteAsset(FontRes);
         if (AssetDatabase.CopyAsset(SumberFontTTF, FontRes))
         {
             AturFont(FontRes);
@@ -140,17 +135,15 @@ public class PasangIkon : IPreprocessBuildWithReport
         return false;
     }
 
-    // Atur import TTF: dinamis (bisa skala) + sertakan data font supaya face ter-load runtime.
     static void AturFont(string path)
     {
         TrueTypeFontImporter fi = AssetImporter.GetAtPath(path) as TrueTypeFontImporter;
         if (fi == null) return;
-        fi.fontTextureCase = FontTextureCase.Dynamic; // dinamis -> ikut fontSize di semua ukuran
-        fi.includeFontData = true;                    // WAJIB agar face ter-load saat runtime
+        fi.fontTextureCase = FontTextureCase.Dynamic;
+        fi.includeFontData = true;
         fi.SaveAndReimport();
     }
 
-    // Atur import PNG supaya cocok dipakai sebagai Texture2D (Resources.Load) & tajam ala pixel-art
     static void AturImport(string path)
     {
         TextureImporter ti = AssetImporter.GetAtPath(path) as TextureImporter;
