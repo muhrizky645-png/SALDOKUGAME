@@ -4,9 +4,8 @@ using UnityEngine;
 // Bentuk dipanggang jadi tekstur dengan GRADASI (atas lebih terang) + anti-alias,
 // lalu saat digambar diberi OUTLINE gelap supaya lebih "tergambar" / berdimensi.
 //
-// TAMBAHAN: kalau ada file PNG di Assets/Resources/Icons/<id>.png (disalin otomatis
-// oleh Editor script PasangIkon dari asset pack), ikon skill/item akan memakai FILE itu.
-// Kalau file belum ada, otomatis JATUH KEMBALI ke ikon kode di bawah.
+// ITEM LAPANGAN (bom/magnet/peti) memakai ikon KODE BERWARNA & TRANSPARAN (tanpa
+// background kotak). Skill masih bisa pakai FILE dari asset pack kalau tersedia.
 public static class Ikon
 {
     // ====== PRIMITIF BANTU (ruang normal -1..1, y ke atas) ======
@@ -62,6 +61,40 @@ public static class Ikon
         return t;
     }
 
+    // Render bentuk BERWARNA: kelas(nx,my) -> 0 kosong, i>=1 pakai palet[i-1].
+    // Anti-alias 2x2 + sedikit gradasi (atas lebih terang) biar berdimensi.
+    static Texture2D BuatWarna(System.Func<float, float, int> kelas, Color[] palet, int size)
+    {
+        Texture2D t = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        t.wrapMode = TextureWrapMode.Clamp;
+        int[] hitung = new int[palet.Length + 1];
+        for (int y = 0; y < size; y++)
+        {
+            float ny = ((y + 0.5f) / size) * 2f - 1f;
+            float g = 0.84f + 0.16f * ((ny + 1f) * 0.5f);
+            for (int x = 0; x < size; x++)
+            {
+                for (int i = 0; i < hitung.Length; i++) hitung[i] = 0;
+                int total = 0;
+                for (int sy = 0; sy < 2; sy++)
+                    for (int sx = 0; sx < 2; sx++)
+                    {
+                        float nx = ((x + (sx + 0.5f) / 2f) / size) * 2f - 1f;
+                        float my = ((y + (sy + 0.5f) / 2f) / size) * 2f - 1f;
+                        int k = kelas(nx, my);
+                        if (k > 0) { hitung[k]++; total++; }
+                    }
+                if (total == 0) { t.SetPixel(x, y, new Color(0f, 0f, 0f, 0f)); continue; }
+                int best = 1;
+                for (int i = 2; i < hitung.Length; i++) if (hitung[i] > hitung[best]) best = i;
+                Color c = palet[best - 1];
+                t.SetPixel(x, y, new Color(c.r * g, c.g * g, c.b * g, total / 4f));
+            }
+        }
+        t.Apply();
+        return t;
+    }
+
     // ====== IKON (lazy + cache) ======
     static Texture2D _bintang, _petir, _peluru, _target, _chevron, _hati, _berlian, _tengkorak;
     static Texture2D _bom, _magnet, _peti, _aura, _roket, _pisau;
@@ -93,24 +126,51 @@ public static class Ikon
     public static Texture2D Hati { get { if (_hati == null) _hati = Buat(FHati, 72); return _hati; } }
     public static Texture2D Berlian { get { if (_berlian == null) _berlian = Buat(FBerlian, 72); return _berlian; } }
     public static Texture2D Tengkorak { get { if (_tengkorak == null) _tengkorak = Buat(FTengkorak, 72); return _tengkorak; } }
-    public static Texture2D Bom { get { if (_bom == null) _bom = Buat(FBom, 72); return _bom; } }
-    public static Texture2D Peti { get { if (_peti == null) _peti = Buat(FPeti, 72); return _peti; } }
     public static Texture2D Aura { get { if (_aura == null) _aura = Buat(FAura, 72); return _aura; } }
     public static Texture2D Roket { get { if (_roket == null) _roket = Buat(FRoket, 72); return _roket; } }
     public static Texture2D Pisau { get { if (_pisau == null) _pisau = Buat(FPisau, 72); return _pisau; } }
 
-    // Magnet tapal kuda BERWARNA (merah + kutub perak). Ditandai sebagai "file"
-    // supaya dirender dgn warna aslinya, bukan tint satu warna tema.
+    // ====== ITEM LAPANGAN: ikon KODE BERWARNA & TRANSPARAN (tanpa background) ======
+    static readonly Color[] _paletBom = new Color[] {
+        new Color(0.17f, 0.18f, 0.22f), // 1 badan bom (gelap)
+        new Color(0.50f, 0.54f, 0.62f), // 2 kilau
+        new Color(0.55f, 0.38f, 0.18f), // 3 sumbu
+        new Color(1.00f, 0.75f, 0.20f), // 4 percik api
+    };
+    static readonly Color[] _paletPeti = new Color[] {
+        new Color(0.58f, 0.37f, 0.17f), // 1 kayu
+        new Color(0.43f, 0.26f, 0.11f), // 2 kayu tutup (lebih gelap)
+        new Color(0.95f, 0.75f, 0.22f), // 3 logam emas
+        new Color(1.00f, 0.86f, 0.38f), // 4 kunci
+    };
+
+    // Magnet tapal kuda BERWARNA (merah + kutub perak).
     public static Texture2D Magnet
     {
         get
         {
-            if (_magnet == null)
-            {
-                _magnet = BuatMagnetBerwarna(72);
-                _fileSet.Add(_magnet);
-            }
+            if (_magnet == null) { _magnet = BuatMagnetBerwarna(72); _fileSet.Add(_magnet); }
             return _magnet;
+        }
+    }
+
+    // Bom BERWARNA (transparan, tanpa background).
+    public static Texture2D Bom
+    {
+        get
+        {
+            if (_bom == null) { _bom = BuatWarna(BomKelas, _paletBom, 72); _fileSet.Add(_bom); }
+            return _bom;
+        }
+    }
+
+    // Peti BERWARNA (transparan, tanpa background).
+    public static Texture2D Peti
+    {
+        get
+        {
+            if (_peti == null) { _peti = BuatWarna(PetiKelas, _paletPeti, 72); _fileSet.Add(_peti); }
+            return _peti;
         }
     }
 
@@ -185,17 +245,21 @@ public static class Ikon
         return true;
     }
 
-    static bool FBom(float x, float y)
+    // ====== BOM BERWARNA ====== (1 badan, 2 kilau, 3 sumbu, 4 percik)
+    static int BomKelas(float x, float y)
     {
-        if (Disc(x, y, 0f, -0.15f, 0.62f)) return true;               // badan bom
-        if (Garis(x, y, 0.25f, 0.45f, 0.45f, 0.85f, 0.09f)) return true; // sumbu
-        if (Disc(x, y, 0.5f, 0.9f, 0.13f)) return true;                // percik api
-        return false;
+        if (Disc(x, y, 0.5f, 0.90f, 0.14f)) return 4;                               // percik api
+        if (Garis(x, y, 0.25f, 0.45f, 0.38f, 0.72f, 0.075f)
+            || Garis(x, y, 0.38f, 0.72f, 0.50f, 0.86f, 0.07f)) return 3;           // sumbu
+        if (Disc(x, y, 0f, -0.15f, 0.62f))                                          // badan
+        {
+            if (Disc(x, y, -0.22f, 0.08f, 0.16f)) return 2;                         // kilau kiri-atas
+            return 1;
+        }
+        return 0;
     }
 
-    // ====== MAGNET TAPAL KUDA BERWARNA ======
-    // Kelas titik: 0=kosong, 1=badan(merah), 2=kutub(perak). y ke atas.
-    // Bentuk: lengkung di atas, dua kaki turun, ujung kutub perak di bawah.
+    // ====== MAGNET TAPAL KUDA BERWARNA ====== (1 badan merah, 2 kutub perak)
     static int MagnetKelas(float x, float y)
     {
         float ax = Mathf.Abs(x);
@@ -238,11 +302,19 @@ public static class Ikon
         return t;
     }
 
-    static bool FPeti(float x, float y)
+    // ====== PETI HARTA BERWARNA ====== (1 kayu, 2 tutup, 3 logam emas, 4 kunci)
+    static int PetiKelas(float x, float y)
     {
-        bool badan = Kotak(x, y, -0.75f, -0.65f, 0.75f, 0.28f);
-        bool tutup = Kotak(x, y, -0.8f, 0.28f, 0.8f, 0.62f);
-        return badan || tutup;
+        float ax = Mathf.Abs(x);
+        bool basis = Kotak(x, y, -0.75f, -0.65f, 0.75f, 0.24f);
+        bool tutup = Kotak(x, y, -0.80f, 0.24f, 0.80f, 0.58f);
+        if (!(basis || tutup)) return 0;
+        if (Disc(x, y, 0f, 0.20f, 0.12f)) return 4;   // kunci di tengah
+        if (ax <= 0.12f) return 3;                    // pita logam vertikal
+        if (y >= 0.18f && y <= 0.30f) return 3;       // seam logam horizontal
+        if (tutup && y >= 0.50f) return 3;            // trim atas tutup
+        if (tutup) return 2;                          // kayu tutup (lebih gelap)
+        return 1;                                     // kayu badan
     }
 
     static bool FAura(float x, float y)
@@ -295,7 +367,7 @@ public static class Ikon
             case "petir": return Dari("petir", Petir);
             case "peluru": return Dari("peluru", Peluru);
             case "target": return Dari("target", Target);
-            case "chevron": return Chevron; // tidak ada padanan di pack -> tetap ikon kode
+            case "chevron": return Chevron;
             case "hati": return Dari("hati", Hati);
             case "berlian": return Dari("berlian", Berlian);
             case "pisau": return Dari("pisau", Pisau);
@@ -305,19 +377,19 @@ public static class Ikon
         }
     }
 
-    // Ambil ikon untuk ITEM lapangan (bom/magnet/peti). Utamakan FILE, fallback ke KODE.
+    // Ambil ikon untuk ITEM lapangan: ikon KODE BERWARNA (transparan, tanpa background).
     public static Texture2D UntukItem(string id)
     {
         switch (id)
         {
-            case "bom": return Dari("bom", Bom);
-            case "magnet": return Dari("magnet", Magnet); // belum ada asset -> magnet kode berwarna
-            case "peti": return Dari("peti", Peti);
+            case "bom": return Bom;
+            case "magnet": return Magnet;
+            case "peti": return Peti;
             default: return Peti;
         }
     }
 
-    // true kalau tekstur ini berasal dari FILE (asset) ATAU sudah berwarna -> pakai warna asli.
+    // true kalau tekstur ini FILE (asset) ATAU sudah berwarna -> pakai warna asli.
     public static bool AdalahFile(Texture2D tex)
     {
         return tex != null && _fileSet.Contains(tex);
@@ -334,8 +406,7 @@ public static class Ikon
     {
         if (tex == null) return;
 
-        // Ikon dari FILE (berwarna): gambar apa adanya (warna isi diabaikan) + outline tipis,
-        // jaga rasio aspek supaya sprite senjata/permata tidak gepeng.
+        // Ikon berwarna / dari FILE: gambar apa adanya (warna isi diabaikan) + outline tipis.
         if (_fileSet.Contains(tex)) { GambarPenuh(r, tex, garis); return; }
 
         Color simpan = GUI.color;
@@ -357,7 +428,7 @@ public static class Ikon
         GUI.color = simpan;
     }
 
-    // Gambar ikon FILE (berwarna) apa adanya + outline gelap tipis (4 arah), jaga rasio aspek.
+    // Gambar ikon berwarna/FILE apa adanya + outline gelap tipis (4 arah), jaga rasio aspek.
     static void GambarPenuh(Rect r, Texture2D tex, Color garis)
     {
         Color simpan = GUI.color;
@@ -367,7 +438,7 @@ public static class Ikon
         GUI.DrawTexture(new Rect(r.x + o, r.y, r.width, r.height), tex, ScaleMode.ScaleToFit, true);
         GUI.DrawTexture(new Rect(r.x, r.y - o, r.width, r.height), tex, ScaleMode.ScaleToFit, true);
         GUI.DrawTexture(new Rect(r.x, r.y + o, r.width, r.height), tex, ScaleMode.ScaleToFit, true);
-        GUI.color = Color.white; // tampilkan warna ASLI sprite
+        GUI.color = Color.white; // tampilkan warna ASLI
         GUI.DrawTexture(r, tex, ScaleMode.ScaleToFit, true);
         GUI.color = simpan;
     }
