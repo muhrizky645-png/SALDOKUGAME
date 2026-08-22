@@ -47,7 +47,7 @@ public class GameTimer : MonoBehaviour
         float atas = Tema.AmanAtas; // hormati poni/notch
         float pad = Tema.Pad;
 
-        // ==== TIMER (diperbesar, mepet KANAN, SEJAJAR dgn kotak skor) ====
+        // ==== TIMER (mepet KANAN, SEJAJAR dgn kotak skor, ukuran ~= skor) ====
         int m = (int)(Detik / 60f);
         int s = (int)(Detik % 60f);
         string txt = string.Format("{0:00}:{1:00}", m, s);
@@ -59,10 +59,10 @@ public class GameTimer : MonoBehaviour
         float skorY = levelBawah + pad * 0.6f;
         float skorCenter = skorY + skorH / 2f;
 
-        // timer sendiri: font lebih besar + plat sendiri, tengahnya disamakan dgn skor
-        int fTimer = Mathf.Min(Tema.Font(0.07f), Mathf.RoundToInt(w * 0.14f));
+        // timer: sedikit lebih besar dari skor, tengahnya disamakan dgn skor
+        int fTimer = Mathf.Min(Tema.Font(0.052f), Mathf.RoundToInt(w * 0.105f));
         float tH = fTimer * 1.7f;
-        float tW = fTimer * 3.9f; // cukup utk "00:00"
+        float tW = fTimer * 3.6f; // cukup utk "00:00"
         float tX = w - pad - Tema.AmanKanan - tW;
         float tY = skorCenter - tH / 2f;
         Tema.Panel9(new Rect(tX, tY, tW, tH), Tema.Plate, Tema.GarisRedup, 2f);
