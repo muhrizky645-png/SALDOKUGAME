@@ -11,7 +11,7 @@ public class PlayerHealth : MonoBehaviour
     public float damagePerSecond = 20f;
     private bool isDead = false;
 
-    // jatah "Hidup Lagi" (tonton iklan) - hanya 1x per permainan
+    // jatah \"Hidup Lagi\" (tonton iklan) - hanya 1x per permainan
     private bool sudahHidupLagi = false;
 
     [Header("HP Bar")]
@@ -47,6 +47,7 @@ public class PlayerHealth : MonoBehaviour
     public void Kurangi(float dmg)
     {
         if (isDead) return;
+        if (ModeDewa.Aktif) return; // MODE DEWA: KEBAL -> tidak menerima damage sama sekali
         health -= dmg;
         flashTimer = 0.12f;
         if (sfxKenaTimer <= 0f)
@@ -88,9 +89,9 @@ public class PlayerHealth : MonoBehaviour
     }
 
     // ====== HIDUP LAGI (revive) ======
-    // Dipanggil tombol "HIDUP LAGI" di Game Over. Untuk sekarang LANGSUNG revive.
+    // Dipanggil tombol \"HIDUP LAGI\" di Game Over. Untuk sekarang LANGSUNG revive.
     // Untuk iklan ASLI: tampilkan rewarded ad (Unity Ads / AdMob), lalu panggil
-    // method ini pada callback "reward diberikan".
+    // method ini pada callback \"reward diberikan\".
     public void HidupLagi()
     {
         sudahHidupLagi = true;
