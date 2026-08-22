@@ -71,7 +71,7 @@ public class SenjataManager : MonoBehaviour
 
         bool evo = lvOrbit >= 5;
         int jumlah = lvOrbit + 1 + (evo ? 2 : 0); // evolusi: +2 bilah
-        int dmg = 2 + lvOrbit + (evo ? 3 : 0);
+        int dmg = 3 + lvOrbit * 2 + (evo ? 5 : 0); // damage dinaikkan
 
         for (int i = 0; i < jumlah; i++)
         {
@@ -107,7 +107,7 @@ public class SenjataManager : MonoBehaviour
         {
             bool evo = lvOrbit >= 5;
             float radius = evo ? 2.1f : 1.6f;
-            float kecepatan = evo ? 180f : 120f;
+            float kecepatan = evo ? 200f : 140f;
             sudutOrbit += kecepatan * Time.deltaTime;
             int n = bilah.Count;
             for (int i = 0; i < n; i++)
@@ -122,12 +122,12 @@ public class SenjataManager : MonoBehaviour
         if (lvAura > 0 && auraVisual != null)
         {
             bool evo = lvAura >= 5;
-            float radius = (evo ? 2.6f : 1.8f) + lvAura * 0.15f;
-            int dmg = 1 + lvAura + (evo ? 3 : 0);
+            float radius = (evo ? 2.6f : 1.8f) + lvAura * 0.18f;
+            int dmg = 2 + lvAura * 2 + (evo ? 5 : 0); // damage dinaikkan
             auraVisual.transform.position = pl.position;
             auraVisual.transform.localScale = Vector3.one * radius * 2f;
             auraTimer += Time.deltaTime;
-            if (auraTimer >= 0.5f)
+            if (auraTimer >= 0.4f) // sedikit lebih sering
             {
                 auraTimer = 0f;
                 GameObject[] musuh = GameObject.FindGameObjectsWithTag("Enemy");
@@ -142,24 +142,30 @@ public class SenjataManager : MonoBehaviour
         }
 
         // ---- ROKET ----
+        // JUMLAH roket per gelombang = level roket (evolusi +2). Tiap roket mengejar musuh berbeda.
         if (lvRoket > 0)
         {
             bool evo = lvRoket >= 5;
-            float jeda = Mathf.Max(0.5f, 2.2f - lvRoket * 0.25f);
-            int dmg = 6 + lvRoket * 2 + (evo ? 6 : 0);
-            float radius = evo ? 2.2f : 1.6f;
+            float jeda = Mathf.Max(0.7f, 2.0f - lvRoket * 0.2f);
+            int dmg = 8 + lvRoket * 3 + (evo ? 8 : 0); // damage dinaikkan
+            float radius = evo ? 2.4f : 1.8f;
+            int jumlahRoket = lvRoket + (evo ? 2 : 0);
             roketTimer += Time.deltaTime;
             if (roketTimer >= jeda)
             {
                 roketTimer = 0f;
-                Transform t = MusuhTerdekat(pl.position, null);
-                if (t != null)
+                // kumpulkan musuh, urutkan dari yang terdekat, lalu bagikan target ke tiap roket
+                List<Transform> ts = new List<Transform>();
+                GameObject[] musuh = GameObject.FindGameObjectsWithTag("Enemy");
+                foreach (var m in musuh) if (m != null) ts.Add(m.transform);
+                if (ts.Count > 0)
                 {
-                    Roket.Tembak(pl.position, t, 7f, dmg, radius);
-                    if (evo) // evolusi: tembak 2 roket sekaligus
+                    ts.Sort((a, b) => (a.position - pl.position).sqrMagnitude
+                        .CompareTo((b.position - pl.position).sqrMagnitude));
+                    for (int i = 0; i < jumlahRoket; i++)
                     {
-                        Transform t2 = MusuhTerdekat(pl.position, t);
-                        if (t2 != null) Roket.Tembak(pl.position, t2, 7f, dmg, radius);
+                        Transform t = ts[i % ts.Count]; // kalau musuh sedikit, target dipakai ulang
+                        Roket.Tembak(pl.position, t, 8f, dmg, radius);
                     }
                 }
             }
