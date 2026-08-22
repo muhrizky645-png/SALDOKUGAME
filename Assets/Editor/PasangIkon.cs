@@ -113,7 +113,7 @@ public class PasangIkon : IPreprocessBuildWithReport
         }
     }
 
-    // Salin font TTF ke Resources & pastikan bisa dimuat + tajam ala pixel.
+    // Salin font TTF ke Resources & pastikan bisa dimuat (Include Font Data) + dinamis.
     static bool PasangFont(bool paksaTimpa)
     {
         // buang font bitmap lama yang bikin error "Unable to load font face" (jika ada)
@@ -140,14 +140,13 @@ public class PasangIkon : IPreprocessBuildWithReport
         return false;
     }
 
-    // Atur import TTF: dinamis (bisa skala) + sertakan data font + tajam (tanpa blur).
+    // Atur import TTF: dinamis (bisa skala) + sertakan data font supaya face ter-load runtime.
     static void AturFont(string path)
     {
         TrueTypeFontImporter fi = AssetImporter.GetAtPath(path) as TrueTypeFontImporter;
         if (fi == null) return;
-        fi.fontTextureCase = FontTextureCase.Dynamic;    // dinamis -> ikut fontSize di semua ukuran
-        fi.includeFontData = true;                       // WAJIB agar face ter-load saat runtime
-        fi.fontRenderMode = FontRenderMode.HintedRaster; // tajam ala pixel-art (tanpa anti-alias blur)
+        fi.fontTextureCase = FontTextureCase.Dynamic; // dinamis -> ikut fontSize di semua ukuran
+        fi.includeFontData = true;                    // WAJIB agar face ter-load saat runtime
         fi.SaveAndReimport();
     }
 
