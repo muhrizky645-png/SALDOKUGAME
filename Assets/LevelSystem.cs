@@ -45,20 +45,21 @@ public class LevelSystem : MonoBehaviour
             xpUntukNaik = Mathf.RoundToInt(xpUntukNaik * 1.3f) + 2; // tiap level butuh lebih banyak XP
             naik = true;
         }
-        if (naik) SoundManager.LevelUp(); // suara naik level (pengumuman "LEVEL UP" ada di kartu skill)
+        if (naik) SoundManager.LevelUp(); // suara naik level (pengumuman \"LEVEL UP\" ada di kartu skill)
     }
 
     // HUD Level + bar XP, pojok KIRI atas (tema survival)
     void OnGUI()
     {
-        // sembunyikan HUD selama menu awal / jeda / saat memilih skill
-        if (!GameMenu.SedangMain || GameMenu.SedangJeda || SkillManager.AktifMemilih) return;
+        // sembunyikan HUD selama menu awal / jeda / saat memilih skill / SAAT GAME OVER
+        if (!GameMenu.SedangMain || GameMenu.SedangJeda ||
+            SkillManager.AktifMemilih || PlayerHealth.GameOver) return;
 
         float h = Screen.height;
         float pad = h * 0.02f;
 
-        int fLv = Mathf.RoundToInt(h * 0.03f);
-        float pW = Screen.width * 0.34f;
+        int fLv = Mathf.RoundToInt(h * 0.028f);
+        float pW = Screen.width * 0.30f;
         float pH = fLv * 2.4f;
         float pX = pad;
         float pY = pad;
