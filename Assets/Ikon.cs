@@ -179,11 +179,18 @@ public static class Ikon
         return false;
     }
 
+    // MAGNET TAPAL KUDA (horseshoe): lengkung di ATAS, dua kaki turun ke bawah,
+    // dan ujung KUTUB sedikit lebih lebar di bawah tiap kaki.
     static bool FMagnet(float x, float y)
     {
-        bool arc = Cincin(x, y, 0.42f, 0.8f) && y <= 0.15f;
-        bool legs = (y > 0.15f) && ((x >= -0.8f && x <= -0.42f) || (x >= 0.42f && x <= 0.8f));
-        return arc || legs;
+        float ax = Mathf.Abs(x);
+        // lengkung atas (setengah cincin)
+        bool lengkung = Cincin(x, y, 0.44f, 0.82f) && y >= -0.02f;
+        // dua kaki lurus turun dari ujung lengkung
+        bool kaki = (y < -0.02f && y >= -0.60f) && (ax >= 0.44f && ax <= 0.82f);
+        // ujung kutub sedikit lebih lebar (biar terbaca sbg magnet)
+        bool kutub = (y < -0.60f && y >= -0.86f) && (ax >= 0.38f && ax <= 0.88f);
+        return lengkung || kaki || kutub;
     }
 
     static bool FPeti(float x, float y)
@@ -259,7 +266,7 @@ public static class Ikon
         switch (id)
         {
             case "bom": return Dari("bom", Bom);
-            case "magnet": return Dari("magnet", Magnet); // belum ada padanan asset -> ikon kode
+            case "magnet": return Dari("magnet", Magnet); // belum ada padanan asset -> ikon kode (tapal kuda)
             case "peti": return Dari("peti", Peti);
             default: return Peti;
         }
