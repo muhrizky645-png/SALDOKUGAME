@@ -58,22 +58,25 @@ public class LevelSystem : MonoBehaviour
         float h = Screen.height;
         float pad = h * 0.02f;
 
-        int fLv = Mathf.RoundToInt(h * 0.028f);
-        float pW = Screen.width * 0.30f;
-        float pH = fLv * 2.4f;
+        // Panel dibuat lebih lebar & font lebih kecil supaya \"LEVEL x\" muat SATU baris (tidak turun & menabrak bar).
+        int fLv = Mathf.RoundToInt(h * 0.022f);
+        float pW = Screen.width * 0.34f;
+        float pH = fLv * 3.2f;
         float pX = pad;
         float pY = pad;
 
         // panel level
         Tema.Panel9(new Rect(pX, pY, pW, pH), Tema.Plate, Tema.GarisRedup, 2f);
-        Tema.Teks(new Rect(pX + pW * 0.06f, pY + pH * 0.12f, pW * 0.9f, pH * 0.6f),
+
+        // teks \"LEVEL x\" di bagian ATAS panel (satu baris)
+        Tema.Teks(new Rect(pX + pW * 0.06f, pY + pH * 0.10f, pW * 0.88f, pH * 0.42f),
             "LEVEL " + level, fLv, Tema.Army, TextAnchor.UpperLeft, true);
 
-        // bar XP di bagian bawah panel
+        // bar XP di bagian BAWAH panel, ada jarak jelas dari teks -> tidak menabrak
         float barX = pX + pW * 0.06f;
         float barW = pW * 0.88f;
         float barH = pH * 0.20f;
-        float barY = pY + pH * 0.66f;
+        float barY = pY + pH * 0.68f;
         float ratio = (xpUntukNaik > 0) ? Mathf.Clamp01((float)xp / xpUntukNaik) : 0f;
         Tema.Panel9(new Rect(barX, barY, barW, barH), new Color(0f, 0f, 0f, 0.55f), Tema.GarisRedup, 1f);
         Tema.Kotak(new Rect(barX + 1f, barY + 1f, (barW - 2f) * ratio, barH - 2f),
