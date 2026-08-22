@@ -57,9 +57,8 @@ public class ScoreManager : MonoBehaviour
 
         float w = Screen.width, h = Screen.height;
 
-        // posisi bawah panel level (harus konsisten dgn LevelSystem)
-        int fLv = Mathf.Min(Tema.Font(0.030f), Mathf.RoundToInt(w * 0.055f));
-        float levelBawah = Tema.AmanAtas + Tema.Pad + fLv * 3.4f;
+        // posisi bawah panel level (konsisten dgn LevelSystem)
+        float levelBawah = Tema.AmanAtas + Tema.Pad + LevelSystem.TinggiPanel(w);
 
         // SKOR: di BAWAH panel level, mepet KIRI (plat menyesuaikan jumlah digit)
         int fSkor = Mathf.Min(Tema.Font(0.05f), Mathf.RoundToInt(w * 0.10f));

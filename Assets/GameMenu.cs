@@ -168,11 +168,20 @@ public class GameMenu : MonoBehaviour
         float pad = Tema.Pad;
         float x = w - sz - pad - Tema.AmanKanan;
         float y = Tema.AmanAtas + pad;
-        if (GUI.Button(new Rect(x, y, sz, sz), "II", Tema.GayaTombol(Tema.Font(0.045f))))
+        Rect rJeda = new Rect(x, y, sz, sz);
+        if (GUI.Button(rJeda, "", Tema.GayaTombol(1)))
         {
             SoundManager.Klik();
             Jeda();
         }
+        // ikon jeda digambar MANUAL: dua batang vertikal LURUS (bukan teks "II" yang terlihat miring)
+        float pbW = sz * 0.13f;                 // lebar tiap batang
+        float pbH = sz * 0.42f;                 // tinggi batang
+        float pbGap = sz * 0.14f;               // jarak antar batang
+        float pbY = y + (sz - pbH) / 2f;
+        float pbCx = x + sz / 2f;
+        Tema.Kotak(new Rect(pbCx - pbGap / 2f - pbW, pbY, pbW, pbH), Tema.Tulang);
+        Tema.Kotak(new Rect(pbCx + pbGap / 2f, pbY, pbW, pbH), Tema.Tulang);
     }
 
     // ====== PANEL PENGATURAN SUARA ======
