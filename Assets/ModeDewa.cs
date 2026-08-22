@@ -20,6 +20,9 @@ public class ModeDewa : MonoBehaviour
     public static bool Aktif = false;
     public static float SisaDetik = 0f;
 
+    // true saat overlay konfirmasi peti tampil -> HUD lain (mis. bar boss) sembunyi dulu.
+    public static bool MenuTerbuka = false;
+
     const float DURASI = 30f;         // durasi skill dewa = 30 detik
     const float JedaIsiUlang = 90f;   // peti muncul lagi tiap 90 detik bermain (biar spesial)
     const float DurasiTampil = 10f;   // peti hanya tampil 10 detik; kalau tak diklik -> hilang
@@ -53,6 +56,7 @@ public class ModeDewa : MonoBehaviour
         // reset penuh tiap game baru
         Aktif = false;
         SisaDetik = 0f;
+        MenuTerbuka = false;
         tersedia = false;
         konfirmasi = false;
         isiUlang = 0f;
@@ -77,7 +81,8 @@ public class ModeDewa : MonoBehaviour
 
     void Update()
     {
-        if (konfirmasi) return; // dijeda saat overlay tampil
+        MenuTerbuka = konfirmasi; // sinkron tiap frame
+        if (konfirmasi) return;   // dijeda saat overlay tampil
 
         if (Aktif)
         {
@@ -142,8 +147,9 @@ public class ModeDewa : MonoBehaviour
     void Buka()
     {
         // IKLAN ASLI: di sini tampilkan rewarded ad (Unity Ads/AdMob),
-        // lalu panggil Aktifkan() pada callback \"reward diberikan\".
+        // lalu panggil Aktifkan() pada callback "reward diberikan".
         konfirmasi = false;
+        MenuTerbuka = false;
         Time.timeScale = 1f;
         Aktifkan();
     }
@@ -168,7 +174,7 @@ public class ModeDewa : MonoBehaviour
         // overlay konfirmasi (membekukan game)
         if (konfirmasi)
         {
-            if (!SedangMain()) { konfirmasi = false; Time.timeScale = 1f; return; }
+            if (!SedangMain()) { konfirmasi = false; MenuTerbuka = false; Time.timeScale = 1f; return; }
             Time.timeScale = 0f;
             GambarKonfirmasi(w, h);
             return;
@@ -211,7 +217,7 @@ public class ModeDewa : MonoBehaviour
         Tema.Teks(new Rect(x - sz * 0.3f, barY + barH * 1.1f, sz * 1.6f, sz * 0.28f),
             sisa + "s", Mathf.RoundToInt(sz * 0.16f), warnaSisa, TextAnchor.MiddleCenter, true);
 
-        if (GUI.Button(r, "", GUIStyle.none)) { SoundManager.Klik(); konfirmasi = true; }
+        if (GUI.Button(r, "", GUIStyle.none)) { SoundManager.Klik(); konfirmasi = true; MenuTerbuka = true; }
     }
 
     // Status Mode Dewa aktif: vignette emas + countdown bawah-tengah
@@ -294,6 +300,7 @@ public class ModeDewa : MonoBehaviour
         {
             SoundManager.Klik();
             konfirmasi = false;
+            MenuTerbuka = false;
             Time.timeScale = 1f;
         }
     }

@@ -69,7 +69,8 @@ public class GameTimer : MonoBehaviour
         Tema.Teks(new Rect(tX, tY, tW, tH), txt, fTimer, Tema.Tulang, TextAnchor.MiddleCenter, true);
 
         // ==== BAR NYAWA BOSS (tengah, di bawah baris HUD atas) ====
-        if (EnemyChase.JumlahBos > 0 && EnemyChase.BosSaatIni != null)
+        // Disembunyikan saat overlay Peti Dewa terbuka biar tidak menimpa panelnya.
+        if (EnemyChase.JumlahBos > 0 && EnemyChase.BosSaatIni != null && !ModeDewa.MenuTerbuka)
         {
             float bossY = atas + h * 0.150f;
             Tema.Teks(new Rect(0, bossY, w, h * 0.035f), "! B O S S !",
