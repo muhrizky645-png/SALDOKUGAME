@@ -67,9 +67,15 @@ public class XpGem : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-        if (d <= jarakMagnet)
+
+        // MODE DEWA: MAGNET SEMESTA -> semua permata langsung tersedot
+        float jm = jarakMagnet;
+        float speed = kecepatanTarik;
+        if (ModeDewa.Aktif) { jm = 99999f; speed = Mathf.Max(speed, 22f); }
+
+        if (d <= jm)
         {
-            transform.position = Vector3.MoveTowards(transform.position, player.position, kecepatanTarik * Time.deltaTime);
+            transform.position = Vector3.MoveTowards(transform.position, player.position, speed * Time.deltaTime);
         }
     }
 

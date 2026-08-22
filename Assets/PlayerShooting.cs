@@ -18,7 +18,8 @@ public class PlayerShooting : MonoBehaviour
         if (timer <= 0f)
         {
             Shoot();
-            timer = fireRate;
+            // MODE DEWA: BADAI PELURU -> tembak jauh lebih cepat
+            timer = fireRate * (ModeDewa.Aktif ? 0.12f : 1f);
         }
     }
 
@@ -27,9 +28,12 @@ public class PlayerShooting : MonoBehaviour
         GameObject[] zombies = GameObject.FindGameObjectsWithTag("Enemy");
         if (zombies.Length == 0) return;
 
+        // MODE DEWA: jangkauan tembak jauh lebih luas
+        float rangeEfektif = range * (ModeDewa.Aktif ? 4f : 1f);
+
         // cari zombie terdekat
         GameObject terdekat = null;
-        float jarakTerdekat = range;
+        float jarakTerdekat = rangeEfektif;
         foreach (GameObject z in zombies)
         {
             float jarak = Vector3.Distance(transform.position, z.transform.position);
@@ -45,7 +49,8 @@ public class PlayerShooting : MonoBehaviour
         Vector3 arah = (terdekat.transform.position - transform.position).normalized;
 
         // tembak beberapa peluru sekaligus dengan sedikit sebaran (kalau punya skill)
-        int n = Mathf.Max(1, jumlahPeluru);
+        // MODE DEWA: BADAI PELURU -> peluru jauh lebih banyak
+        int n = Mathf.Max(1, jumlahPeluru + (ModeDewa.Aktif ? 10 : 0));
         float total = (n - 1) * sudutSebar;
         float mulai = -total / 2f;
         for (int i = 0; i < n; i++)
