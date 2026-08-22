@@ -19,7 +19,7 @@ public class ModeDewa : MonoBehaviour
     public static float SisaDetik = 0f;
 
     const float DURASI = 30f;         // durasi skill dewa = 30 detik
-    const float JedaIsiUlang = 30f;   // peti muncul lagi tiap 30 detik bermain
+    const float JedaIsiUlang = 90f;   // peti muncul lagi tiap 90 detik bermain (biar spesial)
 
     private bool tersedia = false;    // peti siap dibuka
     private bool konfirmasi = false;  // overlay "tonton iklan" tampil
