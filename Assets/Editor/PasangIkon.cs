@@ -27,17 +27,18 @@ public class PasangIkon : IPreprocessBuildWithReport
     // id skill/item  ->  path sumber PNG di dalam folder Assets
     static readonly string[,] Peta = new string[,]
     {
-        { "petir",   "Assets/Tiny Fantasy Icons/PowerUps/Bolt_A.png" },
-        { "hati",    "Assets/Tiny Fantasy Icons/PowerUps/Heart_A.png" },
-        { "berlian", "Assets/Tiny Fantasy Icons/Gems/Gems_Large_Diamond.png" },
-        { "bintang", "Assets/Tiny Fantasy Icons/PowerUps/Star_A.png" },
-        { "bom",     "Assets/Tiny Fantasy Icons/Explosives/Boom_A.png" },
-        { "roket",   "Assets/Tiny Fantasy Icons/Explosives/Dinamite_A.png" },
-        { "target",  "Assets/Tiny Fantasy Icons/Time/Compas_A.png" },
-        { "peti",    "Assets/Tiny Fantasy Icons/Presents/Present_A.png" },
-        { "peluru",  "Assets/Jovial Games/Simple 2D Cute Characters/Characters/Soldier_Character_7/Weapon.png" },
-        { "pisau",   "Assets/Jovial Games/Simple 2D Cute Characters/Characters/Ninja_Character_5/Weapon.png" },
-        { "aura",    "Assets/Jovial Games/Simple 2D Cute Characters/Characters/Wizard_Character_9/Weapon.png" },
+        { "petir",    "Assets/Tiny Fantasy Icons/PowerUps/Bolt_A.png" },
+        { "hati",     "Assets/Tiny Fantasy Icons/PowerUps/Heart_A.png" },
+        { "berlian",  "Assets/Tiny Fantasy Icons/Gems/Gems_Large_Diamond.png" },
+        { "bintang",  "Assets/Tiny Fantasy Icons/PowerUps/Star_A.png" },
+        { "bom",      "Assets/Tiny Fantasy Icons/Explosives/Boom_A.png" },
+        { "roket",    "Assets/Tiny Fantasy Icons/Explosives/Dinamite_A.png" },
+        { "target",   "Assets/Tiny Fantasy Icons/Time/Compas_A.png" },
+        { "peti",     "Assets/Tiny Fantasy Icons/Presents/Present_A.png" },
+        { "petidewa", "Assets/Tiny Fantasy Icons/Chests/ChestA.png" },
+        { "peluru",   "Assets/Jovial Games/Simple 2D Cute Characters/Characters/Soldier_Character_7/Weapon.png" },
+        { "pisau",    "Assets/Jovial Games/Simple 2D Cute Characters/Characters/Ninja_Character_5/Weapon.png" },
+        { "aura",     "Assets/Jovial Games/Simple 2D Cute Characters/Characters/Wizard_Character_9/Weapon.png" },
     };
 
     const string FolderRes = "Assets/Resources";
