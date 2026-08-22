@@ -27,10 +27,10 @@ public class Roket : MonoBehaviour
     void Start()
     {
         sr = gameObject.AddComponent<SpriteRenderer>();
-        sr.sprite = BuatSprite(20);
-        sr.color = new Color(1f, 0.6f, 0.2f); // oranye
+        sr.sprite = BuatSprite(64);
+        sr.color = Color.white;          // warna sudah dipanggang di tekstur
         sr.sortingOrder = 45;
-        transform.localScale = Vector3.one * 0.5f;
+        transform.localScale = Vector3.one * 0.85f; // sedikit lebih besar dari sebelumnya
     }
 
     void Update()
@@ -48,7 +48,7 @@ public class Roket : MonoBehaviour
 
         transform.position += arah * speed * Time.deltaTime;
         float sudut = Mathf.Atan2(arah.y, arah.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0, 0, sudut - 90f);
+        transform.rotation = Quaternion.Euler(0, 0, sudut - 90f); // hidung roket (+y) mengarah ke gerak
 
         // kena musuh?
         GameObject[] musuh = GameObject.FindGameObjectsWithTag("Enemy");
@@ -83,22 +83,70 @@ public class Roket : MonoBehaviour
         return t;
     }
 
-    Sprite BuatSprite(int size)
+    // Bentuk ROKET beneran (hidung menghadap ATAS), warna dipanggang ke tekstur:
+    //  - badan silinder metalik  - hidung kerucut merah  - sirip merah
+    //  - jendela biru            - nyala api kuning/oranye di bawah
+    Sprite BuatSprite(int S)
     {
-        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        Texture2D tex = new Texture2D(S, S, TextureFormat.RGBA32, false);
         tex.wrapMode = TextureWrapMode.Clamp;
-        float cx = size / 2f;
-        for (int y = 0; y < size; y++)
-            for (int x = 0; x < size; x++)
+        tex.filterMode = FilterMode.Bilinear;
+        float cx = (S - 1) * 0.5f;
+
+        for (int y = 0; y < S; y++)
+        {
+            float ny = (y + 0.5f) / S;                 // 0 bawah .. 1 atas
+            for (int x = 0; x < S; x++)
             {
-                // bentuk kapsul roket vertikal
-                float dx = Mathf.Abs(x - cx + 0.5f);
-                float ny = (float)y / size;
-                float lebar = Mathf.Lerp(size * 0.28f, size * 0.05f, ny); // meruncing ke atas
-                float a = dx <= lebar ? 1f : 0f;
-                tex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
+                float dx = (x + 0.5f) - (cx + 0.5f);
+                float adx = Mathf.Abs(dx);
+                Color col = new Color(0f, 0f, 0f, 0f);  // transparan
+
+                // NYALA API (paling bawah)
+                if (ny < 0.20f)
+                {
+                    float t = ny / 0.20f;               // 0 bawah .. 1 atas
+                    float w = Mathf.Lerp(S * 0.02f, S * 0.13f, t);
+                    if (adx <= w)
+                        col = (adx <= w * 0.5f)
+                            ? new Color(1f, 0.93f, 0.40f, 1f)  // inti kuning
+                            : new Color(1f, 0.50f, 0.12f, 1f); // tepi oranye
+                }
+
+                // SIRIP kiri-kanan
+                if (ny >= 0.16f && ny <= 0.36f)
+                {
+                    float t = (ny - 0.16f) / 0.20f;
+                    float outer = Mathf.Lerp(S * 0.34f, S * 0.17f, t);
+                    if (adx >= S * 0.15f && adx <= outer)
+                        col = new Color(0.80f, 0.18f, 0.15f, 1f); // merah
+                }
+
+                // BADAN silinder (metalik, ada shading kiri terang -> kanan gelap)
+                if (ny >= 0.20f && ny <= 0.74f && adx <= S * 0.17f)
+                {
+                    float shade = Mathf.Lerp(1f, 0.72f, (dx / (S * 0.17f)) * 0.5f + 0.5f);
+                    col = new Color(0.92f * shade, 0.92f * shade, 0.96f * shade, 1f);
+                }
+
+                // HIDUNG kerucut merah
+                if (ny > 0.74f && ny <= 0.95f)
+                {
+                    float t = (ny - 0.74f) / 0.21f;
+                    if (adx <= Mathf.Lerp(S * 0.17f, 0f, t))
+                        col = new Color(0.86f, 0.20f, 0.16f, 1f);
+                }
+
+                // JENDELA biru di badan
+                float ddx = (x + 0.5f) - (cx + 0.5f);
+                float ddy = (y + 0.5f) - 0.55f * S;
+                if (ddx * ddx + ddy * ddy <= (S * 0.075f) * (S * 0.075f))
+                    col = new Color(0.45f, 0.82f, 1f, 1f);
+
+                tex.SetPixel(x, y, col);
             }
+        }
         tex.Apply();
-        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
+        return Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(0.5f, 0.5f), 100f);
     }
 }
