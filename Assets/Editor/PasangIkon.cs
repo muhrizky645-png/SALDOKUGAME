@@ -7,7 +7,8 @@ using UnityEngine;
 
 // =====================================================================
 //  PasangIkon - otomatis menyalin ikon terpilih dari asset pack ke
-//  Assets/Resources/Icons/<id>.png supaya bisa dimuat runtime lewat
+//  Assets/Resources/Icons/<id>.png DAN font pixel TTF ke
+//  Assets/Resources/ThaleahPixel.ttf supaya bisa dimuat runtime lewat
 //  Resources.Load TANPA drag-drop manual.
 //
 //  Jalan OTOMATIS:
@@ -15,8 +16,8 @@ using UnityEngine;
 //   2) sebelum build, TERMASUK Unity Cloud Build (IPreprocessBuildWithReport)
 //   3) manual lewat menu: Tools > Pasang Ikon Fantasy
 //
-//  Karena PNG sudah ada di dalam repo, penyalinan cukup lewat AssetDatabase
-//  (tanpa transfer file biner apa pun).
+//  Karena PNG & TTF sudah ada di dalam repo, penyalinan cukup lewat
+//  AssetDatabase (tanpa transfer file biner apa pun).
 // =====================================================================
 [InitializeOnLoad]
 public class PasangIkon : IPreprocessBuildWithReport
@@ -41,6 +42,14 @@ public class PasangIkon : IPreprocessBuildWithReport
     const string FolderRes = "Assets/Resources";
     const string FolderIkon = "Assets/Resources/Icons";
 
+    // ====== FONT PIXEL (TTF dinamis, bisa diskalakan ke semua ukuran) ======
+    // Sumber TTF ada di dalam asset pack Thaleah. Disalin ke Resources supaya
+    // Tema.FontUtama bisa memuatnya via Resources.Load<Font>("ThaleahPixel").
+    const string SumberFontTTF = "Assets/Thaleah_PixelFont/Materials/ThaleahFat_TTF.ttf";
+    const string FontRes = "Assets/Resources/ThaleahPixel.ttf";
+    // font bitmap lama (.fontsettings) yang GAGAL di-load & tidak bisa diskalakan -> dibuang
+    const string FontBitmapLama = "Assets/Resources/ThaleahFat.fontsettings";
+
     static PasangIkon()
     {
         // tunda sampai AssetDatabase siap
@@ -56,7 +65,7 @@ public class PasangIkon : IPreprocessBuildWithReport
     static void JalanManual()
     {
         Jalan(true);
-        Debug.Log("[PasangIkon] Selesai memasang ikon ke " + FolderIkon);
+        Debug.Log("[PasangIkon] Selesai memasang ikon ke " + FolderIkon + " & font ke " + FontRes);
     }
 
     static void Jalan(bool paksaTimpa)
@@ -95,11 +104,51 @@ public class PasangIkon : IPreprocessBuildWithReport
             }
         }
 
+        if (PasangFont(paksaTimpa)) berubah = true;
+
         if (berubah)
         {
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
+    }
+
+    // Salin font TTF ke Resources & pastikan bisa dimuat + tajam ala pixel.
+    static bool PasangFont(bool paksaTimpa)
+    {
+        // buang font bitmap lama yang bikin error "Unable to load font face" (jika ada)
+        if (File.Exists(FontBitmapLama))
+            AssetDatabase.DeleteAsset(FontBitmapLama);
+
+        bool adaDst = File.Exists(FontRes);
+        if (adaDst && !paksaTimpa) return false; // sudah terpasang
+
+        if (!File.Exists(SumberFontTTF))
+        {
+            Debug.LogWarning("[PasangIkon] Font TTF tidak ditemukan, dilewati: " + SumberFontTTF);
+            return false;
+        }
+
+        if (adaDst) AssetDatabase.DeleteAsset(FontRes); // CopyAsset tidak menimpa -> hapus dulu
+        if (AssetDatabase.CopyAsset(SumberFontTTF, FontRes))
+        {
+            AturFont(FontRes);
+            return true;
+        }
+
+        Debug.LogWarning("[PasangIkon] Gagal menyalin font: " + SumberFontTTF + " -> " + FontRes);
+        return false;
+    }
+
+    // Atur import TTF: dinamis (bisa skala) + sertakan data font + tajam (tanpa blur).
+    static void AturFont(string path)
+    {
+        TrueTypeFontImporter fi = AssetImporter.GetAtPath(path) as TrueTypeFontImporter;
+        if (fi == null) return;
+        fi.fontTextureCase = FontTextureCase.Dynamic;    // dinamis -> ikut fontSize di semua ukuran
+        fi.includeFontData = true;                       // WAJIB agar face ter-load saat runtime
+        fi.fontRenderMode = FontRenderMode.HintedRaster; // tajam ala pixel-art (tanpa anti-alias blur)
+        fi.SaveAndReimport();
     }
 
     // Atur import PNG supaya cocok dipakai sebagai Texture2D (Resources.Load) & tajam ala pixel-art
