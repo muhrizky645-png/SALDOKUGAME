@@ -54,28 +54,30 @@ public class ScoreManager : MonoBehaviour
     //  (Level + bar XP diatur di LevelSystem.cs, pojok KIRI atas)
     void OnGUI()
     {
-        // sembunyikan HUD selama menu awal / jeda / saat memilih skill
-        if (!GameMenu.SedangMain || GameMenu.SedangJeda || SkillManager.AktifMemilih) return;
+        // sembunyikan HUD selama menu awal / jeda / saat memilih skill / SAAT GAME OVER
+        if (!GameMenu.SedangMain || GameMenu.SedangJeda ||
+            SkillManager.AktifMemilih || PlayerHealth.GameOver) return;
 
         float h = Screen.height;
         float pad = h * 0.02f;
 
         // ---- SKOR (plat tengah atas, di bawah timer) ----
-        int fSkor = Mathf.RoundToInt(h * 0.05f);
-        float plW = Screen.width * 0.44f;
-        float plH = fSkor * 1.5f;
+        // Sengaja dibuat ramping supaya tidak menabrak panel REKOR di kanan.
+        int fSkor = Mathf.RoundToInt(h * 0.045f);
+        float plW = Screen.width * 0.30f;
+        float plH = fSkor * 1.6f;
         float plX = (Screen.width - plW) / 2f;
-        float plY = h * 0.10f; // sedikit turun supaya timer (tengah paling atas) tidak tertimpa
+        float plY = h * 0.105f; // sedikit turun supaya timer (tengah paling atas) tidak tertimpa
         Tema.Panel9(new Rect(plX, plY, plW, plH), Tema.Plate, Tema.GarisRedup, 2f);
-        Tema.Teks(new Rect(plX, plY + plH * 0.14f, plW, plH), score.ToString(), fSkor,
+        Tema.Teks(new Rect(plX, plY + plH * 0.16f, plW, plH), score.ToString(), fSkor,
             Tema.Tulang, TextAnchor.UpperCenter, true);
 
         // ---- REKOR / HIGH SCORE (panel pojok kanan atas, DI BAWAH tombol jeda) ----
-        int fRek = Mathf.RoundToInt(h * 0.026f);
-        float rW = Screen.width * 0.34f;
+        int fRek = Mathf.RoundToInt(h * 0.024f);
+        float rW = Screen.width * 0.30f;
         float rH = fRek * 3.1f;
         float rX = Screen.width - rW - pad;
-        float rY = pad + h * 0.055f + h * 0.012f; // di bawah tombol jeda (sz 0.055h)
+        float rY = pad + h * 0.055f + h * 0.014f; // di bawah tombol jeda (sz 0.055h)
         Tema.Panel9(new Rect(rX, rY, rW, rH), Tema.Plate, Tema.GarisRedup, 2f);
 
         // ikon bintang di kiri panel rekor
