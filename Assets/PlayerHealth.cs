@@ -119,11 +119,11 @@ public class PlayerHealth : MonoBehaviour
         float h = Screen.height;
         float w = Screen.width;
 
-        // latar gelap + semburat merah darah
-        Tema.LatarGelap(new Color(0.35f, 0.03f, 0.03f, 0.30f));
+        // latar gelap + semburat merah darah (menutupi seluruh HUD di belakangnya)
+        Tema.LatarGelap(new Color(0.35f, 0.03f, 0.03f, 0.35f));
 
-        // judul GAME OVER
-        Tema.Teks(new Rect(0, h * 0.14f, w, h * 0.13f), "GAME OVER", Mathf.RoundToInt(h * 0.095f),
+        // judul GAME OVER (ukuran diatur supaya muat 1 baris, tidak menimpa panel)
+        Tema.Teks(new Rect(0, h * 0.12f, w, h * 0.12f), "GAME OVER", Mathf.RoundToInt(h * 0.07f),
             Tema.Darah, TextAnchor.MiddleCenter, true);
 
         // panel skor akhir + rekor
@@ -131,40 +131,40 @@ public class PlayerHealth : MonoBehaviour
         int rekor = (ScoreManager.Instance != null) ? ScoreManager.Instance.RekorTertinggi : 0;
         bool rekorBaru = (skor > 0 && skor >= rekor);
 
-        float pw = w * 0.7f, ph = h * 0.16f, px = (w - pw) / 2f, py = h * 0.30f;
+        float pw = w * 0.72f, ph = h * 0.16f, px = (w - pw) / 2f, py = h * 0.28f;
         Tema.Panel9(new Rect(px, py, pw, ph), Tema.Plate, Tema.GarisRedup, 2f);
 
         // dua kolom: SKOR (kiri) & REKOR (kanan)
         float colW = pw / 2f;
         Tema.Teks(new Rect(px, py + ph * 0.14f, colW, ph * 0.35f), "SKOR", Mathf.RoundToInt(h * 0.026f),
             Tema.Redup, TextAnchor.MiddleCenter, true);
-        Tema.Teks(new Rect(px, py + ph * 0.45f, colW, ph * 0.5f), skor.ToString(), Mathf.RoundToInt(h * 0.05f),
+        Tema.Teks(new Rect(px, py + ph * 0.45f, colW, ph * 0.5f), skor.ToString(), Mathf.RoundToInt(h * 0.048f),
             Tema.Tulang, TextAnchor.MiddleCenter, true);
 
         // ikon bintang kecil di atas label REKOR
-        float ik = ph * 0.22f;
-        Ikon.Gambar(new Rect(px + colW + (colW - ik) / 2f, py + ph * 0.02f, ik, ik), Ikon.Bintang, Tema.Amber);
-        Tema.Teks(new Rect(px + colW, py + ph * 0.24f, colW, ph * 0.30f), "REKOR", Mathf.RoundToInt(h * 0.024f),
+        float ik = ph * 0.20f;
+        Ikon.Gambar(new Rect(px + colW + (colW - ik) / 2f, py + ph * 0.04f, ik, ik), Ikon.Bintang, Tema.Amber);
+        Tema.Teks(new Rect(px + colW, py + ph * 0.26f, colW, ph * 0.28f), "REKOR", Mathf.RoundToInt(h * 0.024f),
             Tema.Redup, TextAnchor.MiddleCenter, true);
-        Tema.Teks(new Rect(px + colW, py + ph * 0.50f, colW, ph * 0.5f), rekor.ToString(), Mathf.RoundToInt(h * 0.05f),
+        Tema.Teks(new Rect(px + colW, py + ph * 0.50f, colW, ph * 0.5f), rekor.ToString(), Mathf.RoundToInt(h * 0.048f),
             Tema.Amber, TextAnchor.MiddleCenter, true);
 
         // badge rekor baru
         if (rekorBaru)
         {
-            Tema.Teks(new Rect(0, py + ph + h * 0.01f, w, h * 0.045f), "* REKOR BARU! *",
+            Tema.Teks(new Rect(0, py + ph + h * 0.012f, w, h * 0.045f), "* REKOR BARU! *",
                 Mathf.RoundToInt(h * 0.03f), Tema.Amber, TextAnchor.MiddleCenter, true);
         }
 
-        // tombol
-        float bw = w * 0.6f, bh = h * 0.08f, bx = (w - bw) / 2f;
-        int fb = Mathf.RoundToInt(h * 0.034f);
+        // tombol (jarak konsisten, tidak saling menempel)
+        float bw = w * 0.62f, bh = h * 0.082f, bx = (w - bw) / 2f;
+        int fb = Mathf.RoundToInt(h * 0.032f);
         if (GUI.Button(new Rect(bx, h * 0.56f, bw, bh), "MAIN LAGI (R)", Tema.GayaTombol(fb)))
         {
             SoundManager.Klik();
             GameMenu.UlangiDanMain();
         }
-        if (GUI.Button(new Rect(bx, h * 0.66f, bw, bh), "KE HOME", Tema.GayaTombol(fb)))
+        if (GUI.Button(new Rect(bx, h * 0.68f, bw, bh), "KE HOME", Tema.GayaTombol(fb)))
         {
             SoundManager.Klik();
             GameMenu.KeHome();
