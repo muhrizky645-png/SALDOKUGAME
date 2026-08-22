@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// Mengukur berapa lama pemain bertahan + menampilkan timer (di bawah tombol jeda,
+// Mengukur berapa lama pemain bertahan + menampilkan timer (sejajar kotak skor,
 // mepet kanan) dan bar nyawa BOSS saat boss hidup. Otomatis dibuat & di-reset tiap scene.
 public class GameTimer : MonoBehaviour
 {
@@ -45,22 +45,28 @@ public class GameTimer : MonoBehaviour
 
         float w = Screen.width, h = Screen.height;
         float atas = Tema.AmanAtas; // hormati poni/notch
+        float pad = Tema.Pad;
 
-        // ==== TIMER (di BAWAH tombol jeda, mepet KANAN) ====
+        // ==== TIMER (diperbesar, mepet KANAN, SEJAJAR dgn kotak skor) ====
         int m = (int)(Detik / 60f);
         int s = (int)(Detik % 60f);
         string txt = string.Format("{0:00}:{1:00}", m, s);
 
-        float jedaSz = Tema.Unit * 0.09f;
-        float pad = Tema.Pad;
-        float jedaBawah = atas + pad + jedaSz;
-        int fTimer = Mathf.Min(Tema.Font(0.055f), Mathf.RoundToInt(w * 0.11f));
-        float tw = w * 0.42f;
-        float tKanan = w - pad - Tema.AmanKanan;
-        float tx = tKanan - tw;
-        float ty = jedaBawah + pad * 0.6f;
-        Tema.Teks(new Rect(tx, ty, tw, fTimer * 1.3f), txt,
-            fTimer, Tema.Tulang, TextAnchor.MiddleRight, true);
+        // hitung posisi vertikal kotak SKOR (harus identik dgn ScoreManager)
+        float levelBawah = atas + pad + LevelSystem.TinggiPanel(w);
+        int fSkor = Mathf.Min(Tema.Font(0.05f), Mathf.RoundToInt(w * 0.10f));
+        float skorH = fSkor * 1.7f;
+        float skorY = levelBawah + pad * 0.6f;
+        float skorCenter = skorY + skorH / 2f;
+
+        // timer sendiri: font lebih besar + plat sendiri, tengahnya disamakan dgn skor
+        int fTimer = Mathf.Min(Tema.Font(0.07f), Mathf.RoundToInt(w * 0.14f));
+        float tH = fTimer * 1.7f;
+        float tW = fTimer * 3.9f; // cukup utk "00:00"
+        float tX = w - pad - Tema.AmanKanan - tW;
+        float tY = skorCenter - tH / 2f;
+        Tema.Panel9(new Rect(tX, tY, tW, tH), Tema.Plate, Tema.GarisRedup, 2f);
+        Tema.Teks(new Rect(tX, tY, tW, tH), txt, fTimer, Tema.Tulang, TextAnchor.MiddleCenter, true);
 
         // ==== BAR NYAWA BOSS (tengah, di bawah baris HUD atas) ====
         if (EnemyChase.JumlahBos > 0 && EnemyChase.BosSaatIni != null)
