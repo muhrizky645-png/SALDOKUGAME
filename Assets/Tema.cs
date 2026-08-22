@@ -35,9 +35,11 @@ public static class Tema
     public static float AmanAtas  { get { return Screen.height - (Screen.safeArea.y + Screen.safeArea.height); } }
     public static float AmanBawah { get { return Screen.safeArea.y; } }
 
-    // ====== FONT PIXEL (Thaleah) ======
-    // File font ada di Assets/Resources/ThaleahFat.fontsettings supaya bisa dimuat
-    // saat runtime. Kalau tidak ditemukan, otomatis pakai font bawaan Unity.
+    // ====== FONT PIXEL (Thaleah - versi TTF dinamis) ======
+    // File TTF disalin otomatis ke Assets/Resources/ThaleahPixel.ttf oleh
+    // Assets/Editor/PasangIkon.cs supaya bisa dimuat runtime & DISKALAKAN dgn benar
+    // (font .fontsettings bitmap lama mengabaikan fontSize -> teks jadi kecil).
+    // Kalau tidak ditemukan, otomatis pakai font bawaan Unity.
     static Font _font;
     static bool _fontDicari;
     public static Font FontUtama
@@ -46,7 +48,7 @@ public static class Tema
         {
             if (!_fontDicari)
             {
-                _font = Resources.Load<Font>("ThaleahFat");
+                _font = Resources.Load<Font>("ThaleahPixel");
                 _fontDicari = true;
             }
             return _font;
