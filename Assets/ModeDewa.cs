@@ -2,9 +2,11 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // ====== MODE DEWA (Peti Dewa) ======
-// Peti muncul saat pemain sudah bertahan cukup lama. Dibuka dengan "tonton iklan"
-// (sekarang PLACEHOLDER -> langsung buka; untuk iklan ASLI cukup panggil Aktifkan()
-// pada callback reward Unity Ads/AdMob). Memberi 4 SKILL DI LUAR NALAR selama 30 DETIK:
+// Peti muncul saat pemain sudah bertahan cukup lama, lalu HANYA TAMPIL beberapa detik:
+// kalau tidak diklik, peti HILANG dan hitung mundur kemunculan berikutnya dimulai lagi.
+// Dibuka dengan "tonton iklan" (sekarang PLACEHOLDER -> langsung buka; untuk iklan ASLI
+// cukup panggil Aktifkan() pada callback reward Unity Ads/AdMob). Memberi 4 SKILL DI LUAR
+// NALAR selama 30 DETIK:
 //   1) KEBAL          - tidak bisa mati
 //   2) BADAI PELURU   - tembakan super cepat + banyak + jauh
 //   3) MAGNET SEMESTA - semua permata langsung tersedot
@@ -20,10 +22,12 @@ public class ModeDewa : MonoBehaviour
 
     const float DURASI = 30f;         // durasi skill dewa = 30 detik
     const float JedaIsiUlang = 90f;   // peti muncul lagi tiap 90 detik bermain (biar spesial)
+    const float DurasiTampil = 10f;   // peti hanya tampil 10 detik; kalau tak diklik -> hilang
 
     private bool tersedia = false;    // peti siap dibuka
     private bool konfirmasi = false;  // overlay "tonton iklan" tampil
     private float isiUlang = 0f;      // hitung menuju peti berikutnya
+    private float tampilSisa = 0f;    // hitung mundur selama peti tampil
     private float pulseT = 0f;        // timer aura maut
 
     private Texture2D _chest;
@@ -52,6 +56,7 @@ public class ModeDewa : MonoBehaviour
         tersedia = false;
         konfirmasi = false;
         isiUlang = 0f;
+        tampilSisa = 0f;
         pulseT = 0f;
     }
 
@@ -84,12 +89,31 @@ public class ModeDewa : MonoBehaviour
             }
             if (SisaDetik <= 0f) { Aktif = false; SisaDetik = 0f; isiUlang = 0f; }
         }
+        else if (tersedia)
+        {
+            // peti sedang tampil -> hitung mundur; hilang kalau habis
+            if (SedangMain())
+            {
+                tampilSisa -= Time.deltaTime;
+                if (tampilSisa <= 0f)
+                {
+                    tersedia = false;
+                    tampilSisa = 0f;
+                    isiUlang = 0f; // mulai lagi hitung menuju peti berikutnya
+                }
+            }
+        }
         else
         {
-            if (!tersedia && SedangMain())
+            if (SedangMain())
             {
                 isiUlang += Time.deltaTime;
-                if (isiUlang >= JedaIsiUlang) { tersedia = true; isiUlang = 0f; }
+                if (isiUlang >= JedaIsiUlang)
+                {
+                    tersedia = true;
+                    tampilSisa = DurasiTampil;
+                    isiUlang = 0f;
+                }
             }
         }
     }
@@ -129,6 +153,7 @@ public class ModeDewa : MonoBehaviour
         Aktif = true;
         SisaDetik = DURASI;
         tersedia = false;
+        tampilSisa = 0f;
         isiUlang = 0f;
         pulseT = 0f;
         SoundManager.LevelUp();
@@ -155,7 +180,7 @@ public class ModeDewa : MonoBehaviour
         if (tersedia) GambarTombolPeti(w, h);
     }
 
-    // Tombol peti berdenyut di sisi kanan (di bawah timer)
+    // Tombol peti berdenyut di sisi kanan (di bawah timer) + hitung mundur tampil
     void GambarTombolPeti(float w, float h)
     {
         float sz = Tema.Unit * 0.14f;
@@ -171,8 +196,20 @@ public class ModeDewa : MonoBehaviour
         if (Chest != null) GUI.DrawTexture(ir, Chest, ScaleMode.ScaleToFit, true);
         else Ikon.Gambar(ir, Ikon.Peti, Tema.Amber);
 
-        Tema.Teks(new Rect(x - sz * 0.3f, y + sz * 0.84f, sz * 1.6f, sz * 0.34f),
-            "PETI DEWA", Mathf.RoundToInt(sz * 0.17f), Tema.Amber, TextAnchor.MiddleCenter, true);
+        Tema.Teks(new Rect(x - sz * 0.3f, y + sz * 0.82f, sz * 1.6f, sz * 0.28f),
+            "PETI DEWA", Mathf.RoundToInt(sz * 0.16f), Tema.Amber, TextAnchor.MiddleCenter, true);
+
+        // ===== hitung mundur waktu tampil (bar + angka) =====
+        int sisa = Mathf.CeilToInt(Mathf.Max(0f, tampilSisa));
+        Color warnaSisa = tampilSisa <= 3f ? new Color(0.95f, 0.30f, 0.20f) : Tema.Amber;
+
+        float barY = y + sz * 1.12f, barH = sz * 0.11f;
+        Tema.Kotak(new Rect(x, barY, sz, barH), Tema.Plate);
+        float frac = Mathf.Clamp01(tampilSisa / DurasiTampil);
+        Tema.Kotak(new Rect(x, barY, sz * frac, barH), warnaSisa);
+
+        Tema.Teks(new Rect(x - sz * 0.3f, barY + barH * 1.1f, sz * 1.6f, sz * 0.28f),
+            sisa + "s", Mathf.RoundToInt(sz * 0.16f), warnaSisa, TextAnchor.MiddleCenter, true);
 
         if (GUI.Button(r, "", GUIStyle.none)) { SoundManager.Klik(); konfirmasi = true; }
     }
