@@ -94,11 +94,25 @@ public static class Ikon
     public static Texture2D Berlian { get { if (_berlian == null) _berlian = Buat(FBerlian, 72); return _berlian; } }
     public static Texture2D Tengkorak { get { if (_tengkorak == null) _tengkorak = Buat(FTengkorak, 72); return _tengkorak; } }
     public static Texture2D Bom { get { if (_bom == null) _bom = Buat(FBom, 72); return _bom; } }
-    public static Texture2D Magnet { get { if (_magnet == null) _magnet = Buat(FMagnet, 72); return _magnet; } }
     public static Texture2D Peti { get { if (_peti == null) _peti = Buat(FPeti, 72); return _peti; } }
     public static Texture2D Aura { get { if (_aura == null) _aura = Buat(FAura, 72); return _aura; } }
     public static Texture2D Roket { get { if (_roket == null) _roket = Buat(FRoket, 72); return _roket; } }
     public static Texture2D Pisau { get { if (_pisau == null) _pisau = Buat(FPisau, 72); return _pisau; } }
+
+    // Magnet tapal kuda BERWARNA (merah + kutub perak). Ditandai sebagai "file"
+    // supaya dirender dgn warna aslinya, bukan tint satu warna tema.
+    public static Texture2D Magnet
+    {
+        get
+        {
+            if (_magnet == null)
+            {
+                _magnet = BuatMagnetBerwarna(72);
+                _fileSet.Add(_magnet);
+            }
+            return _magnet;
+        }
+    }
 
     static bool FBintang(float x, float y)
     {
@@ -179,18 +193,49 @@ public static class Ikon
         return false;
     }
 
-    // MAGNET TAPAL KUDA (horseshoe): lengkung di ATAS, dua kaki turun ke bawah,
-    // dan ujung KUTUB sedikit lebih lebar di bawah tiap kaki.
-    static bool FMagnet(float x, float y)
+    // ====== MAGNET TAPAL KUDA BERWARNA ======
+    // Kelas titik: 0=kosong, 1=badan(merah), 2=kutub(perak). y ke atas.
+    // Bentuk: lengkung di atas, dua kaki turun, ujung kutub perak di bawah.
+    static int MagnetKelas(float x, float y)
     {
         float ax = Mathf.Abs(x);
-        // lengkung atas (setengah cincin)
-        bool lengkung = Cincin(x, y, 0.44f, 0.82f) && y >= -0.02f;
-        // dua kaki lurus turun dari ujung lengkung
-        bool kaki = (y < -0.02f && y >= -0.60f) && (ax >= 0.44f && ax <= 0.82f);
-        // ujung kutub sedikit lebih lebar (biar terbaca sbg magnet)
-        bool kutub = (y < -0.60f && y >= -0.86f) && (ax >= 0.38f && ax <= 0.88f);
-        return lengkung || kaki || kutub;
+        if (y < -0.52f && y >= -0.84f && ax >= 0.40f && ax <= 0.86f) return 2; // ujung kutub (perak)
+        if (Cincin(x, y, 0.44f, 0.82f) && y >= -0.05f) return 1;               // lengkung atas
+        if (y < -0.05f && y >= -0.52f && ax >= 0.44f && ax <= 0.82f) return 1; // kaki
+        return 0;
+    }
+
+    static Texture2D BuatMagnetBerwarna(int size)
+    {
+        Texture2D t = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        t.wrapMode = TextureWrapMode.Clamp;
+        Color merah = new Color(0.90f, 0.17f, 0.16f, 1f);
+        Color merahGelap = new Color(0.52f, 0.06f, 0.06f, 1f);
+        Color perak = new Color(0.90f, 0.92f, 0.97f, 1f);
+        for (int y = 0; y < size; y++)
+        {
+            float ny = ((y + 0.5f) / size) * 2f - 1f;
+            for (int x = 0; x < size; x++)
+            {
+                int badan = 0, kutub = 0;
+                for (int sy = 0; sy < 2; sy++)
+                    for (int sx = 0; sx < 2; sx++)
+                    {
+                        float nx = ((x + (sx + 0.5f) / 2f) / size) * 2f - 1f;
+                        float my = ((y + (sy + 0.5f) / 2f) / size) * 2f - 1f;
+                        int k = MagnetKelas(nx, my);
+                        if (k == 1) badan++; else if (k == 2) kutub++;
+                    }
+                int hit = badan + kutub;
+                if (hit == 0) { t.SetPixel(x, y, new Color(0f, 0f, 0f, 0f)); continue; }
+                Color isi = (kutub >= badan)
+                    ? perak
+                    : Color.Lerp(merahGelap, merah, (ny + 1f) * 0.5f);
+                t.SetPixel(x, y, new Color(isi.r, isi.g, isi.b, hit / 4f));
+            }
+        }
+        t.Apply();
+        return t;
     }
 
     static bool FPeti(float x, float y)
@@ -266,13 +311,13 @@ public static class Ikon
         switch (id)
         {
             case "bom": return Dari("bom", Bom);
-            case "magnet": return Dari("magnet", Magnet); // belum ada padanan asset -> ikon kode (tapal kuda)
+            case "magnet": return Dari("magnet", Magnet); // belum ada asset -> magnet kode berwarna
             case "peti": return Dari("peti", Peti);
             default: return Peti;
         }
     }
 
-    // true kalau tekstur ini berasal dari FILE (asset), bukan ikon kode -> pakai warna asli.
+    // true kalau tekstur ini berasal dari FILE (asset) ATAU sudah berwarna -> pakai warna asli.
     public static bool AdalahFile(Texture2D tex)
     {
         return tex != null && _fileSet.Contains(tex);
