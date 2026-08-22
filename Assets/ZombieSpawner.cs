@@ -31,6 +31,10 @@ public class ZombieSpawner : MonoBehaviour
     [Tooltip("Semua musuh otomatis diskalakan supaya sisi terpanjangnya (lebar atau tinggi) kira-kira segini.")]
     public float ukuranMusuh = 1f;
 
+    [Header("Batas ukuran musuh biasa (mencegah ada yang kebesaran/kekecilan)")]
+    public float pengaliMin = 0.7f;
+    public float pengaliMax = 1.5f;
+
     [Header("Kesulitan mengikuti Level pemain")]
     public float spawnAwal = 0.9f;
     public float penguranganTiapLevel = 0.1f;
@@ -45,8 +49,10 @@ public class ZombieSpawner : MonoBehaviour
     public GameObject[] bossPrefabs;
     [Tooltip("Jeda kemunculan boss dalam detik.")]
     public float jedaBoss = 45f;
-    [Tooltip("Pengali ukuran boss dibanding musuh biasa. Boss sengaja dibuat besar.")]
-    public float skalaBoss = 3.2f;
+    [Tooltip("Pengali ukuran boss dibanding musuh biasa. Boss sengaja dibuat besar (minimal dipaksa besar lewat kode).")]
+    public float skalaBoss = 4.5f;
+    [Tooltip("Ukuran boss minimal (sisi terpanjang, satuan dunia) - dipakai walau skalaBoss diisi kecil.")]
+    public float ukuranBossMinimal = 4.5f;
 
     private Transform player;
     private float timer = 0f;
@@ -134,7 +140,10 @@ public class ZombieSpawner : MonoBehaviour
 
         go.tag = "Enemy";
         go.layer = 0;
-        AturFisikDanUkuran(go, ukuranMusuh * Mathf.Max(1f, skalaBoss));
+
+        // Boss DIPAKSA besar: ambil yang terbesar antara ukuranMusuh*skalaBoss dan ukuranBossMinimal.
+        float ukuranBoss = Mathf.Max(ukuranMusuh * Mathf.Max(1f, skalaBoss), ukuranBossMinimal);
+        AturFisikDanUkuran(go, ukuranBoss);
 
         EnemyChase ec = go.GetComponent<EnemyChase>();
         if (ec == null) ec = go.AddComponent<EnemyChase>();
@@ -219,7 +228,9 @@ public class ZombieSpawner : MonoBehaviour
         go.tag = "Enemy";
         go.layer = 0;
 
+        // Batasi pengali biar tidak ada musuh yang kebesaran/kekecilan
         float pengali = (tier.skala > 0f) ? tier.skala : 1f;
+        pengali = Mathf.Clamp(pengali, pengaliMin, pengaliMax);
         AturFisikDanUkuran(go, ukuranMusuh * pengali);
 
         EnemyChase ec = go.GetComponent<EnemyChase>();
