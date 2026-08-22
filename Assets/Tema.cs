@@ -115,7 +115,8 @@ public static class Tema
             _tombol.border = new RectOffset(4, 4, 4, 4);
             _tombol.alignment = TextAnchor.MiddleCenter;
             _tombol.fontStyle = FontStyle.Bold;
-            _tombol.wordWrap = true;
+            _tombol.wordWrap = false;
+            _tombol.clipping = TextClipping.Clip;
             _tombol.padding = new RectOffset(8, 8, 6, 6);
             _tombol.normal.textColor = Tulang;
             _tombol.hover.textColor = Color.white;
