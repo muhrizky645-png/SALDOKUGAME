@@ -7,9 +7,10 @@ using UnityEngine;
 
 // =====================================================================
 //  PasangIkon - otomatis menyalin ikon terpilih dari asset pack ke
-//  Assets/Resources/Icons/<id>.png DAN font pixel TTF ke
-//  Assets/Resources/ThaleahPixel.ttf supaya bisa dimuat runtime lewat
-//  Resources.Load TANPA drag-drop manual.
+//  Assets/Resources/Icons/<id>.png, font pixel TTF ke
+//  Assets/Resources/ThaleahPixel.ttf, DAN part tiap karakter ke
+//  Assets/Resources/Chars/<karakter>/<bagian>.png supaya semua bisa
+//  dimuat runtime lewat Resources.Load TANPA drag-drop manual.
 //
 //  Jalan OTOMATIS:
 //   1) saat Editor selesai load (InitializeOnLoad) -> hanya menyalin yang belum ada
@@ -44,6 +45,15 @@ public class PasangIkon : IPreprocessBuildWithReport
     const string FolderRes = "Assets/Resources";
     const string FolderIkon = "Assets/Resources/Icons";
 
+    // ====== KARAKTER (untuk fitur pilih karakter di Home) ======
+    const string FolderChars = "Assets/Resources/Chars";
+    const string SumberKarakter = "Assets/Jovial Games/Simple 2D Cute Characters/Characters";
+    static readonly string[] KarakterFolder = {
+        "Archer_Character_1", "Cave_Man_Character_2", "Clown_Character_3", "Monk_Character_4",
+        "Ninja_Character_5", "Pirate_Character_6", "Soldier_Character_7", "Warrior_Character_8", "Wizard_Character_9",
+    };
+    static readonly string[] KarakterBagian = { "Body", "Head", "Left_Foot", "Right_Foot", "Weapon" };
+
     // ====== FONT PIXEL (TTF dinamis, bisa diskalakan ke semua ukuran) ======
     const string SumberFontTTF = "Assets/Thaleah_PixelFont/Materials/ThaleahFat_TTF.ttf";
     const string FontRes = "Assets/Resources/ThaleahPixel.ttf";
@@ -63,7 +73,7 @@ public class PasangIkon : IPreprocessBuildWithReport
     static void JalanManual()
     {
         Jalan(true);
-        Debug.Log("[PasangIkon] Selesai memasang ikon ke " + FolderIkon + " & font ke " + FontRes);
+        Debug.Log("[PasangIkon] Selesai memasang ikon, font & karakter ke " + FolderRes);
     }
 
     static void Jalan(bool paksaTimpa)
@@ -103,12 +113,55 @@ public class PasangIkon : IPreprocessBuildWithReport
         }
 
         if (PasangFont(paksaTimpa)) berubah = true;
+        if (PasangKarakter(paksaTimpa)) berubah = true;
 
         if (berubah)
         {
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
+    }
+
+    // Salin part tiap karakter -> Resources/Chars/<karakter>/<bagian>.png
+    static bool PasangKarakter(bool paksaTimpa)
+    {
+        if (!AssetDatabase.IsValidFolder(FolderChars))
+            AssetDatabase.CreateFolder(FolderRes, "Chars");
+
+        bool berubah = false;
+        foreach (string ch in KarakterFolder)
+        {
+            string folderTujuan = FolderChars + "/" + ch;
+            if (!AssetDatabase.IsValidFolder(folderTujuan))
+                AssetDatabase.CreateFolder(FolderChars, ch);
+
+            foreach (string bg in KarakterBagian)
+            {
+                string src = SumberKarakter + "/" + ch + "/" + bg + ".png";
+                string dst = folderTujuan + "/" + bg + ".png";
+
+                bool adaDst = File.Exists(dst);
+                if (adaDst && !paksaTimpa) continue;
+
+                if (!File.Exists(src))
+                {
+                    Debug.LogWarning("[PasangIkon] Sumber karakter tidak ada, dilewati: " + src);
+                    continue;
+                }
+
+                if (adaDst) AssetDatabase.DeleteAsset(dst);
+                if (AssetDatabase.CopyAsset(src, dst))
+                {
+                    AturImport(dst);
+                    berubah = true;
+                }
+                else
+                {
+                    Debug.LogWarning("[PasangIkon] Gagal menyalin karakter: " + src + " -> " + dst);
+                }
+            }
+        }
+        return berubah;
     }
 
     static bool PasangFont(bool paksaTimpa)
