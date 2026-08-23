@@ -38,7 +38,7 @@ public class PisauOrbit : MonoBehaviour
         sr.sprite = spr;
         sr.color = Color.white;
         float worldH = spr.rect.height / spr.pixelsPerUnit;
-        float sc = worldH > 0.001f ? 0.85f / worldH : 0.85f;
+        float sc = worldH > 0.001f ? 0.425f / worldH : 0.425f;
         transform.localScale = Vector3.one * sc;
     }
 
