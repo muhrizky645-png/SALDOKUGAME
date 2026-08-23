@@ -11,7 +11,7 @@ public class PlayerHealth : MonoBehaviour
     public float damagePerSecond = 20f;
     private bool isDead = false;
 
-    // jatah \"Hidup Lagi\" (tonton iklan) - hanya 1x per permainan
+    // jatah "Hidup Lagi" (tonton iklan) - hanya 1x per permainan
     private bool sudahHidupLagi = false;
 
     [Header("HP Bar")]
@@ -66,6 +66,15 @@ public class PlayerHealth : MonoBehaviour
         UpdateBar();
     }
 
+    // Pulihkan HP (dipakai buff "Pulih HP" dari Toko).
+    public void Pulih(float amount)
+    {
+        if (isDead) return;
+        if (amount <= 0f) return;
+        health = Mathf.Min(health + amount, maxHealth);
+        UpdateBar();
+    }
+
     void OnTriggerStay2D(Collider2D other)
     {
         if (isDead) return;
@@ -89,9 +98,9 @@ public class PlayerHealth : MonoBehaviour
     }
 
     // ====== HIDUP LAGI (revive) ======
-    // Dipanggil tombol \"HIDUP LAGI\" di Game Over. Untuk sekarang LANGSUNG revive.
+    // Dipanggil tombol "HIDUP LAGI" di Game Over. Untuk sekarang LANGSUNG revive.
     // Untuk iklan ASLI: tampilkan rewarded ad (Unity Ads / AdMob), lalu panggil
-    // method ini pada callback \"reward diberikan\".
+    // method ini pada callback "reward diberikan".
     public void HidupLagi()
     {
         sudahHidupLagi = true;
