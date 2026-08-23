@@ -38,7 +38,7 @@ public class GameMenu : MonoBehaviour
 
         if (langsungMainSetelahLoad)
         {
-            // dipanggil setelah \"Ulangi\" / \"Main Lagi\": langsung main tanpa menu awal
+            // dipanggil setelah "Ulangi" / "Main Lagi": langsung main tanpa menu awal
             langsungMainSetelahLoad = false;
             tampilHome = false;
             SedangMain = true;
@@ -118,6 +118,9 @@ public class GameMenu : MonoBehaviour
         {
             Tema.LatarGelap(new Color(0.04f, 0.10f, 0.05f, 0.35f)); // semburat hijau gelap
 
+            // ---- CHIP MATA UANG (Permata kiri, Koin kanan) ----
+            GambarChipMataUang(w, h);
+
             // ---- JUDUL ----
             Tema.Teks(new Rect(0, h * 0.05f, w, h * 0.10f), "SALDOKU", Mathf.RoundToInt(h * 0.072f),
                 Tema.Darah, TextAnchor.MiddleCenter, true);
@@ -146,7 +149,27 @@ public class GameMenu : MonoBehaviour
 
             // ---- TOMBOL (diturunkan supaya ada ruang untuk pilih karakter) ----
             if (Tombol("MAIN", 0.665f, 0.62f)) { SoundManager.Klik(); Mulai(); }
-            if (Tombol("PENGATURAN", 0.785f, 0.62f)) { SoundManager.Klik(); tampilPengaturan = true; }
+
+            // baris TOKO | PENGATURAN (setengah lebar masing-masing)
+            {
+                float rowW = w * 0.62f;
+                float gap = w * 0.02f;
+                float bw2 = (rowW - gap) / 2f;
+                float bx2 = (w - rowW) / 2f;
+                float by2 = h * 0.785f;
+                float bh2 = h * 0.085f;
+                int f2 = Mathf.RoundToInt(h * 0.030f);
+                if (GUI.Button(new Rect(bx2, by2, bw2, bh2), "TOKO", Tema.GayaTombol(f2)))
+                {
+                    SoundManager.Klik();
+                    if (Toko.Instance != null) Toko.Instance.Buka();
+                }
+                if (GUI.Button(new Rect(bx2 + bw2 + gap, by2, bw2, bh2), "PENGATURAN", Tema.GayaTombol(f2)))
+                {
+                    SoundManager.Klik();
+                    tampilPengaturan = true;
+                }
+            }
             return;
         }
 
@@ -180,7 +203,7 @@ public class GameMenu : MonoBehaviour
             SoundManager.Klik();
             Jeda();
         }
-        // ikon jeda digambar MANUAL: dua batang vertikal LURUS (bukan teks \"II\" yang terlihat miring)
+        // ikon jeda digambar MANUAL: dua batang vertikal LURUS (bukan teks "II" yang terlihat miring)
         float pbW = sz * 0.13f;                 // lebar tiap batang
         float pbH = sz * 0.42f;                 // tinggi batang
         float pbGap = sz * 0.14f;               // jarak antar batang
@@ -188,6 +211,32 @@ public class GameMenu : MonoBehaviour
         float pbCx = x + sz / 2f;
         Tema.Kotak(new Rect(pbCx - pbGap / 2f - pbW, pbY, pbW, pbH), Tema.Tulang);
         Tema.Kotak(new Rect(pbCx + pbGap / 2f, pbY, pbW, pbH), Tema.Tulang);
+    }
+
+    // ====== CHIP MATA UANG DI HOME (Permata kiri, Koin kanan) ======
+    void GambarChipMataUang(float w, float h)
+    {
+        if (MataUang.Instance == null) return;
+
+        float chH = h * 0.05f;
+        float chW = w * 0.36f;
+        float chY = Tema.AmanAtas + Tema.Pad;
+        int chF = Mathf.RoundToInt(h * 0.024f);
+
+        // Permata (mata uang in-game) di kiri atas
+        Rect rGem = new Rect(Tema.AmanKiri + Tema.Pad, chY, chW, chH);
+        MataUang.Instance.GambarChip(rGem, true, chF, MataUang.Ringkas(MataUang.Instance.Permata), Tema.Amber, false);
+
+        // Koin (tukar dengan SALDOKU) di kanan atas -> tap buka panel akun
+        Rect rKoin = new Rect(w - chW - Tema.AmanKanan - Tema.Pad, chY, chW, chH);
+        bool terhubung = MataUang.Instance.Terhubung;
+        string teksKoin = terhubung ? MataUang.Ringkas(MataUang.Instance.Koin) : "HUBUNGKAN";
+        MataUang.Instance.GambarChip(rKoin, false, chF, teksKoin, Tema.Army, terhubung);
+        if (GUI.Button(rKoin, "", GUIStyle.none))
+        {
+            SoundManager.Klik();
+            if (Saldoku.Instance != null) Saldoku.Instance.Buka();
+        }
     }
 
     // ====== PEMILIH KARAKTER (Home) ======
