@@ -224,19 +224,27 @@ public class GameMenu : MonoBehaviour
             KarakterPemain.TerapkanPilihan();
         }
 
-        // portrait (kepala) karakter di tengah
+        // portrait SELURUH BADAN karakter di tengah (render rig lengkap; fallback ke kepala)
         float potH = aH;
         float potW = aH;
         float potX = (w - potW) / 2f;
-        Texture2D kepala = KarakterManager.Kepala(idx);
-        if (kepala != null)
+        Texture pratinjau = PratinjauKarakter.Ambil(idx);
+        if (pratinjau != null)
         {
-            GUI.DrawTexture(new Rect(potX, aY, potW, potH), kepala, ScaleMode.ScaleToFit, true);
+            GUI.DrawTexture(new Rect(potX, aY, potW, potH), pratinjau, ScaleMode.ScaleToFit, true);
         }
         else
         {
-            // fallback kalau tekstur belum tersalin: ikon bintang
-            Ikon.Gambar(new Rect(potX + potW * 0.2f, aY + potH * 0.2f, potW * 0.6f, potH * 0.6f), Ikon.Bintang, Tema.Amber);
+            Texture2D kepala = KarakterManager.Kepala(idx);
+            if (kepala != null)
+            {
+                GUI.DrawTexture(new Rect(potX, aY, potW, potH), kepala, ScaleMode.ScaleToFit, true);
+            }
+            else
+            {
+                // fallback kalau tekstur belum tersalin: ikon bintang
+                Ikon.Gambar(new Rect(potX + potW * 0.2f, aY + potH * 0.2f, potW * 0.6f, potH * 0.6f), Ikon.Bintang, Tema.Amber);
+            }
         }
 
         // nama karakter
