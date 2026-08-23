@@ -8,16 +8,28 @@ public class Bullet : MonoBehaviour
     public float putaran = 720f; // kecepatan putar shuriken (derajat per detik)
     public int damage = 1;       // seberapa banyak nyawa musuh yang dikurangi tiap kena
 
+    // Kalau true: proyektil MENGHADAP arah terbang & TIDAK berputar (peluru/anak panah).
+    // Kalau false: proyektil berputar (shuriken / pedang yang dilempar).
+    public bool orientKeArah = false;
+    public float sudutOffset = -90f; // sprite digambar menghadap ATAS (+Y)
+
     void Start()
     {
         Destroy(gameObject, lifeTime); // peluru hancur sendiri setelah 3 detik
+
+        if (orientKeArah)
+        {
+            float a = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg + sudutOffset;
+            transform.rotation = Quaternion.Euler(0f, 0f, a);
+        }
     }
 
     void Update()
     {
-        // gerak lurus sesuai arah (putaran hanya visual, tidak mengubah arah)
+        // gerak lurus sesuai arah
         transform.position += direction * speed * Time.deltaTime;
-        transform.Rotate(0f, 0f, putaran * Time.deltaTime);
+        // putaran hanya visual; matikan untuk proyektil yang menghadap arah
+        if (!orientKeArah) transform.Rotate(0f, 0f, putaran * Time.deltaTime);
     }
 
     void OnTriggerEnter2D(Collider2D other)
