@@ -137,15 +137,19 @@ public class PasangIkon : IPreprocessBuildWithReport
 
             foreach (string bg in KarakterBagian)
             {
-                string src = SumberKarakter + "/" + ch + "/" + bg + ".png";
                 string dst = folderTujuan + "/" + bg + ".png";
 
                 bool adaDst = File.Exists(dst);
                 if (adaDst && !paksaTimpa) continue;
 
-                if (!File.Exists(src))
+                // Cari file sumber. Sebagian karakter (mis. Warrior) tidak punya
+                // "Weapon.png" melainkan "Weapon_1.png"/"Weapon_2.png" -> pakai varian
+                // pertama yang ada supaya senjatanya tetap konsisten (tidak berubah-ubah).
+                string src = SumberBagian(ch, bg);
+                if (src == null)
                 {
-                    Debug.LogWarning("[PasangIkon] Sumber karakter tidak ada, dilewati: " + src);
+                    Debug.LogWarning("[PasangIkon] Sumber karakter tidak ada, dilewati: "
+                        + SumberKarakter + "/" + ch + "/" + bg + ".png");
                     continue;
                 }
 
@@ -162,6 +166,21 @@ public class PasangIkon : IPreprocessBuildWithReport
             }
         }
         return berubah;
+    }
+
+    // Kembalikan path sumber PNG untuk sebuah bagian karakter. Coba nama persis dulu
+    // (mis. "Weapon.png"), lalu varian bernomor ("Weapon_1.png", "Weapon_2.png") untuk
+    // karakter yang bagiannya tidak bernama polos (mis. Warrior_Character_8).
+    static string SumberBagian(string ch, string bg)
+    {
+        string dir = SumberKarakter + "/" + ch + "/";
+        string[] kandidat = { bg + ".png", bg + "_1.png", bg + "_2.png" };
+        foreach (string k in kandidat)
+        {
+            string p = dir + k;
+            if (File.Exists(p)) return p;
+        }
+        return null;
     }
 
     static bool PasangFont(bool paksaTimpa)
