@@ -18,6 +18,13 @@ public class EnemyChase : MonoBehaviour
     public static int JumlahBos = 0;         // berapa boss hidup sekarang
     public static EnemyChase BosSaatIni = null; // boss terakhir (untuk bar nyawa)
 
+    // ===== Buff PERLAMBAT (dari Toko): perlambat SEMUA musuh sementara =====
+    public static float slowSampai = 0f;   // Time.time batas akhir efek
+    public static float slowFaktor = 1f;   // pengali kecepatan saat aktif
+    public static void Perlambat(float durasi, float faktor) { slowSampai = Time.time + durasi; slowFaktor = Mathf.Clamp01(faktor); }
+    public static void ResetPerlambat() { slowSampai = 0f; slowFaktor = 1f; }
+    static float SlowMult() { return Time.time < slowSampai ? slowFaktor : 1f; }
+
     [Header("Gambar musuh (biar bisa balik badan)")]
     public Transform visual;   // gambar monster (objek anak). Kalau kosong, dicari otomatis.
 
@@ -168,7 +175,7 @@ public class EnemyChase : MonoBehaviour
         }
         else
         {
-            rb.MovePosition(rb.position + arah * moveSpeed * Time.fixedDeltaTime);
+            rb.MovePosition(rb.position + arah * moveSpeed * SlowMult() * Time.fixedDeltaTime);
             if (!lagiGerak) MulaiGerak();
         }
     }
@@ -270,12 +277,19 @@ public class EnemyChase : MonoBehaviour
             for (int i = 0; i < 6; i++)
                 XpGem.Munculkan(pos + (Vector3)(Random.insideUnitCircle * 1.2f), 5);
             ItemLapangan.Jatuhkan(pos, ItemLapangan.Jenis.Peti);
+            // PERMATA (mata uang): boss beri beberapa
+            for (int i = 0; i < 3; i++)
+                PermataGem.Munculkan(pos + (Vector3)(Random.insideUnitCircle * 1.0f), 1);
         }
         else
         {
             float roll = Random.value;
             if (roll < 0.02f) ItemLapangan.Jatuhkan(pos, ItemLapangan.Jenis.Bom);
             else if (roll < 0.05f) ItemLapangan.Jatuhkan(pos, ItemLapangan.Jenis.Magnet);
+
+            // PERMATA (mata uang): drop lebih jarang dari XP (~setengahnya)
+            if (Random.value < 0.5f)
+                PermataGem.Munculkan(pos, 1);
         }
 
         Collider2D col = GetComponent<Collider2D>();
