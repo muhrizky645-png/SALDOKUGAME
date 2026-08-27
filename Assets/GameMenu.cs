@@ -225,18 +225,22 @@ public class GameMenu : MonoBehaviour
         // Font chip dibatasi lebar layar juga -> di HP potrait tidak kegedean.
         int chF = Mathf.Min(Mathf.RoundToInt(h * 0.022f), Mathf.RoundToInt(w * 0.034f));
 
+        // Warna PERMATA = ungu (berlian), samakan dengan HUD saat main.
+        Color unguPermata = new Color(0.78f, 0.5f, 1f);
+
         // Permata (mata uang in-game) di kiri atas. Lebar chip menyesuaikan teks.
         string tGem = MataUang.Ringkas(MataUang.Instance.Permata);
         float gemW = LebarChip(tGem, chF, chH, w);
         Rect rGem = new Rect(Tema.AmanKiri + Tema.Pad, chY, gemW, chH);
-        MataUang.Instance.GambarChip(rGem, true, chF, tGem, Tema.Amber, false);
+        MataUang.Instance.GambarChip(rGem, true, chF, tGem, unguPermata, true);
 
         // Koin (tukar dengan SALDOKU) di kanan atas -> tap buka panel akun.
+        // Warna KOIN = kuning (Amber).
         bool terhubung = MataUang.Instance.Terhubung;
         string teksKoin = terhubung ? MataUang.Ringkas(MataUang.Instance.Koin) : "HUBUNGKAN";
         float koinW = LebarChip(teksKoin, chF, chH, w);
         Rect rKoin = new Rect(w - koinW - Tema.AmanKanan - Tema.Pad, chY, koinW, chH);
-        MataUang.Instance.GambarChip(rKoin, false, chF, teksKoin, Tema.Army, terhubung);
+        MataUang.Instance.GambarChip(rKoin, false, chF, teksKoin, Tema.Amber, terhubung);
         if (GUI.Button(rKoin, "", GUIStyle.none))
         {
             SoundManager.Klik();
