@@ -12,9 +12,9 @@ public class Toko : MonoBehaviour
     const string PP_INV = "toko_buff_inv";
 
     static readonly string[] NAMA  = { "BOM", "PULIH HP", "PERLAMBAT" };
-    static readonly string[] DESK  = { "Musnahkan semua musuh di layar",
+    static readonly string[] DESK  = { "Musnahkan semua musuh",
                                        "Pulihkan 40 HP seketika",
-                                       "Perlambat semua musuh 5 detik" };
+                                       "Perlambat musuh 5 detik" };
     static readonly int[]    HARGA = { 40, 25, 30 };
 
     int[] inv = new int[3];
@@ -112,47 +112,78 @@ public class Toko : MonoBehaviour
 
     void GambarPanel()
     {
-        float w = Screen.width, h = Screen.height;
-        Tema.LatarGelap();
+        // === Panel Toko HARUS paling DEPAN (menutup HUD game). ===
+        // Toko pakai DefaultExecutionOrder -26000 -> OnGUI-nya jalan LEBIH DULU, jadi
+        // HUD (permata, level, pause) yang digambar belakangan menimpanya. Di IMGUI,
+        // depth lebih KECIL = digambar paling depan. Overlay gelap di bawah ini lalu
+        // menutup seluruh HUD.
+        GUI.depth = -1000;
 
-        float pw = Mathf.Min(w * 0.9f, 620f);
-        float ph = Mathf.Min(h * 0.86f, 760f);
+        float w = Screen.width, h = Screen.height;
+        // Basis font = sisi TERPENDEK layar biar teks tidak meluber di HP potrait.
+        float u = Tema.Unit;
+
+        Tema.LatarGelap(new Color(0.03f, 0.09f, 0.04f, 0.55f));
+
+        float pw = Mathf.Min(w * 0.92f, 900f);
+        float ph = Mathf.Min(h * 0.92f, u * 1.18f);
         float px = (w - pw) / 2f, py = (h - ph) / 2f;
+
+        // bayangan + panel
+        Tema.Kotak(new Rect(px + 7f, py + 9f, pw, ph), new Color(0f, 0f, 0f, 0.38f));
         Tema.Panel9(new Rect(px, py, pw, ph), Tema.Panel, Tema.Garis, 3f);
 
-        float cx = px + pw * 0.05f, cw = pw * 0.9f, yy = py + ph * 0.03f;
-        Tema.Teks(new Rect(cx, yy, cw, h * 0.06f), "TOKO", Mathf.RoundToInt(h * 0.045f),
+        // ---- HEADER ----
+        float headH = u * 0.13f;
+        Tema.Kotak(new Rect(px + 3f, py + 3f, pw - 6f, headH), new Color(0.16f, 0.19f, 0.12f, 0.98f));
+        Tema.Kotak(new Rect(px, py, pw, 5f), Tema.Army);
+        Tema.Kotak(new Rect(px + 3f, py + headH, pw - 6f, 2f), Tema.GarisRedup);
+        Tema.Teks(new Rect(px, py, pw, headH), "TOKO", Mathf.RoundToInt(u * 0.055f),
             Tema.Army, TextAnchor.MiddleCenter, true);
-        yy += h * 0.075f;
 
+        float cx = px + pw * 0.06f, cw = pw * 0.88f;
+        float yy = py + headH + u * 0.035f;
+
+        // ---- SALDO PERMATA ----
         int permata = (MataUang.Instance != null) ? MataUang.Instance.Permata : 0;
-        Rect saldo = new Rect(cx, yy, cw, h * 0.06f);
-        Tema.Panel9(saldo, Tema.Plate, Tema.GarisRedup, 2f);
-        float ikn = saldo.height * 0.6f;
-        Ikon.Gambar(new Rect(saldo.x + saldo.height * 0.2f, saldo.y + saldo.height * 0.2f, ikn, ikn),
+        float saldoH = u * 0.10f;
+        Tema.Panel9(new Rect(cx, yy, cw, saldoH), Tema.Plate, Tema.GarisRedup, 2f);
+        float ikn = saldoH * 0.55f;
+        Ikon.Gambar(new Rect(cx + saldoH * 0.24f, yy + (saldoH - ikn) / 2f, ikn, ikn),
             Ikon.Berlian, new Color(0.78f, 0.5f, 1f));
-        Tema.Teks(new Rect(saldo.x + saldo.height * 1.0f, saldo.y, saldo.width - saldo.height, saldo.height),
-            "PERMATA: " + permata, Mathf.RoundToInt(h * 0.028f), Tema.Tulang, TextAnchor.MiddleLeft, true);
-        yy += h * 0.08f;
+        Tema.Teks(new Rect(cx + saldoH * 0.95f, yy, cw - saldoH, saldoH),
+            "PERMATA: " + permata, Mathf.RoundToInt(u * 0.036f), Tema.Tulang, TextAnchor.MiddleLeft, true);
+        yy += saldoH + u * 0.035f;
 
-        float rowH = ph * 0.15f;
+        // ---- DAFTAR ITEM ----
+        float rowH = u * 0.17f;
+        float rowGap = u * 0.025f;
         for (int i = 0; i < 3; i++)
         {
             Rect rr = new Rect(cx, yy, cw, rowH);
             Tema.Panel9(rr, Tema.Plate, Tema.GarisRedup, 2f);
-            float isz = rowH * 0.6f;
-            Ikon.Gambar(new Rect(rr.x + rowH * 0.2f, rr.y + rowH * 0.2f, isz, isz), IkonBuff(i), Tema.Army);
-            float tx = rr.x + rowH;
-            float infoW = cw - rowH - pw * 0.30f;
-            Tema.Teks(new Rect(tx, rr.y + rowH * 0.12f, infoW, rowH * 0.4f), NAMA[i],
-                Mathf.RoundToInt(h * 0.026f), Tema.Tulang, TextAnchor.LowerLeft, true);
-            Tema.Teks(new Rect(tx, rr.y + rowH * 0.52f, infoW, rowH * 0.42f),
-                DESK[i] + "  (x" + inv[i] + ")", Mathf.RoundToInt(h * 0.017f),
-                Tema.Redup, TextAnchor.UpperLeft, false);
 
-            float bw = pw * 0.26f;
-            Rect br = new Rect(rr.xMax - bw - rowH * 0.15f, rr.y + (rowH - rowH * 0.6f) / 2f, bw, rowH * 0.6f);
-            if (GUI.Button(br, HARGA[i] + "", Tema.GayaTombol(Mathf.RoundToInt(h * 0.024f))))
+            // ikon buff
+            float isz = rowH * 0.5f;
+            Ikon.Gambar(new Rect(rr.x + rowH * 0.16f, rr.y + (rowH - isz) / 2f, isz, isz), IkonBuff(i), Tema.Army);
+
+            // tombol harga (kanan) - dihitung DULU agar area teks tidak nabrak tombol
+            float bw = u * 0.20f;
+            float bh = rowH * 0.58f;
+            Rect br = new Rect(rr.xMax - bw - rowH * 0.14f, rr.y + (rowH - bh) / 2f, bw, bh);
+
+            // area teks (nama + deskripsi) di antara ikon & tombol
+            float tx = rr.x + rowH * 0.16f + isz + rowH * 0.16f;
+            float infoW = br.x - tx - rowH * 0.10f;
+            Tema.Teks(new Rect(tx, rr.y + rowH * 0.14f, infoW, rowH * 0.40f), NAMA[i],
+                Mathf.RoundToInt(u * 0.034f), Tema.Tulang, TextAnchor.LowerLeft, true);
+            // jumlah dimiliki: rata-kanan di baris nama
+            Tema.Teks(new Rect(tx, rr.y + rowH * 0.14f, infoW, rowH * 0.40f), "x" + inv[i],
+                Mathf.RoundToInt(u * 0.028f), Tema.Amber, TextAnchor.LowerRight, true);
+            Tema.Teks(new Rect(tx, rr.y + rowH * 0.56f, infoW, rowH * 0.36f),
+                DESK[i], Mathf.RoundToInt(u * 0.022f), Tema.Redup, TextAnchor.UpperLeft, false);
+
+            if (GUI.Button(br, HARGA[i].ToString(), Tema.GayaTombol(Mathf.RoundToInt(u * 0.032f))))
             {
                 if (MataUang.Instance != null && MataUang.Instance.PakaiPermata(HARGA[i]))
                 {
@@ -162,25 +193,28 @@ public class Toko : MonoBehaviour
                 }
                 else status = "Permata kurang.";
             }
-            yy += rowH + ph * 0.015f;
+            yy += rowH + rowGap;
         }
 
+        // ---- STATUS + HINT + TUTUP (dijangkar dari bawah panel) ----
         if (!string.IsNullOrEmpty(status))
-            Tema.Teks(new Rect(cx, py + ph - h * 0.14f, cw, h * 0.035f), status,
-                Mathf.RoundToInt(h * 0.020f), Tema.Amber, TextAnchor.MiddleCenter, true);
+            Tema.Teks(new Rect(cx, py + ph - u * 0.225f, cw, u * 0.04f), status,
+                Mathf.RoundToInt(u * 0.024f), Tema.Amber, TextAnchor.MiddleCenter, true);
 
-        Tema.Teks(new Rect(cx, py + ph - h * 0.105f, cw, h * 0.030f),
-            "Pakai buff dengan tap ikonnya saat main.", Mathf.RoundToInt(h * 0.017f),
+        Tema.Teks(new Rect(cx, py + ph - u * 0.175f, cw, u * 0.04f),
+            "Pakai buff dengan tap ikonnya saat main.", Mathf.RoundToInt(u * 0.022f),
             Tema.Redup, TextAnchor.MiddleCenter, false);
 
-        float clw = Mathf.Min(cw * 0.6f, w * 0.4f);
-        if (GUI.Button(new Rect(px + pw / 2f - clw / 2f, py + ph - h * 0.075f, clw, h * 0.055f),
-                "TUTUP", Tema.GayaTombol(Mathf.RoundToInt(h * 0.026f))))
+        float clw = Mathf.Min(cw * 0.6f, u * 0.5f);
+        if (GUI.Button(new Rect(px + pw / 2f - clw / 2f, py + ph - u * 0.115f, clw, u * 0.085f),
+                "TUTUP", Tema.GayaTombol(Mathf.RoundToInt(u * 0.034f))))
         {
             SoundManager.Klik(); Tutup();
         }
 
-        GUI.Button(new Rect(0, 0, w, h), "", GUIStyle.none); // penelan klik luar
+        // penelan klik di luar panel (digambar terakhir): tombol di dalam panel tetap
+        // menang klik, area gelap sekitar tidak menembus ke HUD/menu di belakang.
+        GUI.Button(new Rect(0, 0, w, h), "", GUIStyle.none);
     }
 
     void Pakai(int i)
