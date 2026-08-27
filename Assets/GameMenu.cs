@@ -152,13 +152,15 @@ public class GameMenu : MonoBehaviour
 
             // baris TOKO | PENGATURAN (setengah lebar masing-masing)
             {
-                float rowW = w * 0.62f;
+                float rowW = w * 0.66f;
                 float gap = w * 0.02f;
                 float bw2 = (rowW - gap) / 2f;
                 float bx2 = (w - rowW) / 2f;
                 float by2 = h * 0.785f;
                 float bh2 = h * 0.085f;
-                int f2 = Mathf.RoundToInt(h * 0.030f);
+                // Font dibatasi lebar tombol supaya "PENGATURAN" (10 huruf) tidak
+                // kepotong (GayaTombol meng-clip teks yang kepanjangan).
+                int f2 = Mathf.Min(Mathf.RoundToInt(h * 0.026f), Mathf.RoundToInt(bw2 * 0.115f));
                 if (GUI.Button(new Rect(bx2, by2, bw2, bh2), "TOKO", Tema.GayaTombol(f2)))
                 {
                     SoundManager.Klik();
@@ -242,13 +244,13 @@ public class GameMenu : MonoBehaviour
         }
     }
 
-    // Perkiraan lebar chip supaya teks selalu muat 1 baris:
-    // padding-kiri + ikon + jarak + lebar-teks + padding-kanan (ikut layout GambarChip).
+    // Perkiraan lebar chip supaya teks selalu muat 1 baris tanpa nabrak ikon.
+    // Ruang ikon+padding di GambarChip ~= 1.12x tinggi chip; pakai 1.2 sebagai margin aman.
     float LebarChip(string teks, int font, float chH, float w)
     {
         int panjang = string.IsNullOrEmpty(teks) ? 0 : teks.Length;
-        float lebarTeks = panjang * font * 0.66f + font * 0.4f; // estimasi font piksel tebal
-        float total = chH * 1.14f + lebarTeks;                  // 1.14 = padding+ikon+jarak
+        float lebarTeks = panjang * font * 0.66f + font * 0.5f; // estimasi font piksel tebal
+        float total = chH * 1.2f + lebarTeks;
         return Mathf.Min(total, w * 0.5f);
     }
 

@@ -151,7 +151,10 @@ public class MataUang : MonoBehaviour
         int f = Mathf.Min(Tema.Font(0.030f), Mathf.RoundToInt(w * 0.055f));
         float chipH = f * 1.7f;
         string t = Ringkas(permata);
-        float chipW = Mathf.Max(f * 3.4f, f * (1.6f + 0.62f * t.Length));
+        // Lebar chip HARUS memuat ikon (~1.12x tinggi chip) + teks. Rumus lama
+        // memakai 1.6 yang lebih kecil dari ruang ikon -> angka nabrak/ke-wrap.
+        // 2.3 menutup ikon+padding, 0.66/char untuk lebar teks font piksel tebal.
+        float chipW = Mathf.Max(f * 4.0f, f * (2.3f + 0.66f * t.Length));
         float chipX = (w - chipW) / 2f;
         float chipY = Tema.AmanAtas + Tema.Pad + LevelSystem.TinggiPanel(w) + Tema.Pad * 0.6f;
         GambarChip(new Rect(chipX, chipY, chipW, chipH), true, f, t, new Color(0.78f, 0.5f, 1f), true);
