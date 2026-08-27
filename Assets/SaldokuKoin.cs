@@ -244,14 +244,17 @@ public class Saldoku : MonoBehaviour
         GUI.depth = -1000;
 
         float w = Screen.width, h = Screen.height;
+        // Basis ukuran font = SISI TERPENDEK layar. Di HP potrait itu = lebar, jadi teks
+        // ikut lebar panel dan TIDAK meluber/kepotong (dulu pakai tinggi -> kegedean).
+        float u = Tema.Unit;
         bool linked = MataUang.Instance != null && MataUang.Instance.Terhubung;
 
         // Latar gelap layar penuh + semburat hijau tipis biar menyatu tema.
         Tema.LatarGelap(new Color(0.03f, 0.09f, 0.04f, 0.55f));
 
-        // ---- Ukuran panel (dibatasi supaya rapi di layar besar) ----
-        float pw = Mathf.Min(w * 0.88f, 620f);
-        float ph = Mathf.Min(h * (linked ? 0.88f : 0.64f), linked ? 920f : 640f);
+        // ---- Ukuran panel (lebih lebar supaya teks muat 1 baris) ----
+        float pw = Mathf.Min(w * 0.92f, 900f);
+        float ph = linked ? Mathf.Min(h * 0.92f, u * 1.12f) : Mathf.Min(h * 0.90f, u * 0.98f);
         float px = (w - pw) / 2f, py = (h - ph) / 2f;
 
         // Bayangan halus di belakang panel biar terlihat "mengambang".
@@ -261,47 +264,47 @@ public class Saldoku : MonoBehaviour
         Tema.Panel9(new Rect(px, py, pw, ph), Tema.Panel, Tema.Garis, 3f);
 
         // ---- HEADER: bar aksen + judul ----
-        float headH = Mathf.Min(ph * 0.14f, h * 0.09f);
+        float headH = u * 0.13f;
         Tema.Kotak(new Rect(px + 3f, py + 3f, pw - 6f, headH), new Color(0.16f, 0.19f, 0.12f, 0.98f));
         Tema.Kotak(new Rect(px, py, pw, 5f), Tema.Army);                          // strip aksen paling atas
         Tema.Kotak(new Rect(px + 3f, py + headH, pw - 6f, 2f), Tema.GarisRedup);  // garis pemisah header
         Tema.Teks(new Rect(px, py, pw, headH), "AKUN SALDOKU",
-            Mathf.RoundToInt(headH * 0.42f), Tema.Army, TextAnchor.MiddleCenter, true);
+            Mathf.RoundToInt(u * 0.052f), Tema.Army, TextAnchor.MiddleCenter, true);
 
         float cx = px + pw * 0.07f, cw = pw * 0.86f;
-        float yy = py + headH + ph * 0.035f;
+        float yy = py + headH + u * 0.04f;
 
         if (!linked)
         {
             // ---- Kotak instruksi ----
-            float insH = ph * 0.34f;
+            float insH = u * 0.30f;
             Tema.Panel9(new Rect(cx, yy, cw, insH), Tema.Plate, Tema.GarisRedup, 2f);
-            int insF = Mathf.RoundToInt(h * 0.022f);
+            int insF = Mathf.RoundToInt(u * 0.032f);
             string[] langkah = {
                 "1.   Buka aplikasi SALDOKU",
                 "2.   Menu Game  >  Hubungkan",
                 "3.   Salin KODE",
                 "4.   Masukkan kode di bawah",
             };
-            float lineH = insH / (langkah.Length + 0.6f);
-            float ix = cx + cw * 0.07f, iw = cw * 0.86f;
-            float iy = yy + insH * 0.08f;
+            float lineH = u * 0.062f;
+            float ix = cx + cw * 0.06f, iw = cw * 0.88f;
+            float iy = yy + (insH - lineH * langkah.Length) / 2f;
             for (int i = 0; i < langkah.Length; i++)
                 Tema.Teks(new Rect(ix, iy + lineH * i, iw, lineH), langkah[i], insF,
                     Tema.Tulang, TextAnchor.MiddleLeft, false);
-            yy += insH + ph * 0.05f;
+            yy += insH + u * 0.045f;
 
             // ---- Label KODE TAUTAN ----
-            Tema.Teks(new Rect(cx, yy, cw, h * 0.03f), "KODE TAUTAN", Mathf.RoundToInt(h * 0.02f),
+            Tema.Teks(new Rect(cx, yy, cw, u * 0.04f), "KODE TAUTAN", Mathf.RoundToInt(u * 0.03f),
                 Tema.Amber, TextAnchor.MiddleLeft, true);
-            yy += h * 0.036f;
+            yy += u * 0.05f;
 
             // ---- Field kode (plate gelap + border army biar kontras) ----
-            float fieldH = h * 0.075f;
+            float fieldH = u * 0.10f;
             Tema.Panel9(new Rect(cx, yy, cw, fieldH), new Color(0.03f, 0.05f, 0.03f, 0.96f), Tema.Garis, 2f);
             GUIStyle tf = new GUIStyle(GUI.skin.textField);
             tf.font = Tema.FontUtama;
-            tf.fontSize = Mathf.RoundToInt(h * 0.036f);
+            tf.fontSize = Mathf.RoundToInt(u * 0.052f);
             tf.fontStyle = FontStyle.Bold;
             tf.alignment = TextAnchor.MiddleCenter;
             tf.normal.textColor = Tema.Tulang;
@@ -311,95 +314,96 @@ public class Saldoku : MonoBehaviour
             tf.active.background = null;
             tf.hover.background = null;
             GUI.SetNextControlName("KodeField");
-            string typed = GUI.TextField(new Rect(cx + 8f, yy, cw - 16f, fieldH), kode ?? "", 8, tf);
+            string typed = GUI.TextField(new Rect(cx + 10f, yy, cw - 20f, fieldH), kode ?? "", 8, tf);
             kode = typed.ToUpperInvariant();
-            yy += fieldH + h * 0.018f;
+            yy += fieldH + u * 0.025f;
 
             // ---- Status ----
             if (!string.IsNullOrEmpty(statusPesan))
-                Tema.Teks(new Rect(cx, yy, cw, h * 0.03f), statusPesan, Mathf.RoundToInt(h * 0.02f),
+                Tema.Teks(new Rect(cx, yy, cw, u * 0.04f), statusPesan, Mathf.RoundToInt(u * 0.028f),
                     Tema.Amber, TextAnchor.MiddleCenter, true);
-            yy += h * 0.045f;
+            yy += u * 0.05f;
 
             // ---- Tombol HUBUNGKAN | TUTUP ----
-            float gap = w * 0.025f;
+            float gap = u * 0.03f;
             float bw = (cw - gap) / 2f;
-            float bh = h * 0.078f;
-            if (GUI.Button(new Rect(cx, yy, bw, bh), sibuk ? "..." : "HUBUNGKAN", Tema.GayaTombol(Mathf.RoundToInt(h * 0.026f))) && !sibuk)
+            float bh = u * 0.10f;
+            if (GUI.Button(new Rect(cx, yy, bw, bh), sibuk ? "..." : "HUBUNGKAN", Tema.GayaTombol(Mathf.RoundToInt(u * 0.036f))) && !sibuk)
                 KirimKode();
-            if (GUI.Button(new Rect(cx + bw + gap, yy, bw, bh), "TUTUP", Tema.GayaTombol(Mathf.RoundToInt(h * 0.026f))))
+            if (GUI.Button(new Rect(cx + bw + gap, yy, bw, bh), "TUTUP", Tema.GayaTombol(Mathf.RoundToInt(u * 0.036f))))
                 Tutup();
         }
         else
         {
             // ---- Status terhubung ----
-            Tema.Teks(new Rect(cx, yy, cw, h * 0.035f), "Terhubung: " + NamaTampil(),
-                Mathf.RoundToInt(h * 0.026f), Tema.Army, TextAnchor.MiddleLeft, true);
-            yy += h * 0.055f;
+            Tema.Teks(new Rect(cx, yy, cw, u * 0.05f), "Terhubung: " + NamaTampil(),
+                Mathf.RoundToInt(u * 0.034f), Tema.Army, TextAnchor.MiddleLeft, true);
+            yy += u * 0.06f;
 
-            Tema.Teks(new Rect(cx, yy, cw, h * 0.028f), "Julukan (nama tampilan):", Mathf.RoundToInt(h * 0.019f),
+            Tema.Teks(new Rect(cx, yy, cw, u * 0.04f), "Julukan (nama tampilan):", Mathf.RoundToInt(u * 0.026f),
                 Tema.Redup, TextAnchor.UpperLeft, false);
-            yy += h * 0.034f;
+            yy += u * 0.045f;
             GUIStyle jf = new GUIStyle(GUI.skin.textField);
             jf.font = Tema.FontUtama;
-            jf.fontSize = Mathf.RoundToInt(h * 0.026f);
+            jf.fontSize = Mathf.RoundToInt(u * 0.034f);
             jf.alignment = TextAnchor.MiddleLeft;
             jf.normal.textColor = Tema.Tulang;
             jf.focused.textColor = Tema.Tulang;
             float jbw = pw * 0.26f;
-            float jtw = cw - jbw - w * 0.02f;
-            Tema.Panel9(new Rect(cx, yy, jtw, h * 0.06f), new Color(0.03f, 0.05f, 0.03f, 0.96f), Tema.GarisRedup, 2f);
+            float jtw = cw - jbw - u * 0.025f;
+            float jh = u * 0.09f;
+            Tema.Panel9(new Rect(cx, yy, jtw, jh), new Color(0.03f, 0.05f, 0.03f, 0.96f), Tema.GarisRedup, 2f);
             GUI.SetNextControlName("JulukanField");
-            julukan = GUI.TextField(new Rect(cx + 8f, yy, jtw - 16f, h * 0.06f), julukan ?? "", 16, jf);
-            if (GUI.Button(new Rect(cx + jtw + w * 0.02f, yy, jbw, h * 0.06f), "SIMPAN", Tema.GayaTombol(Mathf.RoundToInt(h * 0.022f))))
+            julukan = GUI.TextField(new Rect(cx + 10f, yy, jtw - 20f, jh), julukan ?? "", 16, jf);
+            if (GUI.Button(new Rect(cx + jtw + u * 0.025f, yy, jbw, jh), "SIMPAN", Tema.GayaTombol(Mathf.RoundToInt(u * 0.028f))))
                 SimpanJulukan();
-            yy += h * 0.085f;
+            yy += jh + u * 0.03f;
 
             // ---- Kartu Koin ----
             long koin = (MataUang.Instance != null) ? MataUang.Instance.Koin : 0;
             bool online = MataUang.Instance != null && MataUang.Instance.Online;
-            float koinH = h * 0.09f;
+            float koinH = u * 0.12f;
             Tema.Panel9(new Rect(cx, yy, cw, koinH), Tema.Plate, Tema.GarisRedup, 2f);
-            Tema.Teks(new Rect(cx + cw * 0.05f, yy + koinH * 0.14f, cw * 0.9f, koinH * 0.34f), "KOIN SALDOKU",
-                Mathf.RoundToInt(h * 0.02f), Tema.Redup, TextAnchor.MiddleLeft, true);
+            Tema.Teks(new Rect(cx + cw * 0.05f, yy + koinH * 0.12f, cw * 0.9f, koinH * 0.32f), "KOIN SALDOKU",
+                Mathf.RoundToInt(u * 0.026f), Tema.Redup, TextAnchor.MiddleLeft, true);
             Tema.Teks(new Rect(cx + cw * 0.05f, yy + koinH * 0.44f, cw * 0.9f, koinH * 0.5f),
                 MataUang.Ringkas(koin) + (online ? "" : "  (offline)"),
-                Mathf.RoundToInt(h * 0.034f), Tema.Amber, TextAnchor.MiddleLeft, true);
-            yy += koinH + h * 0.02f;
+                Mathf.RoundToInt(u * 0.044f), Tema.Amber, TextAnchor.MiddleLeft, true);
+            yy += koinH + u * 0.025f;
 
-            Tema.Teks(new Rect(cx, yy, cw, h * 0.03f),
+            Tema.Teks(new Rect(cx, yy, cw, u * 0.04f),
                 "Peti: " + petiProgress + "/" + iklanPerPeti + "  (+" + poinPerPeti + " Koin)     Iklan: " + iklanHariIni + "/" + batasHarian,
-                Mathf.RoundToInt(h * 0.019f), Tema.Redup, TextAnchor.MiddleLeft, true);
-            yy += h * 0.045f;
+                Mathf.RoundToInt(u * 0.024f), Tema.Redup, TextAnchor.MiddleLeft, true);
+            yy += u * 0.05f;
 
-            if (GUI.Button(new Rect(cx, yy, cw, h * 0.078f),
+            if (GUI.Button(new Rect(cx, yy, cw, u * 0.10f),
                     petiSibuk ? "Memuat iklan..." : ("TONTON IKLAN    " + petiProgress + "/" + iklanPerPeti),
-                    Tema.GayaTombol(Mathf.RoundToInt(h * 0.026f))) && !petiSibuk)
+                    Tema.GayaTombol(Mathf.RoundToInt(u * 0.034f))) && !petiSibuk)
                 TontonIklanPeti();
-            yy += h * 0.095f;
+            yy += u * 0.12f;
 
             if (!string.IsNullOrEmpty(petiPesan))
             {
-                Tema.Teks(new Rect(cx, yy, cw, h * 0.03f), petiPesan, Mathf.RoundToInt(h * 0.019f),
+                Tema.Teks(new Rect(cx, yy, cw, u * 0.04f), petiPesan, Mathf.RoundToInt(u * 0.024f),
                     Tema.Army, TextAnchor.MiddleLeft, true);
-                yy += h * 0.035f;
+                yy += u * 0.045f;
             }
             if (!string.IsNullOrEmpty(statusPesan))
             {
-                Tema.Teks(new Rect(cx, yy, cw, h * 0.03f), statusPesan, Mathf.RoundToInt(h * 0.019f),
+                Tema.Teks(new Rect(cx, yy, cw, u * 0.04f), statusPesan, Mathf.RoundToInt(u * 0.024f),
                     Tema.Amber, TextAnchor.MiddleLeft, true);
-                yy += h * 0.035f;
+                yy += u * 0.045f;
             }
-            yy += h * 0.01f;
+            yy += u * 0.01f;
 
-            float gap = w * 0.025f;
+            float gap = u * 0.03f;
             float bw = (cw - gap) / 2f;
-            if (GUI.Button(new Rect(cx, yy, bw, h * 0.068f), sibuk ? "..." : "SEGARKAN", Tema.GayaTombol(Mathf.RoundToInt(h * 0.024f))) && !sibuk)
+            if (GUI.Button(new Rect(cx, yy, bw, u * 0.09f), sibuk ? "..." : "SEGARKAN", Tema.GayaTombol(Mathf.RoundToInt(u * 0.032f))) && !sibuk)
                 SegarkanSekarang();
-            if (GUI.Button(new Rect(cx + bw + gap, yy, bw, h * 0.068f), "PUTUSKAN", Tema.GayaTombol(Mathf.RoundToInt(h * 0.024f))))
+            if (GUI.Button(new Rect(cx + bw + gap, yy, bw, u * 0.09f), "PUTUSKAN", Tema.GayaTombol(Mathf.RoundToInt(u * 0.032f))))
                 Putuskan();
-            yy += h * 0.085f;
-            if (GUI.Button(new Rect(cx, yy, cw, h * 0.062f), "TUTUP", Tema.GayaTombol(Mathf.RoundToInt(h * 0.024f))))
+            yy += u * 0.11f;
+            if (GUI.Button(new Rect(cx, yy, cw, u * 0.085f), "TUTUP", Tema.GayaTombol(Mathf.RoundToInt(u * 0.032f))))
                 Tutup();
         }
 
