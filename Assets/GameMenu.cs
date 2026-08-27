@@ -219,24 +219,37 @@ public class GameMenu : MonoBehaviour
         if (MataUang.Instance == null) return;
 
         float chH = h * 0.05f;
-        float chW = w * 0.36f;
         float chY = Tema.AmanAtas + Tema.Pad;
-        int chF = Mathf.RoundToInt(h * 0.024f);
+        // Font chip dibatasi lebar layar juga -> di HP potrait tidak kegedean.
+        int chF = Mathf.Min(Mathf.RoundToInt(h * 0.022f), Mathf.RoundToInt(w * 0.034f));
 
-        // Permata (mata uang in-game) di kiri atas
-        Rect rGem = new Rect(Tema.AmanKiri + Tema.Pad, chY, chW, chH);
-        MataUang.Instance.GambarChip(rGem, true, chF, MataUang.Ringkas(MataUang.Instance.Permata), Tema.Amber, false);
+        // Permata (mata uang in-game) di kiri atas. Lebar chip menyesuaikan teks.
+        string tGem = MataUang.Ringkas(MataUang.Instance.Permata);
+        float gemW = LebarChip(tGem, chF, chH, w);
+        Rect rGem = new Rect(Tema.AmanKiri + Tema.Pad, chY, gemW, chH);
+        MataUang.Instance.GambarChip(rGem, true, chF, tGem, Tema.Amber, false);
 
-        // Koin (tukar dengan SALDOKU) di kanan atas -> tap buka panel akun
-        Rect rKoin = new Rect(w - chW - Tema.AmanKanan - Tema.Pad, chY, chW, chH);
+        // Koin (tukar dengan SALDOKU) di kanan atas -> tap buka panel akun.
         bool terhubung = MataUang.Instance.Terhubung;
         string teksKoin = terhubung ? MataUang.Ringkas(MataUang.Instance.Koin) : "HUBUNGKAN";
+        float koinW = LebarChip(teksKoin, chF, chH, w);
+        Rect rKoin = new Rect(w - koinW - Tema.AmanKanan - Tema.Pad, chY, koinW, chH);
         MataUang.Instance.GambarChip(rKoin, false, chF, teksKoin, Tema.Army, terhubung);
         if (GUI.Button(rKoin, "", GUIStyle.none))
         {
             SoundManager.Klik();
             if (Saldoku.Instance != null) Saldoku.Instance.Buka();
         }
+    }
+
+    // Perkiraan lebar chip supaya teks selalu muat 1 baris:
+    // padding-kiri + ikon + jarak + lebar-teks + padding-kanan (ikut layout GambarChip).
+    float LebarChip(string teks, int font, float chH, float w)
+    {
+        int panjang = string.IsNullOrEmpty(teks) ? 0 : teks.Length;
+        float lebarTeks = panjang * font * 0.66f + font * 0.4f; // estimasi font piksel tebal
+        float total = chH * 1.14f + lebarTeks;                  // 1.14 = padding+ikon+jarak
+        return Mathf.Min(total, w * 0.5f);
     }
 
     // ====== PEMILIH KARAKTER (Home) ======
