@@ -265,8 +265,6 @@ public class GameMenu : MonoBehaviour
         Tema.Teks(new Rect(px, py + ph * 0.04f, pw, ph * 0.15f), "PILIH KARAKTER",
             Mathf.RoundToInt(h * 0.022f), Tema.Redup, TextAnchor.MiddleCenter, true);
 
-        int idx = KarakterManager.Dipilih;
-
         // area tengah untuk portrait
         float aY = py + ph * 0.20f;
         float aH = ph * 0.54f;
@@ -274,19 +272,31 @@ public class GameMenu : MonoBehaviour
         // tombol panah kiri / kanan
         float ab = Mathf.Min(pw * 0.15f, aH * 0.85f);
         float ay = aY + (aH - ab) / 2f;
-        int af = Mathf.RoundToInt(h * 0.045f);
-        if (GUI.Button(new Rect(px + pw * 0.02f, ay, ab, ab), "<", Tema.GayaTombol(af)))
+        Rect rKiri = new Rect(px + pw * 0.02f, ay, ab, ab);
+        Rect rKanan = new Rect(px + pw * 0.98f - ab, ay, ab, ab);
+
+        // Proses KLIK panah DULU, sebelum menggambar preview & nama, supaya karakter
+        // yang ditampilkan langsung ikut berganti di frame yang sama (tidak terasa telat).
+        if (GUI.Button(rKiri, "", Tema.GayaTombol(1)))
         {
             SoundManager.Klik();
             KarakterManager.Sebelumnya();
             KarakterPemain.TerapkanPilihan();
         }
-        if (GUI.Button(new Rect(px + pw * 0.98f - ab, ay, ab, ab), ">", Tema.GayaTombol(af)))
+        if (GUI.Button(rKanan, "", Tema.GayaTombol(1)))
         {
             SoundManager.Klik();
             KarakterManager.Berikutnya();
             KarakterPemain.TerapkanPilihan();
         }
+
+        // Panah digambar sebagai SEGITIGA manual -> center sempurna (glyph '<'/'>' font
+        // pixel duduk rendah/tidak center).
+        float tw = ab * 0.30f, th = ab * 0.42f;
+        SegitigaKiri(new Rect(rKiri.center.x - tw / 2f, rKiri.center.y - th / 2f, tw, th), Tema.Tulang);
+        SegitigaKanan(new Rect(rKanan.center.x - tw / 2f, rKanan.center.y - th / 2f, tw, th), Tema.Tulang);
+
+        int idx = KarakterManager.Dipilih; // sudah termasuk hasil klik di atas
 
         // portrait SELURUH BADAN karakter di tengah (render rig lengkap; fallback ke kepala)
         float potH = aH;
@@ -314,6 +324,32 @@ public class GameMenu : MonoBehaviour
         // nama karakter
         Tema.Teks(new Rect(px, py + ph * 0.80f, pw, ph * 0.17f), KarakterManager.Nama[idx],
             Mathf.RoundToInt(h * 0.026f), Tema.Tulang, TextAnchor.MiddleCenter, true);
+    }
+
+    // Segitiga panah menunjuk KIRI (apex di kiri) - digambar kolom per kolom, center vertikal.
+    void SegitigaKiri(Rect r, Color col)
+    {
+        int n = 14;
+        float cw = r.width / n;
+        for (int i = 0; i < n; i++)
+        {
+            float f = (i + 0.5f) / n;          // 0 di apex(kiri) -> 1 di basis(kanan)
+            float colH = f * r.height;
+            Tema.Kotak(new Rect(r.x + i * cw, r.y + (r.height - colH) / 2f, cw + 1f, colH), col);
+        }
+    }
+
+    // Segitiga panah menunjuk KANAN (apex di kanan).
+    void SegitigaKanan(Rect r, Color col)
+    {
+        int n = 14;
+        float cw = r.width / n;
+        for (int i = 0; i < n; i++)
+        {
+            float f = (i + 0.5f) / n;          // basis(kiri) -> apex(kanan)
+            float colH = (1f - f) * r.height;
+            Tema.Kotak(new Rect(r.x + i * cw, r.y + (r.height - colH) / 2f, cw + 1f, colH), col);
+        }
     }
 
     // ====== PANEL PENGATURAN SUARA ======

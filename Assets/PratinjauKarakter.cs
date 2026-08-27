@@ -16,6 +16,9 @@ public static class PratinjauKarakter
     static readonly Vector3 PosPanggung = new Vector3(10000f, 10000f, 0f);
 
     // Kembalikan tekstur pratinjau untuk karakter idx (atau null bila rig belum ada).
+    // PENTING: klon karakter DIAM (animasi dimatikan), jadi cukup dirender SEKALI setiap
+    // kali karakter berganti. Merender tiap frame (dulu) bikin GPU kerja terus di menu
+    // (timeScale 0) -> framerate turun -> ganti karakter terasa "telat".
     public static Texture Ambil(int idx)
     {
         Siapkan();
@@ -25,9 +28,8 @@ public static class PratinjauKarakter
         {
             if (!BangunKlon()) return null;
             _idxTerakhir = idx;
+            _cam.Render(); // render sekali saja untuk karakter baru ini
         }
-
-        _cam.Render();
         return _rt;
     }
 
