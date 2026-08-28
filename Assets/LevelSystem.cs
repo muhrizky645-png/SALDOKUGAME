@@ -55,9 +55,9 @@ public class LevelSystem : MonoBehaviour
     }
 
     // HUD Level + bar XP, pojok KIRI atas, MEMANJANG ke arah tombol jeda (kanan).
-    // BARIS ATAS panel = "LEVEL x" (TERPISAH di kiri) + ikon HATI merah + BAR NYAWA (HP)
-    // yang mengisi sisa lebar ke kanan. Tulisan level TIDAK menimpa bar.
-    // BARIS BAWAH tetap bar XP biru.
+    // BARIS ATAS panel = "LEVEL x" (TERPISAH di kiri, DIPERBESAR, ruang pas 2 digit)
+    // + ikon HATI merah + BAR NYAWA (HP) yang mengisi sisa lebar ke kanan.
+    // Tulisan level TIDAK menimpa bar. BARIS BAWAH tetap bar XP biru.
     void OnGUI()
     {
         if (!GameMenu.SedangMain || GameMenu.SedangJeda ||
@@ -83,14 +83,18 @@ public class LevelSystem : MonoBehaviour
         float hpH  = pH * 0.36f;
         float hpY  = pY + pH * 0.09f;
 
-        // 1) tulisan "LEVEL x" TERPISAH di kiri (punya ruang sendiri, tidak menimpa bar)
-        float lvW = rowW * 0.26f;
-        Tema.Teks(new Rect(rowX, hpY, lvW, hpH), "LEVEL " + level, fLv,
+        // 1) tulisan "LEVEL x" TERPISAH di kiri, DIPERBESAR, ruang PAS untuk 2 digit
+        //    (level 10, 88, dst). Karena ruang disesuaikan lebar teks, hati & bar
+        //    merapat, tidak ada celah kosong lebar seperti sebelumnya.
+        int fLvTeks = Mathf.Min(Mathf.RoundToInt(fLv * 1.28f), Mathf.RoundToInt(hpH * 0.92f));
+        float charW = fLvTeks * 0.62f;                 // estimasi lebar 1 huruf (font piksel tebal)
+        float lvW = "LEVEL 88".Length * charW;         // sediakan ruang untuk level 2 digit
+        Tema.Teks(new Rect(rowX, hpY, lvW, hpH), "LEVEL " + level, fLvTeks,
             Tema.Army, TextAnchor.MiddleLeft, true);
 
-        // 2) ikon HATI merah setelah tulisan level
+        // 2) ikon HATI merah tepat setelah tulisan level (jarak rapat)
         float ik = hpH * 1.5f;
-        float heartX = rowX + lvW;
+        float heartX = rowX + lvW + hpH * 0.06f;
         Ikon.Gambar(new Rect(heartX, hpY + hpH / 2f - ik / 2f, ik, ik), Ikon.Hati, Tema.Darah);
 
         // 3) BAR NYAWA mengisi sisa lebar setelah hati sampai ujung kanan panel
