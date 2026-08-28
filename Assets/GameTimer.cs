@@ -79,7 +79,7 @@ public class GameTimer : MonoBehaviour
             Tema.Panel9(new Rect(bx, by, bw, bh), new Color(0f, 0f, 0f, 0.55f), Tema.GarisRedup, 1f);
             float r = Mathf.Clamp01((float)EnemyChase.BosSaatIni.NyawaSisa /
                 Mathf.Max(1, EnemyChase.BosSaatIni.NyawaMaks));
-            Tema.Kotak(new Rect(bx + 1, by + 1, (bw - 2) * r, bh - 2), Tema.Darah);
+            Tema.BarIsi(new Rect(bx + 1, by + 1, (bw - 2) * r, bh - 2), Tema.Darah);
         }
     }
 }
