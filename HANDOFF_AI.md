@@ -12,6 +12,7 @@
 
 - **Repo:** `muhrizky645-png/SALDOKUGAME` (privat, branch `main`).
 - **Engine:** Unity (game 2D top-down **survivor / roguelite** ala **Survivor.io**).
+- **Nama game:** ⚠️ SEDANG DIGANTI. Nama lama "SALDOKU LAST STAND" akan diganti; nama baru **belum ditentukan** user (lihat §7). Repo tetap `SALDOKUGAME`.
 - **Bahasa kode:** C# (nama kelas/variabel campuran Indonesia–Inggris).
 - **Filosofi visual:** **semua UI & ikon & tekstur dibuat lewat KODE saat runtime** (IMGUI + Texture2D prosedural), **tanpa file gambar**. Ikon skill boleh pakai file PNG kalau tersedia di `Assets/Resources/Icons/`, tapi selalu ada fallback ikon kode.
 - **Tema warna:** cerah & playful ala Survivor.io — oranye-emas dominan, tombol default biru, tombol aksi hijau, teks putih dengan bayangan (kesan outline).
@@ -37,7 +38,7 @@
 - **`Ikon.cs`** — ikon prosedural (tanpa file). Skill: `petir, peluru, target, chevron, hati, berlian, pisau, aura, roket, bintang`. Item: `bom, magnet, peti` (berwarna). UI: **`Piala`** (trophy, dipakai panel rekor). `Ikon.UntukSkill(id)` mengutamakan FILE `Resources/Icons/<id>.png` via `Dari()`, fallback ikon kode. **PENTING:** `Ikon.UntukItem(id)` (bom/magnet/peti), mata uang (koin/permata di `MataUang.cs`), dan `Piala` **belum** lewat `Dari()` — masih ikon kode, jadi butuh hook kalau mau pakai PNG (lihat §9). Gambar: `Ikon.Gambar(rect, tex, warnaIsi[, warnaGaris])`.
 
 ### HUD & menu (IMGUI, digambar di `OnGUI`)
-- **`GameMenu.cs`** — state game: `SedangMain`, `SedangJeda` (static). Home/pause/settings set `Time.timeScale=0`. Latar home = demo battle blur via `LatarDemo.Gambar(w,h)`. Judul **SALDOKU / LAST STAND** jaraknya sudah DIRAPATKAN (tidak melebar ke atas). **Panel rekor** kini menampilkan `[ikon Piala] angka` (label "REKOR TERTINGGI" & 2 bintang SUDAH DIHAPUS). Helper `GameMenu.Tombol(...)`, `UlangiDanMain()`, `KeHome()`.
+- **`GameMenu.cs`** — state game: `SedangMain`, `SedangJeda` (static). Home/pause/settings set `Time.timeScale=0`. Latar home = demo battle blur via `LatarDemo.Gambar(w,h)`. **Judul Home** saat ini teks "SALDOKU / LAST STAND" (font pixel) — ⚠️ AKAN DIGANTI nama (lihat §7). Jaraknya sudah DIRAPATKAN. **Panel rekor** kini menampilkan `[ikon Piala] angka` (label "REKOR TERTINGGI" & 2 bintang SUDAH DIHAPUS). Helper `GameMenu.Tombol(...)`, `UlangiDanMain()`, `KeHome()`.
 - **`LatarDemo.cs`** — latar menu home: simulasi battle blur (dasar rumput hijau + hint blur + partikel). Kelas: `Musuh/Tracer/Kilat/Bara`.
 - **`LevelSystem.cs`** — panel HUD kiri-atas. **BARIS ATAS = `LEVEL x` (TERPISAH di kiri, tulisan DIPERBESAR `fLv*1.28`, ruang `lvW` disesuaikan lebar teks "LEVEL 88" = pas untuk 2 digit) + ikon HATI merah + BAR NYAWA** yang mengisi sisa lebar ke kanan (isi warna dinamis hijau→kuning→merah dari `PlayerHealth.Instance`, angka `HP / MAX` di TENGAH bar). Karena `lvW` mengikuti lebar teks, hati & bar MERAPAT (tidak ada celah kosong lebar). Tulisan LEVEL TIDAK menimpa bar. **BARIS BAWAH = bar XP biru.** `LevelSystem.TinggiPanel(w)` dipakai HUD lain untuk sejajar.
 - **`GameTimer.cs`** — timer bertahan (kanan, sejajar skor) + **bar nyawa BOSS** (tengah, muncul saat `EnemyChase.JumlahBos>0`). Contoh bagus pemakaian `BarIsi` + `Panel9`.
@@ -66,6 +67,7 @@
 6. **HP bar player = baris atas panel LEVEL/XP** dengan urutan: **`LEVEL x` (teks terpisah, diperbesar, ruang pas 2 digit) + ikon HATI + bar nyawa** (baris bawah = XP). Tulisan LEVEL TIDAK menimpa bar. Jangan bikin HP bar terpisah lagi.
 7. **Panel rekor Home** = `[ikon Piala] angka` saja (tanpa label teks & tanpa bintang).
 8. **RENCANA ASET:** user akan mengganti SELURUH ikon/logo dengan render AI sendiri (lihat CHECKLIST §9). **Gaya seni target = ikon Survivor.io asli: glossy, semi-3D render, chunky, cartoon mengilap — BUKAN pixel-art, BUKAN realistis** (referensi: screenshot "Weapons & evolutions" dari user). Filosofi ikon-kode tetap jadi FALLBACK bila file belum ada.
+9. **NAMA GAME akan diganti** (bukan "SALDOKU LAST STAND"). Nama baru belum ditentukan — pengaruhi judul Home (`GameMenu`), subtitle, logo, dan (opsional) app name. Lihat §7.
 
 ---
 
@@ -134,11 +136,15 @@
 
 ## 7. Tugas Lanjutan (belum dikerjakan)
 
-1. **Ganti seluruh ikon/logo dengan render AI** — lihat **CHECKLIST + prompt lengkap di §9**. User render sendiri via ChatGPT/Flow, taruh PNG di `Assets/Resources/Icons/<id>.png`. Item bertanda 🔧 perlu di-hook dulu oleh AI. **PROGRES:** lihat tanda ceklis & status di §9.
-2. **(Opsional) Musuh ikut menabrak rintangan** — sekarang hanya player.
-3. **(Opsional) Tuning sorting peluru/gem** kalau occlusion terlihat aneh.
-4. **(Opsional) Tuning kepadatan rintangan** di `RintanganArena.cs` (`SEL/RADIUS`/peluang spawn).
-5. **(Opsional) Verifikasi visual di device asli:** bar nyawa (tulisan LEVEL & ruang 2 digit), panel rekor (Piala + angka center), jarak judul Home.
+1. **🆕 GANTI NAMA GAME** — user mau ganti nama (BUKAN "SALDOKU LAST STAND"). **Nama baru belum ditentukan.** Setelah nama final:
+   - Update judul Home + subtitle di `GameMenu.cs`.
+   - Baru bikin **logo** (§9 grup E) dengan nama baru.
+   - (Opsional) update nama aplikasi di Player Settings + appicon.
+2. **Ganti seluruh ikon/logo dengan render AI** — lihat **CHECKLIST + prompt lengkap di §9**. User render sendiri via ChatGPT/Flow, taruh PNG di `Assets/Resources/Icons/<id>.png`. Item bertanda 🔧 perlu di-hook dulu oleh AI. **PROGRES:** lihat tanda ceklis & status di §9. Semua prompt ikon (grup A–D) SUDAH dikirim; user lagi render satu-satu.
+3. **(Opsional) Musuh ikut menabrak rintangan** — sekarang hanya player.
+4. **(Opsional) Tuning sorting peluru/gem** kalau occlusion terlihat aneh.
+5. **(Opsional) Tuning kepadatan rintangan** di `RintanganArena.cs` (`SEL/RADIUS`/peluang spawn).
+6. **(Opsional) Verifikasi visual di device asli:** bar nyawa (tulisan LEVEL & ruang 2 digit), panel rekor (Piala + angka center), jarak judul Home.
 
 ---
 
@@ -160,9 +166,11 @@
 > **🔄 ALUR KERJA SAAT INI (per 2026-08-29):** user render ikon SATU per satu berurutan.
 > Tiap kali user minta "prompt berikutnya", AI: (a) beri prompt final (BASE STYLE + Subjek),
 > (b) update progres di checklist ini. Tanda status per item: **[x] = sudah dirender & OK**,
-> **⏳ = prompt sudah dikirim, nunggu hasil**, **[ ] = belum**.
+> **⏳ = prompt sudah dikirim, nunggu hasil render dari user**, **[ ] = belum**.
 > **Style reference:** gunakan `petir.png` (ikon pertama, hasil bagus & disetujui user) sebagai
 > acuan gaya untuk ikon-ikon berikutnya biar seragam.
+> ⚠️ **LOGO DITUNDA:** user mau GANTI NAMA game dulu (bukan "SALDOKU LAST STAND"). Prompt logo
+> baru dibuat setelah nama final ditentukan (lihat §7).
 >
 > **🎨 GAYA SENI TARGET (WAJIB):** meniru ikon **Survivor.io asli** — render **glossy semi-3D**,
 > bentuk **chunky/tebal**, cartoon **mengilap**, outline gelap tebal, highlight kilau + bayangan
@@ -191,36 +199,36 @@ photorealistic, no text, no watermark, no ground shadow.
 ### A. Skill / Buff  — ✅ sudah file-ready (`Ikon.UntukSkill` → `Dari`)
 
 - [x] ✅ **petir** → `Icons/petir.png` — (✅ SUDAH dirender, hasil bagus & disetujui user; jadi style reference) Subjek: `a bold glossy yellow lightning bolt, chain lightning power`
-- [ ] ⏳ ✅ **peluru** → `Icons/peluru.png` — (prompt sudah dikirim, nunggu hasil) Subjek: `three shiny golden bullets stacked pointing up, extra projectile buff`
-- [ ] ⏳ ✅ **target** → `Icons/target.png` — (prompt sudah dikirim, nunggu hasil) Subjek: `a red-and-white bullseye target with crosshair, critical/aim buff`
-- [ ] ⏳ ✅ **chevron** → `Icons/chevron.png` — (prompt sudah dikirim, nunggu hasil) Subjek: `double upward chevron arrows, glossy green, attack/move speed buff`
-- [ ] ⏳ ✅ **hati** → `Icons/hati.png` — (prompt sudah dikirim, nunggu hasil) Subjek: `a plump glossy red heart, max health / heal buff`
-- [ ] ✅ **berlian** → `Icons/berlian.png` — Subjek: `a brilliant faceted blue diamond gem, luck/bonus buff`
-- [ ] ✅ **pisau** → `Icons/pisau.png` — Subjek: `a shiny steel four-point throwing blade, orbiting knife weapon`
-- [ ] ✅ **aura** → `Icons/aura.png` — Subjek: `concentric glowing energy rings radiating outward, purple aura damage field`
-- [ ] ✅ **roket** → `Icons/roket.png` — Subjek: `a small stubby rocket/missile pointing up with fins and flame, rocket weapon`
-- [ ] ✅ **bintang** → `Icons/bintang.png` — Subjek: `a bold glossy golden five-pointed star, generic upgrade / default icon`
+- [ ] ⏳ ✅ **peluru** → `Icons/peluru.png` — (prompt terkirim, user render) Subjek: `three shiny golden bullets stacked pointing up, extra projectile buff`
+- [ ] ⏳ ✅ **target** → `Icons/target.png` — (prompt terkirim, user render) Subjek: `a red-and-white bullseye target with crosshair, critical/aim buff`
+- [ ] ⏳ ✅ **chevron** → `Icons/chevron.png` — (prompt terkirim, user render) Subjek: `double upward chevron arrows, glossy green, attack/move speed buff`
+- [ ] ⏳ ✅ **hati** → `Icons/hati.png` — (prompt terkirim, user render) Subjek: `a plump glossy red heart, max health / heal buff`
+- [ ] ⏳ ✅ **berlian** → `Icons/berlian.png` — (prompt terkirim, user render) Subjek: `a brilliant faceted blue diamond gem, luck/bonus buff`
+- [ ] ⏳ ✅ **pisau** → `Icons/pisau.png` — (prompt terkirim, user render) Subjek: `a shiny steel four-point throwing blade, orbiting knife weapon`
+- [ ] ⏳ ✅ **aura** → `Icons/aura.png` — (prompt terkirim, user render) Subjek: `concentric glowing energy rings radiating outward, purple aura damage field`
+- [ ] ⏳ ✅ **roket** → `Icons/roket.png` — (prompt terkirim, user render) Subjek: `a small stubby rocket/missile pointing up with fins and flame, rocket weapon`
+- [ ] ⏳ ✅ **bintang** → `Icons/bintang.png` — (prompt terkirim, user render) Subjek: `a bold glossy golden five-pointed star, generic upgrade / default icon`
 
 ### B. Item Lapangan  — 🔧 butuh hook (`Ikon.UntukItem`)
 
-- [ ] 🔧 **bom** → `Icons/bom.png` — Subjek: `a round black cartoon bomb with a lit sparking fuse, screen-clear item`
-- [ ] 🔧 **magnet** → `Icons/magnet.png` — Subjek: `a glossy red horseshoe magnet with silver poles, attract-pickups item`
-- [ ] 🔧 **peti** → `Icons/peti.png` — Subjek: `a wooden treasure chest with gold trim and a lock, reward crate`
+- [ ] ⏳ 🔧 **bom** → `Icons/bom.png` — (prompt terkirim, user render) Subjek: `a round black cartoon bomb with a lit sparking fuse, screen-clear item`
+- [ ] ⏳ 🔧 **magnet** → `Icons/magnet.png` — (prompt terkirim, user render) Subjek: `a glossy red horseshoe magnet with silver poles, attract-pickups item`
+- [ ] ⏳ 🔧 **peti** → `Icons/peti.png` — (prompt terkirim, user render) Subjek: `a wooden treasure chest with gold trim and a lock, reward crate`
 
 ### C. Mata Uang & UI  — 🔧 butuh hook (`MataUang.cs` / `Ikon.Piala`)
 
-- [ ] 🔧 **koin** → `Icons/koin.png` — Subjek: `a shiny round gold coin with a simple embossed emblem, game currency`
-- [ ] 🔧 **permata** → `Icons/permata.png` — Subjek: `a violet/purple faceted crystal gem, premium currency`
-- [ ] 🔧 **piala** → `Icons/piala.png` — Subjek: `a golden victory trophy cup with two side handles on a base, high score`
+- [ ] ⏳ 🔧 **koin** → `Icons/koin.png` — (prompt terkirim, user render) Subjek: `a shiny round gold coin with a simple embossed emblem, game currency`
+- [ ] ⏳ 🔧 **permata** → `Icons/permata.png` — (prompt terkirim, user render) Subjek: `a violet/purple faceted crystal gem, premium currency`
+- [ ] ⏳ 🔧 **piala** → `Icons/piala.png` — (prompt terkirim, user render) Subjek: `a golden victory trophy cup with two side handles on a base, high score`
 
 ### D. XP / Permata Lapangan  — 🔧 butuh hook (`XpGem.cs` / `PermataGem.cs`, sprite dunia)
 
-- [ ] 🔧 **xpgem** → `Icons/xpgem.png` — Subjek: `a small glowing cyan/blue XP crystal shard, floating pickup`
-- [ ] 🔧 **permatagem** → `Icons/permatagem.png` — Subjek: `a small purple gem pickup with sparkle`
+- [ ] ⏳ 🔧 **xpgem** → `Icons/xpgem.png` — (prompt terkirim, user render) Subjek: `a small glowing cyan/blue XP crystal shard, floating pickup`
+- [ ] ⏳ 🔧 **permatagem** → `Icons/permatagem.png` — (prompt terkirim, user render) Subjek: `a small purple gem pickup with sparkle`
 
 ### E. Opsional (logo & app)
 
-- [ ] 🔧 **logo** (wordmark) → `Icons/logo.png` — sekarang "SALDOKU / LAST STAND" digambar pakai font pixel. Kalau mau logo gambar: Subjek: `game logo wordmark reading SALDOKU LAST STAND, bold glossy 3D letters, army green and amber with red accents` (boleh pakai teks untuk logo). Lalu minta AI wire-kan di `GameMenu`.
-- [ ] **appicon** (ikon aplikasi Android) → di-set di Player Settings (bukan Resources). Subjek: `mobile game app launcher icon, glossy 3D, a heart + trophy motif, bold, centered, filled background`.
+- [ ] ⏸️ 🔧 **logo** (wordmark) → `Icons/logo.png` — **DITUNDA: nunggu NAMA GAME baru** (user mau ganti nama, bukan "SALDOKU LAST STAND"). Setelah nama final, buat prompt wordmark: `game logo wordmark reading "<NAMA BARU>", bold glossy 3D letters, army green and amber with red accents` lalu wire-kan di `GameMenu`.
+- [ ] **appicon** (ikon aplikasi Android) → di-set di Player Settings (bukan Resources). Nunggu nama/tema final. Subjek: `mobile game app launcher icon, glossy 3D, a heart + trophy motif, bold, centered, filled background`.
 
 > **Catatan untuk AI sesi berikutnya:** kalau user bilang "ikon X sudah aku render", (1) pastikan file ada di `Assets/Resources/Icons/X.png`, (2) untuk item 🔧 tambahkan hook `Dari("X", <ikonKodeBawaan>)`, (3) ceklis item ini di §9, (4) update §6 SHA.
