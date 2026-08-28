@@ -2,24 +2,24 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // ============================================================================
-//  ARENA TAK TERBATAS (versi CERAH & BERVARIASI ala Survivor.io)
-//  Membuat hamparan tanah yang MENGIKUTI kamera dan BERULANG (tiled) tanpa
-//  batas. Pemain tidak pernah bisa "keluar arena".
+//  ARENA TAK TERBATAS (CERAH, BERVARIASI, WARNA-WARNI ala Survivor.io)
+//  Hamparan tanah yang MENGIKUTI kamera dan BERULANG (tiled) tanpa batas.
 //
-//  Latarnya TIDAK lagi flat hijau: rumput cerah dua-nada + bercak TANAH coklat
-//  + SEMAK bulat + BATU + POHON, semuanya di-"bake" ke dalam satu tekstur
-//  petak besar. Semua stamp memakai WRAP-AROUND (modulo) sehingga dekorasi yang
-//  melewati tepi petak muncul lagi di sisi seberang -> pola menyambung mulus.
+//  Latar TIDAK flat: rumput cerah banyak nuansa (segar / lush / kering kuning)
+//  + bercak TANAH coklat + SEMAK + BATU + POHON + BUNGA warna-warni + KERIKIL.
+//  Tiap elemen mendapat JITTER warna & UKURAN acak sehingga tidak ada dua yang
+//  persis sama. Semua di-"bake" ke satu tekstur petak BESAR dengan stamp
+//  WRAP-AROUND (modulo) supaya dekorasi yang melewati tepi menyambung mulus.
 //
-//  Otomatis dibuat saat game mulai & tiap scene di-reload, jadi TIDAK perlu
-//  setup apa pun di Editor. Tekstur runtime pakai HideAndDontSave.
+//  Otomatis dibuat saat game mulai & tiap scene di-reload, tanpa setup Editor.
+//  Tekstur runtime pakai HideAndDontSave.
 // ============================================================================
 public class ArenaTakTerbatas : MonoBehaviour
 {
     public static ArenaTakTerbatas Instance;
 
-    const float UKURAN_TILE = 16f;  // besar satu petak (unit dunia) - besar biar pengulangan tak kentara
-    const int   RES = 256;          // resolusi tekstur petak (ppu = RES/UKURAN_TILE = 16)
+    const float UKURAN_TILE = 24f;  // petak besar -> pengulangan makin tak kentara
+    const int   RES = 384;          // resolusi petak (ppu = RES/UKURAN_TILE = 16)
 
     Camera cam;
     Transform tanah;
@@ -51,7 +51,6 @@ public class ArenaTakTerbatas : MonoBehaviour
         tex.wrapMode = TextureWrapMode.Repeat;
         tex.filterMode = FilterMode.Point;
 
-        // ppu diatur supaya satu ulangan sprite = UKURAN_TILE unit dunia
         float ppu = RES / UKURAN_TILE;
         Sprite spr = Sprite.Create(tex, new Rect(0, 0, RES, RES),
             new Vector2(0.5f, 0.5f), ppu, 0, SpriteMeshType.FullRect);
@@ -62,12 +61,10 @@ public class ArenaTakTerbatas : MonoBehaviour
         sr.sprite = spr;
         sr.drawMode = SpriteDrawMode.Tiled;
         sr.tileMode = SpriteTileMode.Continuous;
-        // di ATAS latar lama (-10) tapi di BAWAH semua objek gameplay (>=0)
-        sr.sortingOrder = -9;
+        sr.sortingOrder = -9; // di bawah semua objek gameplay
         sr.color = Color.white;
     }
 
-    // Sembunyikan hamparan rumput lama yang berukuran tetap (objek "Paper_4").
     void SembunyikanTanahLama()
     {
         GameObject lama = GameObject.Find("Paper_4");
@@ -83,14 +80,10 @@ public class ArenaTakTerbatas : MonoBehaviour
         if (cam == null) cam = Camera.main;
         if (cam == null || tanah == null || sr == null) return;
 
-        // ukuran area yang terlihat kamera
         float tinggi = cam.orthographicSize * 2f;
         float lebar = tinggi * cam.aspect;
-
-        // sprite selalu dibuat lebih besar dari layar + margin 2 petak
         sr.size = new Vector2(lebar + UKURAN_TILE * 2f, tinggi + UKURAN_TILE * 2f);
 
-        // ikuti kamera tapi SNAP ke kelipatan petak -> pola menyambung mulus
         Vector3 c = cam.transform.position;
         float x = Mathf.Floor(c.x / UKURAN_TILE) * UKURAN_TILE;
         float y = Mathf.Floor(c.y / UKURAN_TILE) * UKURAN_TILE;
@@ -100,10 +93,20 @@ public class ArenaTakTerbatas : MonoBehaviour
     // ===================== GENERATOR TEKSTUR ARENA =====================
     static Color[] _buf;
     static int _n;
+    static System.Random _r;
 
     static float Clamp01(float v) { return v < 0f ? 0f : (v > 1f ? 1f : v); }
+    static float Acak(float a, float b) { return a + (float)_r.NextDouble() * (b - a); }
 
-    // Blend satu titik dengan wrap-around (dekorasi menyambung antar petak)
+    // Jitter warna acak (buat nuansa beda tiap elemen)
+    static Color Jit(Color c, float amt)
+    {
+        return new Color(
+            Clamp01(c.r + (float)(_r.NextDouble() - 0.5) * 2f * amt),
+            Clamp01(c.g + (float)(_r.NextDouble() - 0.5) * 2f * amt),
+            Clamp01(c.b + (float)(_r.NextDouble() - 0.5) * 2f * amt), 1f);
+    }
+
     static void Titik(int x, int y, Color c, float a)
     {
         if (a <= 0f) return;
@@ -115,7 +118,6 @@ public class ArenaTakTerbatas : MonoBehaviour
         _buf[idx] = new Color(b.r + (c.r - b.r) * a, b.g + (c.g - b.g) * a, b.b + (c.b - b.b) * a, 1f);
     }
 
-    // Lingkaran LEMBUT (buat bercak halus / bayangan)
     static void BlobLembut(float cx, float cy, float r, Color col, float kuat)
     {
         int x0 = Mathf.FloorToInt(cx - r) - 1, x1 = Mathf.CeilToInt(cx + r) + 1;
@@ -131,7 +133,6 @@ public class ArenaTakTerbatas : MonoBehaviour
             }
     }
 
-    // Lingkaran PADAT dengan tepi (rim) lebih gelap + sedikit anti-alias.
     static void BlobPadat(float cx, float cy, float r, Color isi, Color rim)
     {
         int x0 = Mathf.FloorToInt(cx - r) - 1, x1 = Mathf.CeilToInt(cx + r) + 1;
@@ -142,110 +143,163 @@ public class ArenaTakTerbatas : MonoBehaviour
                 float dx = (x + 0.5f - cx) / r, dy = (y + 0.5f - cy) / r;
                 float d = Mathf.Sqrt(dx * dx + dy * dy);
                 if (d > 1f) continue;
-                float a = Clamp01((1f - d) * 7f);            // AA tepi tipis
+                float a = Clamp01((1f - d) * 7f);
                 Color c = d > 0.80f ? rim : isi;
                 Titik(x, y, c, a);
             }
+    }
+
+    // ---- elemen: SEMAK ----
+    static void Semak(float cx, float cy, float rad)
+    {
+        Color isi = Jit(new Color(0.30f, 0.57f, 0.24f), 0.06f);
+        Color rim = new Color(isi.r * 0.68f, isi.g * 0.72f, isi.b * 0.66f, 1f);
+        Color hi = new Color(Clamp01(isi.r + 0.18f), Clamp01(isi.g + 0.19f), Clamp01(isi.b + 0.10f), 1f);
+        BlobLembut(cx, cy + rad * 0.35f, rad * 1.15f, Color.black, 0.22f);
+        BlobPadat(cx, cy, rad, isi, rim);
+        BlobPadat(cx - rad * 0.5f, cy + rad * 0.2f, rad * 0.6f, isi, rim);
+        BlobPadat(cx + rad * 0.5f, cy + rad * 0.15f, rad * 0.6f, isi, rim);
+        BlobLembut(cx - rad * 0.3f, cy - rad * 0.35f, rad * 0.6f, hi, 0.55f);
+    }
+
+    // ---- elemen: BATU ----
+    static void Batu(float cx, float cy, float rad)
+    {
+        // variasi nuansa batu: abu, abu-coklat, abu-kebiruan
+        Color[] pal = { new Color(0.64f, 0.64f, 0.68f), new Color(0.66f, 0.62f, 0.57f), new Color(0.58f, 0.62f, 0.70f) };
+        Color isi = Jit(pal[_r.Next(pal.Length)], 0.04f);
+        Color rim = new Color(isi.r * 0.68f, isi.g * 0.68f, isi.b * 0.72f, 1f);
+        Color hi = new Color(Clamp01(isi.r + 0.18f), Clamp01(isi.g + 0.18f), Clamp01(isi.b + 0.18f), 1f);
+        BlobLembut(cx, cy + rad * 0.4f, rad * 1.2f, Color.black, 0.22f);
+        BlobPadat(cx, cy, rad, isi, rim);
+        BlobPadat(cx + rad * 0.35f, cy - rad * 0.1f, rad * 0.55f, isi, rim);
+        BlobLembut(cx - rad * 0.3f, cy - rad * 0.3f, rad * 0.55f, hi, 0.6f);
+    }
+
+    // ---- elemen: POHON ----
+    static void Pohon(float cx, float cy, float rad)
+    {
+        // variasi kanopi: hijau normal, hijau tua, hijau-kuning, teal, kadang oranye (musim gugur)
+        Color[] pal = {
+            new Color(0.26f, 0.52f, 0.21f), new Color(0.20f, 0.44f, 0.18f),
+            new Color(0.40f, 0.56f, 0.22f), new Color(0.22f, 0.52f, 0.40f),
+            new Color(0.72f, 0.46f, 0.18f)
+        };
+        Color kan = Jit(pal[_r.Next(pal.Length)], 0.05f);
+        Color rim = new Color(kan.r * 0.66f, kan.g * 0.70f, kan.b * 0.64f, 1f);
+        Color hi = new Color(Clamp01(kan.r + 0.16f), Clamp01(kan.g + 0.17f), Clamp01(kan.b + 0.10f), 1f);
+        Color bat = new Color(0.44f, 0.29f, 0.17f), batD = new Color(0.32f, 0.20f, 0.11f);
+        BlobLembut(cx + rad * 0.15f, cy + rad * 0.55f, rad * 1.25f, Color.black, 0.24f);
+        BlobPadat(cx, cy + rad * 0.7f, rad * 0.22f, bat, batD);
+        BlobPadat(cx, cy, rad, kan, rim);
+        BlobPadat(cx - rad * 0.6f, cy + rad * 0.15f, rad * 0.62f, kan, rim);
+        BlobPadat(cx + rad * 0.6f, cy + rad * 0.1f, rad * 0.62f, kan, rim);
+        BlobPadat(cx, cy - rad * 0.55f, rad * 0.62f, kan, rim);
+        BlobLembut(cx - rad * 0.35f, cy - rad * 0.4f, rad * 0.7f, hi, 0.55f);
+    }
+
+    // ---- elemen: BUNGA warna-warni ----
+    static void Bunga(float cx, float cy, float rad)
+    {
+        Color[] pal = {
+            new Color(0.98f, 0.98f, 0.98f), new Color(1f, 0.86f, 0.28f),
+            new Color(1f, 0.55f, 0.72f), new Color(0.92f, 0.35f, 0.32f),
+            new Color(0.70f, 0.52f, 0.95f), new Color(1f, 0.66f, 0.26f),
+            new Color(0.45f, 0.68f, 1f)
+        };
+        Color wb = pal[_r.Next(pal.Length)];
+        Color rim = new Color(wb.r * 0.75f, wb.g * 0.75f, wb.b * 0.75f, 1f);
+        int kel = 5;
+        float mulai = Acak(0f, 6.28f);
+        for (int k = 0; k < kel; k++)
+        {
+            float a = mulai + k * (6.2832f / kel);
+            BlobPadat(cx + Mathf.Cos(a) * rad, cy + Mathf.Sin(a) * rad, rad * 0.7f, wb, rim);
+        }
+        BlobPadat(cx, cy, rad * 0.7f, new Color(1f, 0.82f, 0.2f), new Color(0.85f, 0.6f, 0.12f)); // inti kuning
     }
 
     static Texture2D BuatTeksturArena(int n)
     {
         _n = n;
         _buf = new Color[n * n];
-        System.Random r = new System.Random(2026);
+        _r = new System.Random(2026);
 
         // ---- 1) RUMPUT DASAR cerah + noise halus ----
-        Color g1 = new Color(0.44f, 0.74f, 0.32f); // hijau cerah utama
-        Color g2 = new Color(0.55f, 0.84f, 0.40f); // lebih terang
-        Color g3 = new Color(0.35f, 0.63f, 0.26f); // lebih gelap
+        Color g1 = new Color(0.44f, 0.74f, 0.32f);
         for (int y = 0; y < n; y++)
             for (int x = 0; x < n; x++)
             {
-                float v = (float)(r.NextDouble() - 0.5) * 0.09f;
+                float v = (float)(_r.NextDouble() - 0.5) * 0.09f;
                 _buf[y * n + x] = new Color(Clamp01(g1.r + v * 0.7f), Clamp01(g1.g + v), Clamp01(g1.b + v * 0.7f), 1f);
             }
 
-        // ---- 2) BERCAK rumput terang/gelap (biar tidak rata) ----
-        for (int i = 0; i < 16; i++)
+        // ---- 2) BERCAK rumput banyak NUANSA (segar / lush / kering kuning / gelap) ----
+        Color[] nuansa = {
+            new Color(0.55f, 0.84f, 0.40f), // terang
+            new Color(0.35f, 0.63f, 0.26f), // gelap
+            new Color(0.34f, 0.68f, 0.36f), // lush kebiruan
+            new Color(0.64f, 0.73f, 0.34f), // kering kekuningan
+            new Color(0.50f, 0.70f, 0.28f)  // zaitun
+        };
+        for (int i = 0; i < 26; i++)
         {
-            float cx = (float)r.NextDouble() * n, cy = (float)r.NextDouble() * n;
-            float rad = n * (0.07f + (float)r.NextDouble() * 0.10f);
-            BlobLembut(cx, cy, rad, (r.NextDouble() < 0.5 ? g2 : g3), 0.45f);
+            float cx = Acak(0, n), cy = Acak(0, n);
+            float rad = n * Acak(0.05f, 0.16f);
+            BlobLembut(cx, cy, rad, Jit(nuansa[_r.Next(nuansa.Length)], 0.04f), Acak(0.30f, 0.55f));
         }
 
-        // ---- 3) BERCAK TANAH COKLAT (gugusan blob supaya bentuknya organik) ----
-        Color d1 = new Color(0.66f, 0.48f, 0.29f); // coklat tanah
-        Color d2 = new Color(0.53f, 0.37f, 0.22f); // coklat lebih gelap (tepi)
-        for (int i = 0; i < 5; i++)
+        // ---- 3) BERCAK TANAH COKLAT (gugusan blob organik, ukuran & warna beragam) ----
+        Color d1 = new Color(0.66f, 0.48f, 0.29f), d2 = new Color(0.53f, 0.37f, 0.22f);
+        int jmlTanah = 6 + _r.Next(3);
+        for (int i = 0; i < jmlTanah; i++)
         {
-            float cx = (float)r.NextDouble() * n, cy = (float)r.NextDouble() * n;
-            float rad = n * (0.05f + (float)r.NextDouble() * 0.06f);
-            int blobs = 4 + r.Next(4);
+            float cx = Acak(0, n), cy = Acak(0, n);
+            float rad = n * Acak(0.04f, 0.11f);
+            Color td1 = Jit(d1, 0.05f), td2 = Jit(d2, 0.04f);
+            int blobs = 4 + _r.Next(5);
             for (int b = 0; b < blobs; b++)
             {
-                float ang = (float)r.NextDouble() * 6.2832f;
-                float dist = (float)r.NextDouble() * rad * 0.8f;
+                float ang = Acak(0, 6.2832f), dist = Acak(0, rad * 0.85f);
                 float bx = cx + Mathf.Cos(ang) * dist, by = cy + Mathf.Sin(ang) * dist;
-                float br = rad * (0.55f + (float)r.NextDouble() * 0.5f);
-                BlobPadat(bx, by, br, Color.Lerp(d1, d2, (float)r.NextDouble() * 0.5f), d2);
+                float br = rad * Acak(0.5f, 1.05f);
+                BlobPadat(bx, by, br, Color.Lerp(td1, td2, Acak(0f, 0.5f)), td2);
             }
-            // sedikit bintik gelap kecil di tanah
             for (int k = 0; k < 3; k++)
-                BlobLembut(cx + (float)(r.NextDouble() - 0.5) * rad, cy + (float)(r.NextDouble() - 0.5) * rad,
-                    rad * 0.18f, new Color(0.40f, 0.28f, 0.16f), 0.5f);
+                BlobLembut(cx + Acak(-rad, rad), cy + Acak(-rad, rad), rad * 0.18f, new Color(0.40f, 0.28f, 0.16f), 0.5f);
         }
 
-        // ---- 4) SEMAK bulat (round shrub) ----
-        Color sIsi = new Color(0.30f, 0.57f, 0.24f);   // hijau semak
-        Color sRim = new Color(0.20f, 0.42f, 0.16f);   // tepi lebih gelap
-        Color sHi  = new Color(0.48f, 0.76f, 0.34f);   // sorot atas
-        for (int i = 0; i < 12; i++)
+        // ---- 4) SEMAK (banyak, ukuran sangat beragam) ----
+        int jmlSemak = 22 + _r.Next(8);
+        for (int i = 0; i < jmlSemak; i++)
+            Semak(Acak(0, n), Acak(0, n), n * Acak(0.020f, 0.085f));
+
+        // ---- 5) BATU (kecil s/d sedang) ----
+        int jmlBatu = 12 + _r.Next(6);
+        for (int i = 0; i < jmlBatu; i++)
+            Batu(Acak(0, n), Acak(0, n), n * Acak(0.012f, 0.050f));
+
+        // ---- 6) POHON (jumlah & ukuran beragam) ----
+        int jmlPohon = 5 + _r.Next(4);
+        for (int i = 0; i < jmlPohon; i++)
+            Pohon(Acak(0, n), Acak(0, n), n * Acak(0.040f, 0.105f));
+
+        // ---- 7) BUNGA warna-warni (kluster) ----
+        int jmlBunga = 26 + _r.Next(12);
+        for (int i = 0; i < jmlBunga; i++)
         {
-            float cx = (float)r.NextDouble() * n, cy = (float)r.NextDouble() * n;
-            float rad = n * (0.028f + (float)r.NextDouble() * 0.028f);
-            BlobLembut(cx, cy + rad * 0.35f, rad * 1.15f, new Color(0f, 0f, 0f), 0.22f); // bayangan
-            // badan semak: gabungan beberapa gumpalan biar bergerigi
-            BlobPadat(cx, cy, rad, sIsi, sRim);
-            BlobPadat(cx - rad * 0.5f, cy + rad * 0.2f, rad * 0.6f, sIsi, sRim);
-            BlobPadat(cx + rad * 0.5f, cy + rad * 0.15f, rad * 0.6f, sIsi, sRim);
-            BlobLembut(cx - rad * 0.3f, cy - rad * 0.35f, rad * 0.6f, sHi, 0.55f);        // sorot
+            float cx = Acak(0, n), cy = Acak(0, n);
+            int grup = 1 + _r.Next(4);
+            for (int g = 0; g < grup; g++)
+                Bunga(cx + Acak(-n * 0.02f, n * 0.02f), cy + Acak(-n * 0.02f, n * 0.02f), n * Acak(0.006f, 0.013f));
         }
 
-        // ---- 5) BATU ----
-        Color bIsi = new Color(0.64f, 0.64f, 0.68f);
-        Color bRim = new Color(0.44f, 0.44f, 0.50f);
-        Color bHi  = new Color(0.82f, 0.82f, 0.86f);
-        for (int i = 0; i < 8; i++)
+        // ---- 8) KERIKIL kecil ----
+        int jmlKerikil = 24 + _r.Next(12);
+        for (int i = 0; i < jmlKerikil; i++)
         {
-            float cx = (float)r.NextDouble() * n, cy = (float)r.NextDouble() * n;
-            float rad = n * (0.018f + (float)r.NextDouble() * 0.022f);
-            BlobLembut(cx, cy + rad * 0.4f, rad * 1.2f, new Color(0f, 0f, 0f), 0.22f);   // bayangan
-            BlobPadat(cx, cy, rad, bIsi, bRim);
-            BlobPadat(cx + rad * 0.35f, cy - rad * 0.1f, rad * 0.55f, bIsi, bRim);       // gumpalan kedua
-            BlobLembut(cx - rad * 0.3f, cy - rad * 0.3f, rad * 0.55f, bHi, 0.6f);        // sorot
-        }
-
-        // ---- 6) POHON (kanopi bergumpal + batang + bayangan) ----
-        Color pKan = new Color(0.26f, 0.52f, 0.21f);   // kanopi
-        Color pRim = new Color(0.17f, 0.37f, 0.14f);   // tepi kanopi
-        Color pHi  = new Color(0.42f, 0.68f, 0.28f);   // sorot kanopi
-        Color pBat = new Color(0.44f, 0.29f, 0.17f);   // batang
-        Color pBatD = new Color(0.32f, 0.20f, 0.11f);
-        for (int i = 0; i < 3; i++)
-        {
-            float cx = (float)r.NextDouble() * n, cy = (float)r.NextDouble() * n;
-            float rad = n * (0.06f + (float)r.NextDouble() * 0.03f);
-            // bayangan besar di tanah
-            BlobLembut(cx + rad * 0.15f, cy + rad * 0.55f, rad * 1.25f, new Color(0f, 0f, 0f), 0.24f);
-            // batang (sedikit terlihat di bawah kanopi)
-            BlobPadat(cx, cy + rad * 0.7f, rad * 0.22f, pBat, pBatD);
-            // kanopi bergumpal (beberapa lingkaran)
-            BlobPadat(cx, cy, rad, pKan, pRim);
-            BlobPadat(cx - rad * 0.6f, cy + rad * 0.15f, rad * 0.62f, pKan, pRim);
-            BlobPadat(cx + rad * 0.6f, cy + rad * 0.1f, rad * 0.62f, pKan, pRim);
-            BlobPadat(cx, cy - rad * 0.55f, rad * 0.62f, pKan, pRim);
-            // sorot cahaya di kiri-atas kanopi
-            BlobLembut(cx - rad * 0.35f, cy - rad * 0.4f, rad * 0.7f, pHi, 0.55f);
+            Color kb = Jit(new Color(0.60f, 0.60f, 0.62f), 0.06f);
+            BlobPadat(Acak(0, n), Acak(0, n), n * Acak(0.004f, 0.010f), kb, new Color(kb.r * 0.7f, kb.g * 0.7f, kb.b * 0.72f, 1f));
         }
 
         Texture2D t = new Texture2D(n, n, TextureFormat.RGBA32, false);
