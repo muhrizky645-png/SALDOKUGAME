@@ -61,6 +61,9 @@ public class RintanganArena : MonoBehaviour
         if (cam == null) cam = Camera.main;
         if (cam == null) return;
 
+        // beri tahu UrutanY posisi kamera (untuk Y-sort relatif kamera)
+        UrutanY.CamY = cam.transform.position.y;
+
         // pastikan PLAYER punya sorting (occlusion) + komponen tabrakan
         if (pemain == null)
         {
@@ -259,11 +262,15 @@ public class RintanganArena : MonoBehaviour
     }
 }
 
-// ---- Y-sort: objek yang lebih ke BAWAH (y kecil) tampil di DEPAN ----
-// Memakai SortingGroup supaya rig multi-sprite (player/musuh) ikut satu urutan.
+// ---- Y-sort RELATIF KAMERA: objek lebih ke BAWAH (y kecil) tampil di DEPAN ----
+// Basis BESAR + relatif kamera -> nilai selalu positif jauh di atas lantai (-9),
+// jadi player/objek TIDAK pernah tenggelam di balik tekstur tanah.
+// Memakai SortingGroup supaya rig multi-sprite (player/musuh) jadi satu urutan.
 public class UrutanY : MonoBehaviour
 {
+    public static float CamY = 0f;
     public float offsetY = 0f;
+    const int BASIS = 20000;
     SortingGroup sg;
     void Awake()
     {
@@ -272,7 +279,8 @@ public class UrutanY : MonoBehaviour
     }
     void LateUpdate()
     {
-        if (sg != null) sg.sortingOrder = Mathf.RoundToInt(-(transform.position.y + offsetY) * 100f);
+        if (sg != null)
+            sg.sortingOrder = BASIS - Mathf.RoundToInt((transform.position.y + offsetY - CamY) * 100f);
     }
 }
 
