@@ -14,8 +14,8 @@ public class PlayerHealth : MonoBehaviour
     // jatah "Hidup Lagi" (tonton iklan) - hanya 1x per permainan
     private bool sudahHidupLagi = false;
 
-    [Header("HP Bar")]
-    public Transform hpFill;      // drag BarFill ke sini
+    [Header("HP Bar (lama - sprite scene, kini disembunyikan; HUD bertema menggantikan)")]
+    public Transform hpFill;      // drag BarFill ke sini (opsional, kini di-hide)
     private float fillWidth = 1f;
 
     private SpriteRenderer[] srs;
@@ -37,11 +37,32 @@ public class PlayerHealth : MonoBehaviour
         sudahHidupLagi = false;
         if (hpFill != null) fillWidth = hpFill.localScale.x;
         UpdateBar();
+        SembunyikanBarLama();   // matikan bar sprite lama; diganti HUD bertema di OnGUI
 
         Transform ninja = transform.Find("Ninja_Character_5");
         srs = (ninja != null) ? ninja.GetComponentsInChildren<SpriteRenderer>() : new SpriteRenderer[0];
         warnaAsli = new Color[srs.Length];
         for (int i = 0; i < srs.Length; i++) warnaAsli[i] = srs[i].color;
+    }
+
+    // Sembunyikan bar HP lama berbasis sprite (fill + background + border) supaya
+    // tidak dobel dengan HUD bertema yang baru.
+    void SembunyikanBarLama()
+    {
+        if (hpFill == null) return;
+        SpriteRenderer f = hpFill.GetComponent<SpriteRenderer>();
+        if (f != null) f.enabled = false;
+        Transform bar = hpFill.parent;
+        if (bar != null)
+        {
+            SpriteRenderer bg = bar.GetComponent<SpriteRenderer>();
+            if (bg != null) bg.enabled = false;
+            foreach (Transform c in bar)
+            {
+                SpriteRenderer sc = c.GetComponent<SpriteRenderer>();
+                if (sc != null) sc.enabled = false;
+            }
+        }
     }
 
     public void Kurangi(float dmg)
@@ -140,8 +161,57 @@ public class PlayerHealth : MonoBehaviour
         if (isDead && Input.GetKeyDown(KeyCode.R)) GameMenu.UlangiDanMain();
     }
 
+    // ====== HP BAR BERTEMA (menyatu dgn HUD) ======
+    // Digambar saat MAIN: backing rounded gelap + isi gradien warna DINAMIS
+    // (hijau penuh -> kuning -> merah saat kritis) + ikon HATI + angka HP.
+    void GambarBarNyawa()
+    {
+        if (isDead) return;
+        if (!GameMenu.SedangMain || GameMenu.SedangJeda ||
+            SkillManager.AktifMemilih || PlayerHealth.GameOver) return;
+        if (ModeDewa.MenuTerbuka) return; // jangan timpa overlay Peti Dewa
+
+        float w = Screen.width, h = Screen.height;
+        float atas = Tema.AmanAtas, pad = Tema.Pad;
+
+        // sejajarkan tepat DI BAWAH baris skor/timer (samakan hitungan dgn GameTimer)
+        float levelBawah = atas + pad + LevelSystem.TinggiPanel(w);
+        int fSkor = Mathf.Min(Tema.Font(0.05f), Mathf.RoundToInt(w * 0.10f));
+        float skorH = fSkor * 1.7f;
+        float skorY = levelBawah + pad * 0.6f;
+        float y = skorY + skorH + pad * 0.55f;
+
+        float bw = w * 0.66f;
+        float bh = Mathf.Max(Tema.Unit * 0.030f, h * 0.024f);
+        float bx = (w - bw) / 2f;
+
+        // backing rounded gelap (senada bar boss)
+        Tema.Panel9(new Rect(bx, y, bw, bh), new Color(0f, 0f, 0f, 0.55f), Tema.GarisRedup, 1f);
+
+        // isi bar dgn warna DINAMIS sesuai sisa nyawa
+        float ratio = Mathf.Clamp01(health / maxHealth);
+        Color warna = (ratio > 0.5f)
+            ? Color.Lerp(Tema.Amber, Tema.Army, (ratio - 0.5f) * 2f)   // sehat: kuning -> hijau
+            : Color.Lerp(Tema.Darah, Tema.Amber, ratio * 2f);          // kritis: merah -> kuning
+        if (ratio > 0f)
+            Tema.BarIsi(new Rect(bx + 2f, y + 2f, (bw - 4f) * ratio, bh - 4f), warna);
+
+        // ikon HATI menonjol di ujung kiri (sedikit keluar dari bar biar "melekat")
+        float ik = bh * 2.0f;
+        Ikon.Gambar(new Rect(bx - ik * 0.32f, y + bh / 2f - ik / 2f, ik, ik), Ikon.Hati, Tema.Darah);
+
+        // angka HP di tengah bar
+        int hpNow = Mathf.CeilToInt(health);
+        int hpMax = Mathf.RoundToInt(maxHealth);
+        int fHp = Mathf.Min(Tema.Font(0.026f), Mathf.RoundToInt(bh * 0.95f));
+        Tema.Teks(new Rect(bx, y - bh * 0.02f, bw, bh), hpNow + " / " + hpMax,
+            fHp, Tema.Tulang, TextAnchor.MiddleCenter, true);
+    }
+
     void OnGUI()
     {
+        GambarBarNyawa(); // HP bar bertema saat sedang main
+
         if (!isDead) return;
 
         float h = Screen.height;
