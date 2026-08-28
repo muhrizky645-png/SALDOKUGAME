@@ -2,7 +2,7 @@
 
 > **Tujuan file ini:** catatan estafet supaya sesi AI berikutnya (di chat lain) langsung nyambung tanpa perlu menjelaskan ulang. Berisi konteks proyek, arsitektur, semua yang sudah dikerjakan, keputusan desain, bug yang sudah diperbaiki, dan tugas lanjutan.
 >
-> **Terakhir diperbarui:** 2026-08-28 (Asia/Jakarta)
+> **Terakhir diperbarui:** 2026-08-29 (Asia/Jakarta)
 >
 > ⚠️ **Untuk AI sesi berikutnya:** setelah menyelesaikan pekerjaan penting, **perbarui file ini** (bagian "Log Perubahan", "SHA File Terbaru", "Tugas Lanjutan", dan "Checklist Ikon").
 
@@ -134,7 +134,7 @@
 
 ## 7. Tugas Lanjutan (belum dikerjakan)
 
-1. **Ganti seluruh ikon/logo dengan render AI** — lihat **CHECKLIST + prompt lengkap di §9**. User render sendiri via ChatGPT, taruh PNG di `Assets/Resources/Icons/<id>.png`. Item bertanda 🔧 perlu di-hook dulu oleh AI.
+1. **Ganti seluruh ikon/logo dengan render AI** — lihat **CHECKLIST + prompt lengkap di §9**. User render sendiri via ChatGPT/Flow, taruh PNG di `Assets/Resources/Icons/<id>.png`. Item bertanda 🔧 perlu di-hook dulu oleh AI. **PROGRES:** lihat tanda ceklis & status di §9.
 2. **(Opsional) Musuh ikut menabrak rintangan** — sekarang hanya player.
 3. **(Opsional) Tuning sorting peluru/gem** kalau occlusion terlihat aneh.
 4. **(Opsional) Tuning kepadatan rintangan** di `RintanganArena.cs` (`SEL/RADIUS`/peluang spawn).
@@ -153,9 +153,16 @@
 
 ## 9. ✅ CHECKLIST IKON / LOGO KUSTOM (render via AI)
 
-> **Rencana user:** render SENDIRI semua ikon lewat ChatGPT (atau AI gambar lain), lalu
+> **Rencana user:** render SENDIRI semua ikon lewat ChatGPT/Flow (atau AI gambar lain), lalu
 > taruh file PNG di `Assets/Resources/Icons/<id>.png`. **Pakai id PERSIS** seperti di bawah
 > (huruf kecil, tanpa spasi). Setelah satu ikon selesai, ganti `- [ ]` jadi `- [x]`.
+>
+> **🔄 ALUR KERJA SAAT INI (per 2026-08-29):** user render ikon SATU per satu berurutan.
+> Tiap kali user minta "prompt berikutnya", AI: (a) beri prompt final (BASE STYLE + Subjek),
+> (b) update progres di checklist ini. Tanda status per item: **[x] = sudah dirender & OK**,
+> **⏳ = prompt sudah dikirim, nunggu hasil**, **[ ] = belum**.
+> **Style reference:** gunakan `petir.png` (ikon pertama, hasil bagus & disetujui user) sebagai
+> acuan gaya untuk ikon-ikon berikutnya biar seragam.
 >
 > **🎨 GAYA SENI TARGET (WAJIB):** meniru ikon **Survivor.io asli** — render **glossy semi-3D**,
 > bentuk **chunky/tebal**, cartoon **mengilap**, outline gelap tebal, highlight kilau + bayangan
@@ -183,9 +190,9 @@ photorealistic, no text, no watermark, no ground shadow.
 
 ### A. Skill / Buff  — ✅ sudah file-ready (`Ikon.UntukSkill` → `Dari`)
 
-- [ ] ✅ **petir** → `Icons/petir.png` — Subjek: `a bold glossy yellow lightning bolt, chain lightning power`
-- [ ] ✅ **peluru** → `Icons/peluru.png` — Subjek: `three shiny golden bullets stacked pointing up, extra projectile buff`
-- [ ] ✅ **target** → `Icons/target.png` — Subjek: `a red-and-white bullseye target with crosshair, critical/aim buff`
+- [x] ✅ **petir** → `Icons/petir.png` — (✅ SUDAH dirender, hasil bagus & disetujui user; jadi style reference) Subjek: `a bold glossy yellow lightning bolt, chain lightning power`
+- [ ] ⏳ ✅ **peluru** → `Icons/peluru.png` — (prompt sudah dikirim, nunggu hasil) Subjek: `three shiny golden bullets stacked pointing up, extra projectile buff`
+- [ ] ⏳ ✅ **target** → `Icons/target.png` — (prompt sudah dikirim, nunggu hasil) Subjek: `a red-and-white bullseye target with crosshair, critical/aim buff`
 - [ ] ✅ **chevron** → `Icons/chevron.png` — Subjek: `double upward chevron arrows, glossy green, attack/move speed buff`
 - [ ] ✅ **hati** → `Icons/hati.png` — Subjek: `a plump glossy red heart, max health / heal buff`
 - [ ] ✅ **berlian** → `Icons/berlian.png` — Subjek: `a brilliant faceted blue diamond gem, luck/bonus buff`
