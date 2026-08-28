@@ -3,16 +3,13 @@ using System.Collections.Generic;
 
 // Tema visual BERSAMA bergaya "SURVIVAL" (gelap, gritty, aksen merah darah + hijau army).
 // Semua digambar lewat kode (IMGUI) + tekstur dibuat saat runtime, TANPA file gambar.
-// Dipakai oleh HUD, menu Home, menu Jeda, Game Over, dan kartu Skill.
 //
-// GAYA "SEMI-3D": panel & tombol kini pakai SUDUT MEMBULAT + GRADASI + BEVEL (kilau di
-// atas, bayangan di bawah) supaya tidak terasa kotak-kotak & datar. Bar (XP/boss/nyawa)
-// pakai gradasi + kilau lewat BarIsi().
+// GAYA "SEMI-3D": panel & tombol pakai SUDUT MEMBULAT + GRADASI + BEVEL + BAYANGAN
+// (drop shadow) supaya berdimensi. Layar menu diberi VIGNETTE (pinggir gelap) biar
+// dramatis. Tombol utama pakai warna AKSEN emas (GayaTombolAksen).
 //
 // PENTING: semua tekstur runtime ditandai HideFlags.HideAndDontSave supaya TIDAK ikut
-// dihapus Unity saat scene di-reload (restart / tonton iklan). Tanpa ini, background
-// tombol/panel hilang setelah main ulang karena GUIStyle di-cache tapi tekstur di
-// dalamnya sudah dihancurkan -> border/kotak jadi lenyap.
+// dihapus Unity saat scene di-reload (restart / tonton iklan).
 public static class Tema
 {
     // ====== PALET WARNA ======
@@ -102,19 +99,20 @@ public static class Tema
         return new Color(Mathf.Max(0f, c.r - f), Mathf.Max(0f, c.g - f), Mathf.Max(0f, c.b - f), c.a);
     }
 
-    // ====== GRADASI VERTIKAL (cache biar tidak bikin tekstur tiap frame) ======
-    static readonly Dictionary<int, Texture2D> _gradCache = new Dictionary<int, Texture2D>();
+    // ====== GRADASI (cache biar tidak bikin tekstur tiap frame) ======
+    static readonly Dictionary<int, Texture2D> _gradVCache = new Dictionary<int, Texture2D>();
+    static readonly Dictionary<int, Texture2D> _gradHCache = new Dictionary<int, Texture2D>();
     static int KunciWarna(Color c)
     {
         int r = Mathf.RoundToInt(c.r * 255f), g = Mathf.RoundToInt(c.g * 255f);
         int b = Mathf.RoundToInt(c.b * 255f), a = Mathf.RoundToInt(c.a * 255f);
         return (r << 24) ^ (g << 16) ^ (b << 8) ^ a;
     }
-    static Texture2D Gradien(Color atas, Color bawah)
+    static Texture2D GradienV(Color atas, Color bawah)
     {
         int key = (KunciWarna(atas) * 397) ^ KunciWarna(bawah);
         Texture2D t;
-        if (_gradCache.TryGetValue(key, out t) && t != null) return t;
+        if (_gradVCache.TryGetValue(key, out t) && t != null) return t;
         int tinggi = 64;
         t = new Texture2D(1, tinggi, TextureFormat.RGBA32, false);
         t.hideFlags = HideFlags.HideAndDontSave;
@@ -126,7 +124,26 @@ public static class Tema
             t.SetPixel(0, y, Color.Lerp(bawah, atas, f));
         }
         t.Apply();
-        _gradCache[key] = t;
+        _gradVCache[key] = t;
+        return t;
+    }
+    static Texture2D GradienHTex(Color kiri, Color kanan)
+    {
+        int key = (KunciWarna(kiri) * 397) ^ KunciWarna(kanan);
+        Texture2D t;
+        if (_gradHCache.TryGetValue(key, out t) && t != null) return t;
+        int lebar = 64;
+        t = new Texture2D(lebar, 1, TextureFormat.RGBA32, false);
+        t.hideFlags = HideFlags.HideAndDontSave;
+        t.wrapMode = TextureWrapMode.Clamp;
+        t.filterMode = FilterMode.Bilinear;
+        for (int x = 0; x < lebar; x++)
+        {
+            float f = (float)x / (lebar - 1);
+            t.SetPixel(x, 0, Color.Lerp(kiri, kanan, f));
+        }
+        t.Apply();
+        _gradHCache[key] = t;
         return t;
     }
 
@@ -135,8 +152,30 @@ public static class Tema
     {
         Color s = GUI.color;
         GUI.color = Color.white;
-        GUI.DrawTexture(r, Gradien(atas, bawah));
+        GUI.DrawTexture(r, GradienV(atas, bawah));
         GUI.color = s;
+    }
+    // Isi rect dengan gradasi horizontal (kiri -> kanan).
+    public static void KotakGradienH(Rect r, Color kiri, Color kanan)
+    {
+        Color s = GUI.color;
+        GUI.color = Color.white;
+        GUI.DrawTexture(r, GradienHTex(kiri, kanan));
+        GUI.color = s;
+    }
+
+    // ====== VIGNETTE: pinggir layar digelapkan biar dramatis (dipanggil di menu) ======
+    public static void Vignette()
+    {
+        float w = Screen.width, h = Screen.height;
+        Color gelap = new Color(0f, 0f, 0f, 0.5f);
+        Color kosong = new Color(0f, 0f, 0f, 0f);
+        float vx = w * 0.26f;
+        float vy = h * 0.16f;
+        KotakGradienH(new Rect(0, 0, vx, h), gelap, kosong);            // kiri
+        KotakGradienH(new Rect(w - vx, 0, vx, h), kosong, gelap);       // kanan
+        KotakGradien(new Rect(0, 0, w, vy), gelap, kosong);            // atas
+        KotakGradien(new Rect(0, h - vy, w, vy), kosong, gelap);       // bawah
     }
 
     // ====== BAR ISI (gradasi + kilau) buat XP / boss / nyawa ======
@@ -150,8 +189,7 @@ public static class Tema
         Kotak(new Rect(r.x, r.yMax - sh, r.width, sh), new Color(0f, 0f, 0f, 0.20f));    // bayangan bawah
     }
 
-    // ====== TEKSTUR ROUNDED + BEVEL (dipakai panel & tombol) ======
-    // Rounded-rect ber-anti-alias (SDF) + gradasi vertikal + cincin tepi + kilau/bayangan.
+    // ====== TEKSTUR ROUNDED + BEVEL (dipakai panel, tombol, bayangan) ======
     static Texture2D BuatTexRounded(int size, float rad, float ring,
         Color grAtas, Color grBawah, Color garis, float gloss, bool ditekan)
     {
@@ -186,7 +224,7 @@ public static class Tema
                 }
 
                 float alpha = c.a * a;
-                if (sd > -ring) { c = Color.Lerp(c, garis, 0.9f); alpha = garis.a * a; } // cincin tepi
+                if (ring > 0f && sd > -ring) { c = Color.Lerp(c, garis, 0.9f); alpha = garis.a * a; } // cincin tepi
                 c.a = alpha;
                 t.SetPixel(xx, yy, c);
             }
@@ -195,7 +233,21 @@ public static class Tema
         return t;
     }
 
-    // ====== PANEL: sudut membulat + gradasi + bevel (cache GUIStyle per warna) ======
+    // ====== BAYANGAN (drop shadow) rounded gelap tanpa tepi ======
+    static GUIStyle _bayang;
+    static GUIStyle GayaBayang()
+    {
+        if (_bayang == null || _bayang.normal.background == null)
+        {
+            _bayang = new GUIStyle();
+            _bayang.normal.background = BuatTexRounded(56, 16f, 0f,
+                new Color(0f, 0f, 0f, 0.5f), new Color(0f, 0f, 0f, 0.5f), new Color(0f, 0f, 0f, 0f), 0f, false);
+            _bayang.border = new RectOffset(18, 18, 18, 18);
+        }
+        return _bayang;
+    }
+
+    // ====== PANEL: bayangan + sudut membulat + gradasi + bevel (cache GUIStyle per warna) ======
     static readonly Dictionary<int, GUIStyle> _panelCache = new Dictionary<int, GUIStyle>();
     public static void Panel9(Rect r, Color isi, Color garis, float t)
     {
@@ -211,6 +263,12 @@ public static class Tema
         }
         Color s = GUI.color;
         GUI.color = Color.white;
+        // drop shadow buat panel yang cukup besar (bukan bar tipis)
+        if (r.height >= Unit * 0.05f)
+        {
+            float o = Mathf.Clamp(r.height * 0.05f, 3f, 10f);
+            GUI.Box(new Rect(r.x + o * 0.4f, r.y + o, r.width, r.height), GUIContent.none, GayaBayang());
+        }
         GUI.Box(r, GUIContent.none, st);
         GUI.color = s;
     }
@@ -239,8 +297,6 @@ public static class Tema
 
     // ====== TOMBOL BERTEMA (rounded + gradasi + bevel + gloss) ======
     static GUIStyle _tombol;
-
-    // Ambil gaya tombol bertema (tekstur di-cache, cukup ganti fontSize)
     public static GUIStyle GayaTombol(int ukuran)
     {
         if (_tombol == null || _tombol.normal.background == null)
@@ -265,5 +321,36 @@ public static class Tema
         }
         _tombol.fontSize = ukuran;
         return _tombol;
+    }
+
+    // Tombol AKSEN (emas) buat aksi utama spt MAIN -> jadi pusat perhatian.
+    static GUIStyle _tombolAksen;
+    public static GUIStyle GayaTombolAksen(int ukuran)
+    {
+        if (_tombolAksen == null || _tombolAksen.normal.background == null)
+        {
+            _tombolAksen = new GUIStyle();
+            _tombolAksen.font = FontUtama;
+            _tombolAksen.normal.background = BuatTexRounded(56, 14f, 3f,
+                new Color(1.0f, 0.72f, 0.18f, 0.99f), new Color(0.86f, 0.46f, 0.06f, 0.99f),
+                new Color(1f, 0.88f, 0.42f, 1f), 0.30f, false);
+            _tombolAksen.hover.background = BuatTexRounded(56, 14f, 3f,
+                new Color(1.0f, 0.80f, 0.28f, 1f), new Color(0.92f, 0.54f, 0.10f, 1f),
+                new Color(1f, 0.95f, 0.60f, 1f), 0.34f, false);
+            _tombolAksen.active.background = BuatTexRounded(56, 14f, 3f,
+                new Color(0.72f, 0.38f, 0.05f, 1f), new Color(0.92f, 0.56f, 0.12f, 1f),
+                new Color(1f, 0.85f, 0.40f, 1f), 0f, true);
+            _tombolAksen.border = new RectOffset(16, 16, 16, 16);
+            _tombolAksen.alignment = TextAnchor.MiddleCenter;
+            _tombolAksen.fontStyle = FontStyle.Bold;
+            _tombolAksen.wordWrap = false;
+            _tombolAksen.clipping = TextClipping.Clip;
+            _tombolAksen.padding = new RectOffset(8, 8, 6, 6);
+            _tombolAksen.normal.textColor = new Color(0.18f, 0.10f, 0.02f, 1f);
+            _tombolAksen.hover.textColor = new Color(0.10f, 0.06f, 0.0f, 1f);
+            _tombolAksen.active.textColor = Tulang;
+        }
+        _tombolAksen.fontSize = ukuran;
+        return _tombolAksen;
     }
 }
