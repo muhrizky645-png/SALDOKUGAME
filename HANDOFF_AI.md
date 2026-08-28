@@ -4,7 +4,7 @@
 >
 > **Terakhir diperbarui:** 2026-08-28 (Asia/Jakarta)
 >
-> ⚠️ **Untuk AI sesi berikutnya:** setelah menyelesaikan pekerjaan penting, **perbarui file ini** (bagian "Log Perubahan", "SHA File Terbaru", dan "Tugas Lanjutan").
+> ⚠️ **Untuk AI sesi berikutnya:** setelah menyelesaikan pekerjaan penting, **perbarui file ini** (bagian "Log Perubahan", "SHA File Terbaru", "Tugas Lanjutan", dan "Checklist Ikon").
 
 ---
 
@@ -34,7 +34,7 @@
   - Tombol: `GayaTombol(ukuran)` (biru default), `GayaTombolAksen(ukuran)` (hijau aksi).
   - Font: `FontUtama` = `Resources/ThaleahPixel.ttf` (pixel).
   - ⚠️ Semua tekstur runtime pakai `HideFlags.HideAndDontSave` biar tak terhapus saat scene reload.
-- **`Ikon.cs`** — ikon prosedural (tanpa file). Skill: `petir, peluru, target, chevron, hati, berlian, pisau, aura, roket, bintang`. Item: `bom, magnet, peti` (berwarna). UI: **`Piala`** (trophy, dipakai panel rekor). `Ikon.UntukSkill(id)` & `Ikon.UntukItem(id)` mengutamakan FILE `Resources/Icons/<id>.png`, fallback ikon kode. Gambar: `Ikon.Gambar(rect, tex, warnaIsi[, warnaGaris])`.
+- **`Ikon.cs`** — ikon prosedural (tanpa file). Skill: `petir, peluru, target, chevron, hati, berlian, pisau, aura, roket, bintang`. Item: `bom, magnet, peti` (berwarna). UI: **`Piala`** (trophy, dipakai panel rekor). `Ikon.UntukSkill(id)` mengutamakan FILE `Resources/Icons/<id>.png` via `Dari()`, fallback ikon kode. **PENTING:** `Ikon.UntukItem(id)` (bom/magnet/peti), mata uang (koin/permata di `MataUang.cs`), dan `Piala` **belum** lewat `Dari()` — masih ikon kode, jadi butuh hook kalau mau pakai PNG (lihat §9). Gambar: `Ikon.Gambar(rect, tex, warnaIsi[, warnaGaris])`.
 
 ### HUD & menu (IMGUI, digambar di `OnGUI`)
 - **`GameMenu.cs`** — state game: `SedangMain`, `SedangJeda` (static). Home/pause/settings set `Time.timeScale=0`. Latar home = demo battle blur via `LatarDemo.Gambar(w,h)`. Judul **SALDOKU / LAST STAND** jaraknya sudah DIRAPATKAN (tidak melebar ke atas). **Panel rekor** kini menampilkan `[ikon Piala] angka` (label "REKOR TERTINGGI" & 2 bintang SUDAH DIHAPUS). Helper `GameMenu.Tombol(...)`, `UlangiDanMain()`, `KeHome()`.
@@ -65,6 +65,7 @@
 5. **Pohon/batu/semak = objek nyata** (RintanganArena), **bukan** bagian tekstur lantai (ArenaTakTerbatas). Lantai hanya rumput/tanah/bunga/kerikil.
 6. **HP bar player = baris atas panel LEVEL/XP** dengan urutan: **`LEVEL x` (teks terpisah, diperbesar, ruang pas 2 digit) + ikon HATI + bar nyawa** (baris bawah = XP). Tulisan LEVEL TIDAK menimpa bar. Jangan bikin HP bar terpisah lagi.
 7. **Panel rekor Home** = `[ikon Piala] angka` saja (tanpa label teks & tanpa bintang).
+8. **RENCANA ASET:** user akan mengganti SELURUH ikon/logo dengan render AI sendiri (lihat CHECKLIST §9). Filosofi ikon-kode tetap jadi FALLBACK bila file belum ada.
 
 ---
 
@@ -99,7 +100,7 @@
 | 3 | `LatarDemo.cs` | Latar home = demo battle blur, dasar rumput hijau |
 | 4 | `Tema.cs` | Tema cerah Survivor.io (oranye-emas, tombol biru/hijau) |
 | 5 | `PlayerHealth.cs` | HP bar bertema + sembunyikan bar sprite lama; lalu HP bar terpisah DIHAPUS (pindah ke LevelSystem) |
-| 6 | `LevelSystem.cs` | HP bar menyatu di panel LEVEL; layout `LEVEL x` terpisah + hati + bar; lalu **tulisan LEVEL diperbesar + ruang pas 2 digit** (rapatkan hati & bar) |
+| 6 | `LevelSystem.cs` | HP bar menyatu di panel LEVEL; layout `LEVEL x` terpisah + hati + bar; lalu tulisan LEVEL diperbesar + ruang pas 2 digit |
 | 7 | `Ikon.cs` | Tambah ikon **`Piala`** (trophy) prosedural untuk panel rekor |
 | 8 | `GameMenu.cs` | Rapatkan judul SALDOKU/LAST STAND + panel rekor `[Piala] angka` (hapus label & bintang) |
 
@@ -133,15 +134,11 @@
 
 ## 7. Tugas Lanjutan (belum dikerjakan)
 
-1. **Ikon skill via PNG** (ditunda oleh user): user mungkin render ikon lewat ChatGPT/Flow → zip → upload → AI push ke `Assets/Resources/Icons/<id>.png`. Skill id: `petir, peluru, target, chevron, hati, berlian, pisau, aura, roket`. Semua sudah image-loadable via `Ikon.Dari`.
-   - **Prompt tema ikon (ChatGPT):** *2D pixel-art game icon, survivor.io / survival roguelite style, single centered emblem, thick dark outline, flat cel shading with slight top light, palette army green #A9D961 / blood red #D12B21 / amber gold #FFCC38 / bone white #F2F0DE, transparent background, square 1024×1024, readable small, no text, no drop shadow.*
+1. **Ganti seluruh ikon/logo dengan render AI** — lihat **CHECKLIST + prompt lengkap di §9**. User render sendiri via ChatGPT, taruh PNG di `Assets/Resources/Icons/<id>.png`. Item bertanda 🔧 perlu di-hook dulu oleh AI.
 2. **(Opsional) Musuh ikut menabrak rintangan** — sekarang hanya player.
 3. **(Opsional) Tuning sorting peluru/gem** kalau occlusion terlihat aneh.
 4. **(Opsional) Tuning kepadatan rintangan** di `RintanganArena.cs` (`SEL/RADIUS`/peluang spawn).
-5. **(Opsional) Verifikasi visual di device asli:** 
-   - Bar nyawa: cek tulisan LEVEL cukup besar & `lvW` pas untuk "LEVEL 99" tanpa kepotong; hati & bar merapat. Sesuaikan `fLvTeks`/`charW`/string `"LEVEL 88"` di `LevelSystem.cs`.
-   - Panel rekor Home: cek ikon Piala + angka ter-center rapi untuk angka panjang. Sesuaikan `estAngka`/`startX` di `GameMenu.cs`.
-   - Judul Home: pastikan jarak sudah pas.
+5. **(Opsional) Verifikasi visual di device asli:** bar nyawa (tulisan LEVEL & ruang 2 digit), panel rekor (Piala + angka center), jarak judul Home.
 
 ---
 
@@ -151,3 +148,65 @@
 - **Bahasa komunikasi dengan user:** Indonesia.
 - **Timezone:** Asia/Jakarta.
 - **Konvensi balasan AI:** bahasa Indonesia, ringkas, sebutkan yang dikerjakan, tawarkan langkah lanjut, dan (bila mengubah file) sertakan referensi commit.
+
+---
+
+## 9. ✅ CHECKLIST IKON / LOGO KUSTOM (render via AI)
+
+> **Rencana user:** render SENDIRI semua ikon lewat ChatGPT (atau AI gambar lain), lalu
+> taruh file PNG di `Assets/Resources/Icons/<id>.png`. **Pakai id PERSIS** seperti di bawah
+> (huruf kecil, tanpa spasi). Setelah satu ikon selesai, ganti `- [ ]` jadi `- [x]`.
+>
+> **Status wiring (kolom awal tiap item):**
+> - ✅ = otomatis kebaca dari file (lewat `Ikon.Dari`). Tinggal taruh PNG → langsung dipakai, fallback ikon kode kalau file belum ada.
+> - 🔧 = **butuh hook kode dulu**. Setelah PNG siap, minta AI: *"wire-kan ikon <id> supaya kebaca dari Resources/Icons"* (AI arahkan `UntukItem`/`MataUang`/`Piala` ke `Ikon.Dari`).
+>
+> **Spesifikasi file:** PNG, background TRANSPARAN, persegi (mis. 1024×1024), objek di tengah, ada ruang kosong tipis di pinggir.
+
+### 🎨 BASE STYLE (tempel di DEPAN tiap prompt, lalu tambahkan "Subjek")
+
+````text
+2D pixel-art game icon, survivor.io / survival roguelite style, single centered emblem,
+thick dark outline, flat cel shading with slight top light, palette army green #A9D961 /
+blood red #D12B21 / amber gold #FFCC38 / bone white #F2F0DE, transparent background,
+square 1024x1024, readable at small size, no text, no drop shadow.
+````
+
+**Prompt final = BASE STYLE + spasi + Subjek item.** (Untuk ikon yang warnanya beda dari palet, subjek sudah menyebut override warna.)
+
+### A. Skill / Buff  — ✅ sudah file-ready (`Ikon.UntukSkill` → `Dari`)
+
+- [ ] ✅ **petir** → `Icons/petir.png` — Subjek: `a bold jagged lightning bolt, chain lightning power`
+- [ ] ✅ **peluru** → `Icons/peluru.png` — Subjek: `three stacked bullets pointing up, extra projectile buff`
+- [ ] ✅ **target** → `Icons/target.png` — Subjek: `a bullseye target with crosshair lines, critical/aim buff`
+- [ ] ✅ **chevron** → `Icons/chevron.png` — Subjek: `double upward chevron arrows, attack/move speed buff`
+- [ ] ✅ **hati** → `Icons/hati.png` — Subjek: `a plump glossy heart, max health / heal buff`
+- [ ] ✅ **berlian** → `Icons/berlian.png` — Subjek: `a shining faceted diamond gem, luck/bonus buff`
+- [ ] ✅ **pisau** → `Icons/pisau.png` — Subjek: `a spinning four-point throwing blade, orbiting knife weapon`
+- [ ] ✅ **aura** → `Icons/aura.png` — Subjek: `concentric glowing energy rings radiating outward, aura damage field`
+- [ ] ✅ **roket** → `Icons/roket.png` — Subjek: `a small stubby rocket/missile pointing up with fins, rocket weapon`
+- [ ] ✅ **bintang** → `Icons/bintang.png` — Subjek: `a bold five-pointed star, generic upgrade / default icon`
+
+### B. Item Lapangan  — 🔧 butuh hook (`Ikon.UntukItem`)
+
+- [ ] 🔧 **bom** → `Icons/bom.png` — Subjek: `a round black cartoon bomb with a lit sparking fuse, screen-clear item`
+- [ ] 🔧 **magnet** → `Icons/magnet.png` — Subjek: `a red horseshoe magnet with silver poles, attract-pickups item`
+- [ ] 🔧 **peti** → `Icons/peti.png` — Subjek: `a wooden treasure chest with gold trim and a lock, reward crate`
+
+### C. Mata Uang & UI  — 🔧 butuh hook (`MataUang.cs` / `Ikon.Piala`)
+
+- [ ] 🔧 **koin** → `Icons/koin.png` — Subjek: `a shiny round gold coin with a simple embossed emblem, game currency`
+- [ ] 🔧 **permata** → `Icons/permata.png` — Subjek: `a violet/purple faceted crystal gem, premium currency (use purple, override the palette)`
+- [ ] 🔧 **piala** → `Icons/piala.png` — Subjek: `a golden victory trophy cup with two side handles on a base, high score`
+
+### D. XP / Permata Lapangan  — 🔧 butuh hook (`XpGem.cs` / `PermataGem.cs`, sprite dunia)
+
+- [ ] 🔧 **xpgem** → `Icons/xpgem.png` — Subjek: `a small glowing blue XP crystal shard, floating pickup (use cyan/blue, override the palette)`
+- [ ] 🔧 **permatagem** → `Icons/permatagem.png` — Subjek: `a small purple gem pickup on the ground, sparkle (use purple, override the palette)`
+
+### E. Opsional (logo & app)
+
+- [ ] 🔧 **logo** (wordmark) → `Icons/logo.png` — sekarang "SALDOKU / LAST STAND" digambar pakai font pixel. Kalau mau logo gambar: Subjek: `game logo wordmark reading SALDOKU LAST STAND, bold blocky pixel letters, army green and amber with red accents` (boleh pakai teks untuk logo). Lalu minta AI wire-kan di `GameMenu`.
+- [ ] **appicon** (ikon aplikasi Android) → di-set di Player Settings (bukan Resources). Subjek: `mobile game app launcher icon, survivor theme, a heart + trophy motif, bold, centered, filled background`.
+
+> **Catatan untuk AI sesi berikutnya:** kalau user bilang "ikon X sudah aku render", (1) pastikan file ada di `Assets/Resources/Icons/X.png`, (2) untuk item 🔧 tambahkan hook `Dari("X", <ikonKodeBawaan>)`, (3) ceklis item ini di §9, (4) update §6 SHA.
