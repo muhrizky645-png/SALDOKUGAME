@@ -367,7 +367,7 @@ public static class Ikon
             case "petir": return Dari("petir", Petir);
             case "peluru": return Dari("peluru", Peluru);
             case "target": return Dari("target", Target);
-            case "chevron": return Chevron;
+            case "chevron": return Dari("chevron", Chevron);
             case "hati": return Dari("hati", Hati);
             case "berlian": return Dari("berlian", Berlian);
             case "pisau": return Dari("pisau", Pisau);
