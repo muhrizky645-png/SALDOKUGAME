@@ -121,8 +121,7 @@ public class GameMenu : MonoBehaviour
         // ====== MENU AWAL (HOME) ======
         if (tampilHome)
         {
-            Tema.LatarGelap(new Color(0.04f, 0.10f, 0.05f, 0.35f)); // semburat hijau gelap
-            Tema.Vignette(); // pinggir layar digelapkan biar dramatis
+            LatarDemo.Gambar(w, h); // latar "demo battle" blur (hidup walau menu di-pause)
 
             // ---- CHIP MATA UANG (Permata kiri, Koin kanan) ----
             GambarChipMataUang(w, h);
