@@ -122,6 +122,7 @@ public class GameMenu : MonoBehaviour
         if (tampilHome)
         {
             Tema.LatarGelap(new Color(0.04f, 0.10f, 0.05f, 0.35f)); // semburat hijau gelap
+            Tema.Vignette(); // pinggir layar digelapkan biar dramatis
 
             // ---- CHIP MATA UANG (Permata kiri, Koin kanan) ----
             GambarChipMataUang(w, h);
@@ -153,7 +154,8 @@ public class GameMenu : MonoBehaviour
             GambarPilihKarakter(w, h);
 
             // ---- TOMBOL (diturunkan supaya ada ruang untuk pilih karakter) ----
-            if (Tombol("MAIN", 0.665f, 0.62f))
+            // MAIN pakai gaya AKSEN (emas) biar jadi pusat perhatian.
+            if (Tombol("MAIN", 0.665f, 0.62f, true))
             {
                 if (KarakterManager.Terbuka(KarakterManager.Dipilih)) { SoundManager.Klik(); Mulai(); }
                 else MintaBukaKarakter(KarakterManager.Dipilih); // terkunci -> tawarkan buka via iklan
@@ -190,9 +192,10 @@ public class GameMenu : MonoBehaviour
         if (SedangJeda)
         {
             Tema.LatarGelap();
+            Tema.Vignette();
             Tema.Teks(new Rect(0, h * 0.14f, w, h * 0.1f), "JEDA", Mathf.RoundToInt(h * 0.075f),
                 Tema.Army, TextAnchor.MiddleCenter, true);
-            if (Tombol("LANJUT", 0.33f, 0.62f)) { SoundManager.Klik(); Lanjut(); }
+            if (Tombol("LANJUT", 0.33f, 0.62f, true)) { SoundManager.Klik(); Lanjut(); }
             if (Tombol("ULANGI", 0.46f, 0.62f)) { SoundManager.Klik(); UlangiDanMain(); }
             if (Tombol("PENGATURAN", 0.59f, 0.62f)) { SoundManager.Klik(); tampilPengaturan = true; }
             if (Tombol("KE HOME", 0.72f, 0.62f)) { SoundManager.Klik(); KeHome(); }
@@ -367,7 +370,7 @@ public class GameMenu : MonoBehaviour
             else
             {
                 int fb = Mathf.Min(Mathf.RoundToInt(h * 0.020f), Mathf.RoundToInt(bbw * 0.06f));
-                if (GUI.Button(bb, "TONTON IKLAN", Tema.GayaTombol(fb)))
+                if (GUI.Button(bb, "TONTON IKLAN", Tema.GayaTombolAksen(fb)))
                     MintaBukaKarakter(idx);
             }
         }
@@ -455,6 +458,7 @@ public class GameMenu : MonoBehaviour
         float w = Screen.width;
 
         Tema.LatarGelap();
+        Tema.Vignette();
         Tema.Teks(new Rect(0, h * 0.12f, w, h * 0.09f), "PENGATURAN SUARA", Mathf.RoundToInt(h * 0.05f),
             Tema.Army, TextAnchor.MiddleCenter, true);
 
@@ -476,7 +480,7 @@ public class GameMenu : MonoBehaviour
             () => { SoundManager.ToggleMuteEfek(); if (!SoundManager.MuteEfek) SoundManager.Klik(); });
 
         // ---- TUTUP ----
-        if (Tombol("TUTUP", 0.66f, 0.5f)) { SoundManager.Klik(); tampilPengaturan = false; }
+        if (Tombol("TUTUP", 0.66f, 0.5f, true)) { SoundManager.Klik(); tampilPengaturan = false; }
     }
 
     // satu baris pengaturan: label + slider volume + tombol mute
@@ -504,13 +508,15 @@ public class GameMenu : MonoBehaviour
     }
 
     // tombol menu bertema (lebar cukup supaya teks tidak kepotong)
-    bool Tombol(string teks, float posY, float lebarFrac)
+    // aksen=true -> pakai gaya emas (aksi utama).
+    bool Tombol(string teks, float posY, float lebarFrac, bool aksen = false)
     {
         float bw = Screen.width * lebarFrac;
         float bh = Screen.height * 0.085f;
         float bx = (Screen.width - bw) / 2f;
         float by = Screen.height * posY;
         int f = Mathf.RoundToInt(Screen.height * 0.034f);
-        return GUI.Button(new Rect(bx, by, bw, bh), teks, Tema.GayaTombol(f));
+        GUIStyle st = aksen ? Tema.GayaTombolAksen(f) : Tema.GayaTombol(f);
+        return GUI.Button(new Rect(bx, by, bw, bh), teks, st);
     }
 }
