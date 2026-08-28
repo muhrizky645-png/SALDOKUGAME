@@ -46,8 +46,6 @@
 *.guiskin               unity-yaml
 *.lighting              unity-yaml
 *.mask                  unity-yaml
-*.mat                   unity-yaml
-*.meta                  unity-yaml
 *.mixer                 unity-yaml
 *.overrideController    unity-yaml
 *.playable              unity-yaml
@@ -120,20 +118,23 @@ Packages/packages-lock.json linguist-generated
 *.wmv                   lfs
 
 # Images
+# CATATAN: PNG/JPG/JPEG/WEBP/GIF SENGAJA di-UNTRACK dari LFS supaya ikon kecil
+# bisa di-upload langsung lewat GitHub web (dari HP). Kalau nanti butuh LFS lagi
+# untuk aset besar, aktifkan kembali baris yang di-comment di bawah.
 *.bmp                   lfs
 *.exr                   lfs
-*.gif                   lfs
+# *.gif                 lfs
 *.hdr                   lfs
 *.iff                   lfs
-*.jpeg                  lfs
-*.jpg                   lfs
+# *.jpeg                lfs
+# *.jpg                 lfs
 *.pict                  lfs
-*.png                   lfs
+# *.png                 lfs
 *.psd                   lfs
 *.tga                   lfs
 *.tif                   lfs
 *.tiff                  lfs
-*.webp                  lfs
+# *.webp                lfs
 
 # Compressed Archive
 *.7z                    lfs
