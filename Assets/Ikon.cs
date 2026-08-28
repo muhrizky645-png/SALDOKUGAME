@@ -97,7 +97,7 @@ public static class Ikon
 
     // ====== IKON (lazy + cache) ======
     static Texture2D _bintang, _petir, _peluru, _target, _chevron, _hati, _berlian, _tengkorak;
-    static Texture2D _bom, _magnet, _peti, _aura, _roket, _pisau;
+    static Texture2D _bom, _magnet, _peti, _aura, _roket, _pisau, _piala;
 
     // ====== IKON DARI FILE (Assets/Resources/Icons), fallback ke ikon KODE ======
     static readonly System.Collections.Generic.Dictionary<string, Texture2D> _fileCache
@@ -129,6 +129,7 @@ public static class Ikon
     public static Texture2D Aura { get { if (_aura == null) _aura = Buat(FAura, 72); return _aura; } }
     public static Texture2D Roket { get { if (_roket == null) _roket = Buat(FRoket, 72); return _roket; } }
     public static Texture2D Pisau { get { if (_pisau == null) _pisau = Buat(FPisau, 72); return _pisau; } }
+    public static Texture2D Piala { get { if (_piala == null) _piala = Buat(FPiala, 72); return _piala; } }
 
     // ====== ITEM LAPANGAN: ikon KODE BERWARNA & TRANSPARAN (tanpa background) ======
     static readonly Color[] _paletBom = new Color[] {
@@ -243,6 +244,48 @@ public static class Ikon
         if (Disc(x, y, 0f, -0.05f, 0.10f)) return false;
         if (Kotak(x, y, -0.08f, -0.75f, 0.08f, -0.20f)) return false;
         return true;
+    }
+
+    // ====== PIALA / TROPHY ====== (mangkuk + pegangan C + batang + alas)
+    static bool FPiala(float x, float y)
+    {
+        float ax = Mathf.Abs(x);
+
+        // rim (bibir cangkir) di atas
+        if (y >= 0.60f && y <= 0.74f && ax <= 0.56f) return true;
+
+        // mangkuk: setengah elips bagian bawah
+        if (y <= 0.62f && y >= 0.04f)
+        {
+            float ex = x / 0.52f;
+            float ey = (y - 0.62f) / 0.60f;
+            if (ex * ex + ey * ey <= 1f) return true;
+        }
+
+        // pegangan C di kiri & kanan (hanya sisi luar cincin)
+        {
+            float ri = 0.13f, ro = 0.28f;
+            float dxl = x + 0.58f, dyl = y - 0.46f; float dl = dxl * dxl + dyl * dyl;
+            if (x <= -0.34f && dl >= ri * ri && dl <= ro * ro) return true;
+            float dxr = x - 0.58f, dyr = y - 0.46f; float dr = dxr * dxr + dyr * dyr;
+            if (x >= 0.34f && dr >= ri * ri && dr <= ro * ro) return true;
+        }
+
+        // batang
+        if (ax <= 0.09f && y >= -0.24f && y <= 0.06f) return true;
+
+        // kaki (trapesium menyempit ke atas)
+        if (y >= -0.48f && y < -0.24f)
+        {
+            float t = (y + 0.48f) / 0.24f;
+            float half = Mathf.Lerp(0.34f, 0.12f, t);
+            if (ax <= half) return true;
+        }
+
+        // alas
+        if (y >= -0.64f && y < -0.48f && ax <= 0.5f) return true;
+
+        return false;
     }
 
     // ====== BOM BERWARNA ====== (1 badan, 2 kilau, 3 sumbu, 4 percik)
