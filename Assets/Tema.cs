@@ -1,29 +1,30 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-// Tema visual BERSAMA bergaya "SURVIVAL" (gelap, gritty, aksen merah darah + hijau army).
+// Tema visual BERSAMA bergaya "SURVIVOR.IO" (cerah, warna-warni, playful).
 // Semua digambar lewat kode (IMGUI) + tekstur dibuat saat runtime, TANPA file gambar.
 //
 // GAYA "SEMI-3D": panel & tombol pakai SUDUT MEMBULAT + GRADASI + BEVEL + BAYANGAN
-// (drop shadow) supaya berdimensi. Layar menu diberi VIGNETTE (pinggir gelap) biar
-// dramatis. Tombol utama pakai warna AKSEN emas (GayaTombolAksen).
+// (drop shadow) supaya berdimensi. Latar hangat oranye + vignette lembut.
+// Tombol default BIRU, tombol aksi utama (MAIN dll.) HIJAU menyala.
+// Teks putih dengan bayangan gelap = kesan outline khas Survivor.io.
 //
 // PENTING: semua tekstur runtime ditandai HideFlags.HideAndDontSave supaya TIDAK ikut
 // dihapus Unity saat scene di-reload (restart / tonton iklan).
 public static class Tema
 {
-    // ====== PALET WARNA ======
-    public static readonly Color Overlay     = new Color(0.02f, 0.03f, 0.02f, 0.86f); // latar gelap layar penuh
-    public static readonly Color Panel       = new Color(0.11f, 0.12f, 0.09f, 0.96f); // isi panel
-    public static readonly Color PanelTerang = new Color(0.19f, 0.21f, 0.15f, 0.98f); // panel saat disorot
-    public static readonly Color Plate       = new Color(0.05f, 0.06f, 0.04f, 0.78f); // plat HUD tipis
-    public static readonly Color Garis       = new Color(0.52f, 0.60f, 0.28f, 1f);    // garis tepi army
-    public static readonly Color GarisRedup  = new Color(0.38f, 0.42f, 0.24f, 0.9f);  // garis tepi redup
-    public static readonly Color Darah        = new Color(0.82f, 0.17f, 0.13f, 1f);    // merah darah
-    public static readonly Color Tulang       = new Color(0.95f, 0.94f, 0.87f, 1f);    // putih tulang
-    public static readonly Color Army         = new Color(0.66f, 0.85f, 0.38f, 1f);    // hijau army terang
-    public static readonly Color Amber        = new Color(1f, 0.80f, 0.22f, 1f);       // amber (rekor)
-    public static readonly Color Redup        = new Color(0.72f, 0.74f, 0.64f, 1f);    // teks redup
+    // ====== PALET WARNA (CERAH ala Survivor.io) ======
+    public static readonly Color Overlay     = new Color(0.20f, 0.10f, 0.02f, 0.78f); // dim hangat (pause/game over)
+    public static readonly Color Panel       = new Color(0.98f, 0.56f, 0.14f, 0.98f); // isi panel oranye cerah
+    public static readonly Color PanelTerang = new Color(1.00f, 0.70f, 0.24f, 0.99f); // panel saat disorot
+    public static readonly Color Plate       = new Color(1.00f, 0.62f, 0.18f, 0.90f); // plat HUD oranye
+    public static readonly Color Garis       = new Color(1.00f, 0.86f, 0.44f, 1f);    // garis tepi emas
+    public static readonly Color GarisRedup  = new Color(0.90f, 0.58f, 0.22f, 0.95f); // garis tepi oranye redup
+    public static readonly Color Darah        = new Color(0.93f, 0.27f, 0.21f, 1f);    // merah cerah (judul/bahaya)
+    public static readonly Color Tulang       = new Color(1.00f, 0.99f, 0.95f, 1f);    // putih (teks utama)
+    public static readonly Color Army         = new Color(0.55f, 0.82f, 0.22f, 1f);    // hijau segar
+    public static readonly Color Amber        = new Color(1.00f, 0.82f, 0.20f, 1f);    // kuning emas
+    public static readonly Color Redup        = new Color(1.00f, 0.95f, 0.84f, 1f);    // krem terang (teks redup)
 
     // ====== RESPONSIF: SKALA & SAFE AREA (semua device) ======
     public static float Unit { get { return Mathf.Min(Screen.width, Screen.height); } }
@@ -76,13 +77,13 @@ public static class Tema
         GUI.color = s;
     }
 
-    // Latar gelap layar penuh (buat semua menu)
+    // Latar dim layar penuh (buat pause / game over)
     public static void LatarGelap()
     {
         Kotak(new Rect(0, 0, Screen.width, Screen.height), Overlay);
     }
 
-    // Latar gelap dengan sedikit semburat warna (mis. merah untuk Game Over)
+    // Latar dim dengan sedikit semburat warna (mis. merah untuk Game Over)
     public static void LatarGelap(Color semburat)
     {
         Kotak(new Rect(0, 0, Screen.width, Screen.height), Overlay);
@@ -164,11 +165,11 @@ public static class Tema
         GUI.color = s;
     }
 
-    // ====== VIGNETTE: pinggir layar digelapkan biar dramatis (dipanggil di menu) ======
+    // ====== VIGNETTE: pinggir layar digelapkan lembut biar ada kedalaman ======
     public static void Vignette()
     {
         float w = Screen.width, h = Screen.height;
-        Color gelap = new Color(0f, 0f, 0f, 0.5f);
+        Color gelap = new Color(0f, 0f, 0f, 0.34f);
         Color kosong = new Color(0f, 0f, 0f, 0f);
         float vx = w * 0.26f;
         float vy = h * 0.16f;
@@ -184,9 +185,9 @@ public static class Tema
         if (r.width <= 0f || r.height <= 0f) return;
         KotakGradien(r, Terangkan(warna, 0.18f), Gelapkan(warna, 0.16f));
         float kh = Mathf.Max(1f, r.height * 0.30f);
-        Kotak(new Rect(r.x, r.y, r.width, kh), new Color(1f, 1f, 1f, 0.22f));            // kilau atas
+        Kotak(new Rect(r.x, r.y, r.width, kh), new Color(1f, 1f, 1f, 0.28f));            // kilau atas
         float sh = Mathf.Max(1f, r.height * 0.18f);
-        Kotak(new Rect(r.x, r.yMax - sh, r.width, sh), new Color(0f, 0f, 0f, 0.20f));    // bayangan bawah
+        Kotak(new Rect(r.x, r.yMax - sh, r.width, sh), new Color(0f, 0f, 0f, 0.16f));    // bayangan bawah
     }
 
     // ====== TEKSTUR ROUNDED + BEVEL (dipakai panel, tombol, bayangan) ======
@@ -216,11 +217,11 @@ public static class Tema
                 if (!ditekan)
                 {
                     if (fy > 0.52f) { float g = (fy - 0.52f) / 0.48f; c = Color.Lerp(c, Color.white, g * gloss); }
-                    if (fy < 0.22f) { float g = (0.22f - fy) / 0.22f; c = Color.Lerp(c, Color.black, g * 0.18f); }
+                    if (fy < 0.22f) { float g = (0.22f - fy) / 0.22f; c = Color.Lerp(c, Color.black, g * 0.15f); }
                 }
                 else
                 {
-                    if (fy > 0.60f) { float g = (fy - 0.60f) / 0.40f; c = Color.Lerp(c, Color.black, g * 0.22f); }
+                    if (fy > 0.60f) { float g = (fy - 0.60f) / 0.40f; c = Color.Lerp(c, Color.black, g * 0.20f); }
                 }
 
                 float alpha = c.a * a;
@@ -241,7 +242,7 @@ public static class Tema
         {
             _bayang = new GUIStyle();
             _bayang.normal.background = BuatTexRounded(56, 16f, 0f,
-                new Color(0f, 0f, 0f, 0.5f), new Color(0f, 0f, 0f, 0.5f), new Color(0f, 0f, 0f, 0f), 0f, false);
+                new Color(0f, 0f, 0f, 0.4f), new Color(0f, 0f, 0f, 0.4f), new Color(0f, 0f, 0f, 0f), 0f, false);
             _bayang.border = new RectOffset(18, 18, 18, 18);
         }
         return _bayang;
@@ -257,7 +258,7 @@ public static class Tema
         {
             st = new GUIStyle();
             st.normal.background = BuatTexRounded(56, 14f, Mathf.Max(2f, t + 1f),
-                Terangkan(isi, 0.08f), Gelapkan(isi, 0.10f), garis, 0.10f, false);
+                Terangkan(isi, 0.10f), Gelapkan(isi, 0.10f), garis, 0.12f, false);
             st.border = new RectOffset(16, 16, 16, 16);
             _panelCache[key] = st;
         }
@@ -279,7 +280,7 @@ public static class Tema
         Kotak(new Rect(r.x, r.y, r.width, tinggi), c);
     }
 
-    // Teks dengan bayangan biar kebaca di background apa pun
+    // Teks dengan bayangan biar kebaca di background apa pun (kesan outline)
     public static void Teks(Rect r, string teks, int ukuran, Color warna, TextAnchor anchor, bool tebal)
     {
         GUIStyle st = new GUIStyle();
@@ -288,14 +289,14 @@ public static class Tema
         st.fontStyle = tebal ? FontStyle.Bold : FontStyle.Normal;
         st.alignment = anchor;
         st.wordWrap = true;
-        float o = Mathf.Max(1.5f, ukuran * 0.06f);
-        st.normal.textColor = new Color(0f, 0f, 0f, 0.7f);
+        float o = Mathf.Max(1.5f, ukuran * 0.07f);
+        st.normal.textColor = new Color(0.12f, 0.06f, 0.02f, 0.85f); // bayangan hangat gelap
         GUI.Label(new Rect(r.x + o, r.y + o, r.width, r.height), teks, st);
         st.normal.textColor = warna;
         GUI.Label(r, teks, st);
     }
 
-    // ====== TOMBOL BERTEMA (rounded + gradasi + bevel + gloss) ======
+    // ====== TOMBOL BERTEMA DEFAULT (BIRU: rounded + gradasi + bevel + gloss) ======
     static GUIStyle _tombol;
     public static GUIStyle GayaTombol(int ukuran)
     {
@@ -304,11 +305,14 @@ public static class Tema
             _tombol = new GUIStyle();
             _tombol.font = FontUtama;
             _tombol.normal.background = BuatTexRounded(56, 14f, 3f,
-                Terangkan(Panel, 0.12f), Gelapkan(Panel, 0.05f), Garis, 0.22f, false);
+                new Color(0.34f, 0.66f, 0.97f, 0.99f), new Color(0.16f, 0.42f, 0.82f, 0.99f),
+                new Color(0.70f, 0.88f, 1f, 1f), 0.28f, false);
             _tombol.hover.background = BuatTexRounded(56, 14f, 3f,
-                Terangkan(PanelTerang, 0.10f), Gelapkan(PanelTerang, 0.03f), Army, 0.26f, false);
+                new Color(0.44f, 0.74f, 1f, 1f), new Color(0.24f, 0.52f, 0.92f, 1f),
+                new Color(0.82f, 0.94f, 1f, 1f), 0.32f, false);
             _tombol.active.background = BuatTexRounded(56, 14f, 3f,
-                new Color(0.20f, 0.06f, 0.05f, 0.98f), new Color(0.34f, 0.12f, 0.10f, 0.98f), Darah, 0f, true);
+                new Color(0.12f, 0.34f, 0.66f, 0.99f), new Color(0.20f, 0.48f, 0.86f, 0.99f),
+                new Color(0.66f, 0.86f, 1f, 1f), 0f, true);
             _tombol.border = new RectOffset(16, 16, 16, 16);
             _tombol.alignment = TextAnchor.MiddleCenter;
             _tombol.fontStyle = FontStyle.Bold;
@@ -323,7 +327,7 @@ public static class Tema
         return _tombol;
     }
 
-    // Tombol AKSEN (emas) buat aksi utama spt MAIN -> jadi pusat perhatian.
+    // Tombol AKSEN (HIJAU) buat aksi utama spt MAIN -> jadi pusat perhatian.
     static GUIStyle _tombolAksen;
     public static GUIStyle GayaTombolAksen(int ukuran)
     {
@@ -332,22 +336,22 @@ public static class Tema
             _tombolAksen = new GUIStyle();
             _tombolAksen.font = FontUtama;
             _tombolAksen.normal.background = BuatTexRounded(56, 14f, 3f,
-                new Color(1.0f, 0.72f, 0.18f, 0.99f), new Color(0.86f, 0.46f, 0.06f, 0.99f),
-                new Color(1f, 0.88f, 0.42f, 1f), 0.30f, false);
+                new Color(0.62f, 0.87f, 0.32f, 0.99f), new Color(0.34f, 0.63f, 0.13f, 0.99f),
+                new Color(0.84f, 0.99f, 0.52f, 1f), 0.30f, false);
             _tombolAksen.hover.background = BuatTexRounded(56, 14f, 3f,
-                new Color(1.0f, 0.80f, 0.28f, 1f), new Color(0.92f, 0.54f, 0.10f, 1f),
-                new Color(1f, 0.95f, 0.60f, 1f), 0.34f, false);
+                new Color(0.72f, 0.95f, 0.40f, 1f), new Color(0.44f, 0.72f, 0.18f, 1f),
+                new Color(0.92f, 1f, 0.62f, 1f), 0.34f, false);
             _tombolAksen.active.background = BuatTexRounded(56, 14f, 3f,
-                new Color(0.72f, 0.38f, 0.05f, 1f), new Color(0.92f, 0.56f, 0.12f, 1f),
-                new Color(1f, 0.85f, 0.40f, 1f), 0f, true);
+                new Color(0.28f, 0.50f, 0.10f, 0.99f), new Color(0.42f, 0.68f, 0.16f, 0.99f),
+                new Color(0.80f, 0.96f, 0.46f, 1f), 0f, true);
             _tombolAksen.border = new RectOffset(16, 16, 16, 16);
             _tombolAksen.alignment = TextAnchor.MiddleCenter;
             _tombolAksen.fontStyle = FontStyle.Bold;
             _tombolAksen.wordWrap = false;
             _tombolAksen.clipping = TextClipping.Clip;
             _tombolAksen.padding = new RectOffset(8, 8, 6, 6);
-            _tombolAksen.normal.textColor = new Color(0.18f, 0.10f, 0.02f, 1f);
-            _tombolAksen.hover.textColor = new Color(0.10f, 0.06f, 0.0f, 1f);
+            _tombolAksen.normal.textColor = Tulang;
+            _tombolAksen.hover.textColor = Color.white;
             _tombolAksen.active.textColor = Tulang;
         }
         _tombolAksen.fontSize = ukuran;
