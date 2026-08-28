@@ -126,27 +126,32 @@ public class GameMenu : MonoBehaviour
             // ---- CHIP MATA UANG (Permata kiri, Koin kanan) ----
             GambarChipMataUang(w, h);
 
-            // ---- JUDUL ----
-            Tema.Teks(new Rect(0, h * 0.05f, w, h * 0.10f), "SALDOKU", Mathf.RoundToInt(h * 0.072f),
+            // ---- JUDUL (jarak antar-baris DIRAPATKAN, tidak melebar ke atas) ----
+            Tema.Teks(new Rect(0, h * 0.075f, w, h * 0.09f), "SALDOKU", Mathf.RoundToInt(h * 0.072f),
                 Tema.Darah, TextAnchor.MiddleCenter, true);
-            Tema.Teks(new Rect(0, h * 0.145f, w, h * 0.075f), "LAST STAND", Mathf.RoundToInt(h * 0.05f),
+            Tema.Teks(new Rect(0, h * 0.138f, w, h * 0.065f), "LAST STAND", Mathf.RoundToInt(h * 0.05f),
                 Tema.Army, TextAnchor.MiddleCenter, true);
-            Tema.Teks(new Rect(0, h * 0.222f, w, h * 0.04f), "BERTAHAN SELAMA MUNGKIN", Mathf.RoundToInt(h * 0.023f),
+            Tema.Teks(new Rect(0, h * 0.205f, w, h * 0.04f), "BERTAHAN SELAMA MUNGKIN", Mathf.RoundToInt(h * 0.023f),
                 Tema.Redup, TextAnchor.MiddleCenter, true);
 
-            // ---- PANEL REKOR (ikon bintang mengapit angka) ----
+            // ---- PANEL REKOR ( [ikon PIALA] angka ) ----
             if (ScoreManager.Instance != null)
             {
                 float rw = w * 0.66f, rh = h * 0.075f, rx = (w - rw) / 2f, ry = h * 0.275f;
                 Tema.Panel9(new Rect(rx, ry, rw, rh), Tema.Plate, Tema.GarisRedup, 2f);
-                Tema.Teks(new Rect(rx, ry + rh * 0.10f, rw, rh * 0.42f), "REKOR TERTINGGI",
-                    Mathf.RoundToInt(h * 0.022f), Tema.Redup, TextAnchor.MiddleCenter, true);
-                Tema.Teks(new Rect(rx, ry + rh * 0.46f, rw, rh * 0.50f), ScoreManager.Instance.RekorTertinggi.ToString(),
-                    Mathf.RoundToInt(h * 0.034f), Tema.Amber, TextAnchor.MiddleCenter, true);
 
-                float ik = rh * 0.40f;
-                Ikon.Gambar(new Rect(rx + rw * 0.13f, ry + rh * 0.46f, ik, ik), Ikon.Bintang, Tema.Amber);
-                Ikon.Gambar(new Rect(rx + rw * 0.87f - ik, ry + rh * 0.46f, ik, ik), Ikon.Bintang, Tema.Amber);
+                string rec = ScoreManager.Instance.RekorTertinggi.ToString();
+                int fRek = Mathf.RoundToInt(h * 0.036f);
+                float ik = rh * 0.62f;
+                float gap = rh * 0.18f;
+                float estAngka = rec.Length * fRek * 0.62f;   // perkiraan lebar angka (font piksel tebal)
+                float totalW = ik + gap + estAngka;
+                float startX = Mathf.Max(rx + rw * 0.04f, rx + (rw - totalW) / 2f);
+                float cy = ry + rh * 0.5f;
+
+                Ikon.Gambar(new Rect(startX, cy - ik / 2f, ik, ik), Ikon.Piala, Tema.Amber);
+                Tema.Teks(new Rect(startX + ik + gap, ry, rw - (startX - rx) - ik - gap, rh), rec,
+                    fRek, Tema.Amber, TextAnchor.MiddleLeft, true);
             }
 
             // ---- PEMILIH KARAKTER ----
