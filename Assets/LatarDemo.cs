@@ -2,19 +2,17 @@ using UnityEngine;
 using System.Collections.Generic;
 
 // ============================================================================
-//  LATAR MENU "DEMO BATTLE" ala mini-video BLUR (versi CERAH Survivor.io).
+//  LATAR MENU "DEMO BATTLE" ala mini-video BLUR (senada suasana ARENA).
 //  Simulasi pertempuran SILUET (hero + gerombolan musuh + tracer tembakan +
-//  ledakan + bara api) yang berjalan MULUS walau game di-pause
+//  ledakan + bara/percik) yang berjalan MULUS walau game di-pause
 //  (Time.timeScale = 0), karena memakai waktu UNSCALED.
 //
-//  Semua digambar dengan tekstur LEMBUT (radial falloff) sehingga terlihat
-//  BLUR seperti rekaman di balik kaca buram, di atas latar ORANYE CERAH,
-//  lalu ditimpa scrim hangat TIPIS + vignette lembut (dari Tema) supaya teks
-//  & panel menu tetap terbaca tanpa membuat layar jadi gelap.
+//  Latarnya kini bernuansa RUMPUT (senada arena saat main), bukan kuning rata,
+//  digambar dengan tekstur LEMBUT (radial falloff) supaya terlihat BLUR, lalu
+//  ditimpa scrim hijau TIPIS + vignette (dari Tema) agar teks & panel terbaca.
 //
-//  Sepenuhnya MANDIRI: tidak menyentuh Player/Spawner/kamera game asli, jadi
-//  aman & tidak mempengaruhi jalannya permainan. Tekstur runtime memakai
-//  HideAndDontSave supaya tidak ikut terhapus saat scene reload.
+//  Sepenuhnya MANDIRI: tidak menyentuh Player/Spawner/kamera game asli.
+//  Tekstur runtime memakai HideAndDontSave supaya tidak terhapus saat reload.
 // ============================================================================
 public static class LatarDemo
 {
@@ -102,7 +100,6 @@ public static class LatarDemo
         Vector2 hero = new Vector2(w * 0.5f, h * 0.5f);
         _fase += dt;
 
-        // gerak musuh mendekat / respawn setelah mati
         foreach (var m in _musuh)
         {
             if (m.hidup)
@@ -117,7 +114,6 @@ public static class LatarDemo
             }
         }
 
-        // hero menembak musuh TERDEKAT
         _tembakT -= dt;
         if (_muzzle > 0f) _muzzle -= dt;
         if (_tembakT <= 0f)
@@ -159,7 +155,6 @@ public static class LatarDemo
         }
     }
 
-    // ---- util gambar ----
     static void GambarBlob(float cx, float cy, float r, Color c)
     {
         Color s = GUI.color;
@@ -195,26 +190,34 @@ public static class LatarDemo
         float u = Mathf.Min(w, h);
         Vector2 hero = new Vector2(w * 0.5f, h * 0.5f);
 
-        // 1) dasar SIANG CERAH (gradasi oranye hangat ala Survivor.io)
+        // 1) dasar RUMPUT (senada dengan arena saat main)
         Tema.KotakGradien(new Rect(0, 0, w, h),
-            new Color(1f, 0.74f, 0.34f, 1f), new Color(0.96f, 0.50f, 0.14f, 1f));
+            new Color(0.44f, 0.66f, 0.34f, 1f), new Color(0.29f, 0.50f, 0.24f, 1f));
 
-        // 2) bara/percik cahaya melayang (putih hangat, lembut)
+        // 1b) bercak TANAH + RUMPUN (blur) biar terasa arena, bukan warna rata
+        GambarBlob(w * 0.24f, h * 0.60f, u * 0.30f, new Color(0.56f, 0.41f, 0.24f, 0.28f));
+        GambarBlob(w * 0.80f, h * 0.38f, u * 0.26f, new Color(0.56f, 0.41f, 0.24f, 0.24f));
+        GambarBlob(w * 0.14f, h * 0.24f, u * 0.16f, new Color(0.24f, 0.45f, 0.19f, 0.50f));
+        GambarBlob(w * 0.88f, h * 0.70f, u * 0.17f, new Color(0.24f, 0.45f, 0.19f, 0.50f));
+        GambarBlob(w * 0.08f, h * 0.86f, u * 0.13f, new Color(0.24f, 0.45f, 0.19f, 0.50f));
+        GambarBlob(w * 0.70f, h * 0.92f, u * 0.15f, new Color(0.24f, 0.45f, 0.19f, 0.45f));
+
+        // 2) percik/pollen melayang (putih hangat, lembut)
         foreach (var b in _bara)
         {
             float bx = (b.x + Mathf.Sin(_fase * 0.6f + b.fase) * b.goyang) * w;
             float by = b.y * h;
-            GambarBlob(bx, by, b.sz * u, new Color(1f, 0.95f, 0.7f, 0.30f));
+            GambarBlob(bx, by, b.sz * u, new Color(1f, 0.98f, 0.80f, 0.22f));
         }
 
-        // 3) musuh (siluet gelap + inti merah samar -> kontras di latar terang)
+        // 3) musuh (siluet gelap + inti merah samar)
         foreach (var m in _musuh)
         {
             if (!m.hidup) continue;
             Vector2 p = hero + new Vector2(Mathf.Cos(m.sudut), Mathf.Sin(m.sudut)) * (m.jarak * u);
             float r = m.sz * u;
-            GambarBlob(p.x, p.y, r, new Color(0.16f, 0.08f, 0.04f, 0.72f));
-            GambarBlob(p.x, p.y, r * 0.45f, new Color(0.80f, 0.16f, 0.12f, 0.5f));
+            GambarBlob(p.x, p.y, r, new Color(0.10f, 0.12f, 0.07f, 0.75f));
+            GambarBlob(p.x, p.y, r * 0.45f, new Color(0.75f, 0.16f, 0.12f, 0.5f));
         }
 
         // 4) tracer tembakan (kuning-putih menyala)
@@ -239,11 +242,11 @@ public static class LatarDemo
 
         // 7) hero (siluet dengan rim hijau + bob halus)
         float bob = Mathf.Sin(_fase * 3.2f) * u * 0.006f;
-        GambarBlob(hero.x, hero.y + bob, u * 0.14f, new Color(0.14f, 0.09f, 0.05f, 0.82f));
-        GambarBlob(hero.x, hero.y + bob, u * 0.10f, new Color(0.55f, 0.82f, 0.22f, 0.18f));
+        GambarBlob(hero.x, hero.y + bob, u * 0.14f, new Color(0.10f, 0.13f, 0.07f, 0.85f));
+        GambarBlob(hero.x, hero.y + bob, u * 0.10f, new Color(0.55f, 0.82f, 0.22f, 0.20f));
 
-        // 8) scrim hangat TIPIS + vignette lembut biar UI kebaca tapi tetap CERAH
-        Tema.Kotak(new Rect(0, 0, w, h), new Color(1f, 0.55f, 0.15f, 0.10f));
+        // 8) scrim hijau TIPIS + vignette biar UI kebaca tapi tetap segar
+        Tema.Kotak(new Rect(0, 0, w, h), new Color(0.10f, 0.18f, 0.09f, 0.30f));
         Tema.Vignette();
     }
 }
