@@ -193,7 +193,7 @@ photorealistic, no text, no watermark, no ground shadow.
 - [x] ✅ **petir** → `Icons/petir.png` — (✅ SUDAH dirender, hasil bagus & disetujui user; jadi style reference) Subjek: `a bold glossy yellow lightning bolt, chain lightning power`
 - [ ] ⏳ ✅ **peluru** → `Icons/peluru.png` — (prompt sudah dikirim, nunggu hasil) Subjek: `three shiny golden bullets stacked pointing up, extra projectile buff`
 - [ ] ⏳ ✅ **target** → `Icons/target.png` — (prompt sudah dikirim, nunggu hasil) Subjek: `a red-and-white bullseye target with crosshair, critical/aim buff`
-- [ ] ✅ **chevron** → `Icons/chevron.png` — Subjek: `double upward chevron arrows, glossy green, attack/move speed buff`
+- [ ] ⏳ ✅ **chevron** → `Icons/chevron.png` — (prompt sudah dikirim, nunggu hasil) Subjek: `double upward chevron arrows, glossy green, attack/move speed buff`
 - [ ] ✅ **hati** → `Icons/hati.png` — Subjek: `a plump glossy red heart, max health / heal buff`
 - [ ] ✅ **berlian** → `Icons/berlian.png` — Subjek: `a brilliant faceted blue diamond gem, luck/bonus buff`
 - [ ] ✅ **pisau** → `Icons/pisau.png` — Subjek: `a shiny steel four-point throwing blade, orbiting knife weapon`
