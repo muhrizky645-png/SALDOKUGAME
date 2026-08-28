@@ -194,7 +194,7 @@ photorealistic, no text, no watermark, no ground shadow.
 - [ ] ⏳ ✅ **peluru** → `Icons/peluru.png` — (prompt sudah dikirim, nunggu hasil) Subjek: `three shiny golden bullets stacked pointing up, extra projectile buff`
 - [ ] ⏳ ✅ **target** → `Icons/target.png` — (prompt sudah dikirim, nunggu hasil) Subjek: `a red-and-white bullseye target with crosshair, critical/aim buff`
 - [ ] ⏳ ✅ **chevron** → `Icons/chevron.png` — (prompt sudah dikirim, nunggu hasil) Subjek: `double upward chevron arrows, glossy green, attack/move speed buff`
-- [ ] ✅ **hati** → `Icons/hati.png` — Subjek: `a plump glossy red heart, max health / heal buff`
+- [ ] ⏳ ✅ **hati** → `Icons/hati.png` — (prompt sudah dikirim, nunggu hasil) Subjek: `a plump glossy red heart, max health / heal buff`
 - [ ] ✅ **berlian** → `Icons/berlian.png` — Subjek: `a brilliant faceted blue diamond gem, luck/bonus buff`
 - [ ] ✅ **pisau** → `Icons/pisau.png` — Subjek: `a shiny steel four-point throwing blade, orbiting knife weapon`
 - [ ] ✅ **aura** → `Icons/aura.png` — Subjek: `concentric glowing energy rings radiating outward, purple aura damage field`
