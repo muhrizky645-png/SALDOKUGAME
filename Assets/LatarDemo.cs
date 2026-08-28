@@ -2,14 +2,15 @@ using UnityEngine;
 using System.Collections.Generic;
 
 // ============================================================================
-//  LATAR MENU "DEMO BATTLE" ala mini-video BLUR.
+//  LATAR MENU "DEMO BATTLE" ala mini-video BLUR (versi CERAH Survivor.io).
 //  Simulasi pertempuran SILUET (hero + gerombolan musuh + tracer tembakan +
 //  ledakan + bara api) yang berjalan MULUS walau game di-pause
 //  (Time.timeScale = 0), karena memakai waktu UNSCALED.
 //
 //  Semua digambar dengan tekstur LEMBUT (radial falloff) sehingga terlihat
-//  BLUR seperti rekaman di balik kaca buram, lalu ditimpa scrim gelap +
-//  vignette (dari Tema) supaya teks & panel menu tetap terbaca.
+//  BLUR seperti rekaman di balik kaca buram, di atas latar ORANYE CERAH,
+//  lalu ditimpa scrim hangat TIPIS + vignette lembut (dari Tema) supaya teks
+//  & panel menu tetap terbaca tanpa membuat layar jadi gelap.
 //
 //  Sepenuhnya MANDIRI: tidak menyentuh Player/Spawner/kamera game asli, jadi
 //  aman & tidak mempengaruhi jalannya permainan. Tekstur runtime memakai
@@ -194,55 +195,55 @@ public static class LatarDemo
         float u = Mathf.Min(w, h);
         Vector2 hero = new Vector2(w * 0.5f, h * 0.5f);
 
-        // 1) dasar malam (gradasi gelap kehijauan)
+        // 1) dasar SIANG CERAH (gradasi oranye hangat ala Survivor.io)
         Tema.KotakGradien(new Rect(0, 0, w, h),
-            new Color(0.06f, 0.09f, 0.06f, 1f), new Color(0.02f, 0.03f, 0.02f, 1f));
+            new Color(1f, 0.74f, 0.34f, 1f), new Color(0.96f, 0.50f, 0.14f, 1f));
 
-        // 2) bara api melayang (hangat, lembut)
+        // 2) bara/percik cahaya melayang (putih hangat, lembut)
         foreach (var b in _bara)
         {
             float bx = (b.x + Mathf.Sin(_fase * 0.6f + b.fase) * b.goyang) * w;
             float by = b.y * h;
-            GambarBlob(bx, by, b.sz * u, new Color(1f, 0.6f, 0.25f, 0.22f));
+            GambarBlob(bx, by, b.sz * u, new Color(1f, 0.95f, 0.7f, 0.30f));
         }
 
-        // 3) musuh (siluet gelap + inti merah samar)
+        // 3) musuh (siluet gelap + inti merah samar -> kontras di latar terang)
         foreach (var m in _musuh)
         {
             if (!m.hidup) continue;
             Vector2 p = hero + new Vector2(Mathf.Cos(m.sudut), Mathf.Sin(m.sudut)) * (m.jarak * u);
             float r = m.sz * u;
-            GambarBlob(p.x, p.y, r, new Color(0.02f, 0.03f, 0.02f, 0.85f));
-            GambarBlob(p.x, p.y, r * 0.45f, new Color(0.65f, 0.12f, 0.09f, 0.5f));
+            GambarBlob(p.x, p.y, r, new Color(0.16f, 0.08f, 0.04f, 0.72f));
+            GambarBlob(p.x, p.y, r * 0.45f, new Color(0.80f, 0.16f, 0.12f, 0.5f));
         }
 
-        // 4) tracer tembakan (amber menyala)
+        // 4) tracer tembakan (kuning-putih menyala)
         foreach (var t in _tracer)
         {
             float a = Mathf.Clamp01(t.umur);
-            GambarGaris(t.a, t.b, u * 0.010f, new Color(1f, 0.82f, 0.34f, 0.55f * a));
+            GambarGaris(t.a, t.b, u * 0.010f, new Color(1f, 0.95f, 0.55f, 0.7f * a));
         }
 
         // 5) kilatan moncong di hero
         if (_muzzle > 0f)
-            GambarBlob(hero.x, hero.y, u * 0.06f, new Color(1f, 0.9f, 0.5f, 0.5f));
+            GambarBlob(hero.x, hero.y, u * 0.06f, new Color(1f, 0.97f, 0.7f, 0.6f));
 
         // 6) ledakan kematian musuh
         foreach (var k in _kilat)
         {
             float a = Mathf.Clamp01(k.umur);
             float r = k.besar * (1.2f - a * 0.5f);
-            GambarBlob(k.pos.x, k.pos.y, r, new Color(1f, 0.6f, 0.28f, 0.5f * a));
-            GambarBlob(k.pos.x, k.pos.y, r * 0.5f, new Color(1f, 0.9f, 0.6f, 0.5f * a));
+            GambarBlob(k.pos.x, k.pos.y, r, new Color(1f, 0.7f, 0.32f, 0.6f * a));
+            GambarBlob(k.pos.x, k.pos.y, r * 0.5f, new Color(1f, 0.97f, 0.72f, 0.6f * a));
         }
 
-        // 7) hero (siluet dengan rim hangat + bob halus)
+        // 7) hero (siluet dengan rim hijau + bob halus)
         float bob = Mathf.Sin(_fase * 3.2f) * u * 0.006f;
-        GambarBlob(hero.x, hero.y + bob, u * 0.14f, new Color(0.03f, 0.05f, 0.03f, 0.9f));
-        GambarBlob(hero.x, hero.y + bob, u * 0.10f, new Color(0.66f, 0.85f, 0.38f, 0.12f));
+        GambarBlob(hero.x, hero.y + bob, u * 0.14f, new Color(0.14f, 0.09f, 0.05f, 0.82f));
+        GambarBlob(hero.x, hero.y + bob, u * 0.10f, new Color(0.55f, 0.82f, 0.22f, 0.18f));
 
-        // 8) scrim gelap + vignette biar UI menu tetap kebaca
-        Tema.Kotak(new Rect(0, 0, w, h), new Color(0.03f, 0.06f, 0.03f, 0.44f));
+        // 8) scrim hangat TIPIS + vignette lembut biar UI kebaca tapi tetap CERAH
+        Tema.Kotak(new Rect(0, 0, w, h), new Color(1f, 0.55f, 0.15f, 0.10f));
         Tema.Vignette();
     }
 }
