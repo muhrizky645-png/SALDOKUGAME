@@ -65,7 +65,7 @@
 5. **Pohon/batu/semak = objek nyata** (RintanganArena), **bukan** bagian tekstur lantai (ArenaTakTerbatas). Lantai hanya rumput/tanah/bunga/kerikil.
 6. **HP bar player = baris atas panel LEVEL/XP** dengan urutan: **`LEVEL x` (teks terpisah, diperbesar, ruang pas 2 digit) + ikon HATI + bar nyawa** (baris bawah = XP). Tulisan LEVEL TIDAK menimpa bar. Jangan bikin HP bar terpisah lagi.
 7. **Panel rekor Home** = `[ikon Piala] angka` saja (tanpa label teks & tanpa bintang).
-8. **RENCANA ASET:** user akan mengganti SELURUH ikon/logo dengan render AI sendiri (lihat CHECKLIST §9). Filosofi ikon-kode tetap jadi FALLBACK bila file belum ada.
+8. **RENCANA ASET:** user akan mengganti SELURUH ikon/logo dengan render AI sendiri (lihat CHECKLIST §9). **Gaya seni target = ikon Survivor.io asli: glossy, semi-3D render, chunky, cartoon mengilap — BUKAN pixel-art, BUKAN realistis** (referensi: screenshot "Weapons & evolutions" dari user). Filosofi ikon-kode tetap jadi FALLBACK bila file belum ada.
 
 ---
 
@@ -157,7 +157,12 @@
 > taruh file PNG di `Assets/Resources/Icons/<id>.png`. **Pakai id PERSIS** seperti di bawah
 > (huruf kecil, tanpa spasi). Setelah satu ikon selesai, ganti `- [ ]` jadi `- [x]`.
 >
-> **Status wiring (kolom awal tiap item):**
+> **🎨 GAYA SENI TARGET (WAJIB):** meniru ikon **Survivor.io asli** — render **glossy semi-3D**,
+> bentuk **chunky/tebal**, cartoon **mengilap**, outline gelap tebal, highlight kilau + bayangan
+> lembut, warna cerah & jenuh. **BUKAN pixel-art. BUKAN realistis/foto.** (Referensi: screenshot
+> "Weapons & evolutions" yang dikirim user — gaya persis seperti itu.)
+>
+> **Status wiring (tanda di tiap item):**
 > - ✅ = otomatis kebaca dari file (lewat `Ikon.Dari`). Tinggal taruh PNG → langsung dipakai, fallback ikon kode kalau file belum ada.
 > - 🔧 = **butuh hook kode dulu**. Setelah PNG siap, minta AI: *"wire-kan ikon <id> supaya kebaca dari Resources/Icons"* (AI arahkan `UntukItem`/`MataUang`/`Piala` ke `Ikon.Dari`).
 >
@@ -166,47 +171,49 @@
 ### 🎨 BASE STYLE (tempel di DEPAN tiap prompt, lalu tambahkan "Subjek")
 
 ````text
-2D pixel-art game icon, survivor.io / survival roguelite style, single centered emblem,
-thick dark outline, flat cel shading with slight top light, palette army green #A9D961 /
-blood red #D12B21 / amber gold #FFCC38 / bone white #F2F0DE, transparent background,
-square 1024x1024, readable at small size, no text, no drop shadow.
+Mobile game item icon in the style of Survivor.io / Archero, glossy semi-3D rendered look,
+stylized chunky cartoon, thick dark outline, smooth rounded shapes, rich gradient shading
+with glossy specular highlights and soft ambient occlusion, vibrant saturated colors, subtle
+top-left light source, single object centered, clean isolated render on a transparent
+background, square 1024x1024, crisp and readable at small size. NOT pixel-art, NOT flat, NOT
+photorealistic, no text, no watermark, no ground shadow.
 ````
 
-**Prompt final = BASE STYLE + spasi + Subjek item.** (Untuk ikon yang warnanya beda dari palet, subjek sudah menyebut override warna.)
+**Prompt final = BASE STYLE + spasi + Subjek item.**
 
 ### A. Skill / Buff  — ✅ sudah file-ready (`Ikon.UntukSkill` → `Dari`)
 
-- [ ] ✅ **petir** → `Icons/petir.png` — Subjek: `a bold jagged lightning bolt, chain lightning power`
-- [ ] ✅ **peluru** → `Icons/peluru.png` — Subjek: `three stacked bullets pointing up, extra projectile buff`
-- [ ] ✅ **target** → `Icons/target.png` — Subjek: `a bullseye target with crosshair lines, critical/aim buff`
-- [ ] ✅ **chevron** → `Icons/chevron.png` — Subjek: `double upward chevron arrows, attack/move speed buff`
-- [ ] ✅ **hati** → `Icons/hati.png` — Subjek: `a plump glossy heart, max health / heal buff`
-- [ ] ✅ **berlian** → `Icons/berlian.png` — Subjek: `a shining faceted diamond gem, luck/bonus buff`
-- [ ] ✅ **pisau** → `Icons/pisau.png` — Subjek: `a spinning four-point throwing blade, orbiting knife weapon`
-- [ ] ✅ **aura** → `Icons/aura.png` — Subjek: `concentric glowing energy rings radiating outward, aura damage field`
-- [ ] ✅ **roket** → `Icons/roket.png` — Subjek: `a small stubby rocket/missile pointing up with fins, rocket weapon`
-- [ ] ✅ **bintang** → `Icons/bintang.png` — Subjek: `a bold five-pointed star, generic upgrade / default icon`
+- [ ] ✅ **petir** → `Icons/petir.png` — Subjek: `a bold glossy yellow lightning bolt, chain lightning power`
+- [ ] ✅ **peluru** → `Icons/peluru.png` — Subjek: `three shiny golden bullets stacked pointing up, extra projectile buff`
+- [ ] ✅ **target** → `Icons/target.png` — Subjek: `a red-and-white bullseye target with crosshair, critical/aim buff`
+- [ ] ✅ **chevron** → `Icons/chevron.png` — Subjek: `double upward chevron arrows, glossy green, attack/move speed buff`
+- [ ] ✅ **hati** → `Icons/hati.png` — Subjek: `a plump glossy red heart, max health / heal buff`
+- [ ] ✅ **berlian** → `Icons/berlian.png` — Subjek: `a brilliant faceted blue diamond gem, luck/bonus buff`
+- [ ] ✅ **pisau** → `Icons/pisau.png` — Subjek: `a shiny steel four-point throwing blade, orbiting knife weapon`
+- [ ] ✅ **aura** → `Icons/aura.png` — Subjek: `concentric glowing energy rings radiating outward, purple aura damage field`
+- [ ] ✅ **roket** → `Icons/roket.png` — Subjek: `a small stubby rocket/missile pointing up with fins and flame, rocket weapon`
+- [ ] ✅ **bintang** → `Icons/bintang.png` — Subjek: `a bold glossy golden five-pointed star, generic upgrade / default icon`
 
 ### B. Item Lapangan  — 🔧 butuh hook (`Ikon.UntukItem`)
 
 - [ ] 🔧 **bom** → `Icons/bom.png` — Subjek: `a round black cartoon bomb with a lit sparking fuse, screen-clear item`
-- [ ] 🔧 **magnet** → `Icons/magnet.png` — Subjek: `a red horseshoe magnet with silver poles, attract-pickups item`
+- [ ] 🔧 **magnet** → `Icons/magnet.png` — Subjek: `a glossy red horseshoe magnet with silver poles, attract-pickups item`
 - [ ] 🔧 **peti** → `Icons/peti.png` — Subjek: `a wooden treasure chest with gold trim and a lock, reward crate`
 
 ### C. Mata Uang & UI  — 🔧 butuh hook (`MataUang.cs` / `Ikon.Piala`)
 
 - [ ] 🔧 **koin** → `Icons/koin.png` — Subjek: `a shiny round gold coin with a simple embossed emblem, game currency`
-- [ ] 🔧 **permata** → `Icons/permata.png` — Subjek: `a violet/purple faceted crystal gem, premium currency (use purple, override the palette)`
+- [ ] 🔧 **permata** → `Icons/permata.png` — Subjek: `a violet/purple faceted crystal gem, premium currency`
 - [ ] 🔧 **piala** → `Icons/piala.png` — Subjek: `a golden victory trophy cup with two side handles on a base, high score`
 
 ### D. XP / Permata Lapangan  — 🔧 butuh hook (`XpGem.cs` / `PermataGem.cs`, sprite dunia)
 
-- [ ] 🔧 **xpgem** → `Icons/xpgem.png` — Subjek: `a small glowing blue XP crystal shard, floating pickup (use cyan/blue, override the palette)`
-- [ ] 🔧 **permatagem** → `Icons/permatagem.png` — Subjek: `a small purple gem pickup on the ground, sparkle (use purple, override the palette)`
+- [ ] 🔧 **xpgem** → `Icons/xpgem.png` — Subjek: `a small glowing cyan/blue XP crystal shard, floating pickup`
+- [ ] 🔧 **permatagem** → `Icons/permatagem.png` — Subjek: `a small purple gem pickup with sparkle`
 
 ### E. Opsional (logo & app)
 
-- [ ] 🔧 **logo** (wordmark) → `Icons/logo.png` — sekarang "SALDOKU / LAST STAND" digambar pakai font pixel. Kalau mau logo gambar: Subjek: `game logo wordmark reading SALDOKU LAST STAND, bold blocky pixel letters, army green and amber with red accents` (boleh pakai teks untuk logo). Lalu minta AI wire-kan di `GameMenu`.
-- [ ] **appicon** (ikon aplikasi Android) → di-set di Player Settings (bukan Resources). Subjek: `mobile game app launcher icon, survivor theme, a heart + trophy motif, bold, centered, filled background`.
+- [ ] 🔧 **logo** (wordmark) → `Icons/logo.png` — sekarang "SALDOKU / LAST STAND" digambar pakai font pixel. Kalau mau logo gambar: Subjek: `game logo wordmark reading SALDOKU LAST STAND, bold glossy 3D letters, army green and amber with red accents` (boleh pakai teks untuk logo). Lalu minta AI wire-kan di `GameMenu`.
+- [ ] **appicon** (ikon aplikasi Android) → di-set di Player Settings (bukan Resources). Subjek: `mobile game app launcher icon, glossy 3D, a heart + trophy motif, bold, centered, filled background`.
 
 > **Catatan untuk AI sesi berikutnya:** kalau user bilang "ikon X sudah aku render", (1) pastikan file ada di `Assets/Resources/Icons/X.png`, (2) untuk item 🔧 tambahkan hook `Dari("X", <ikonKodeBawaan>)`, (3) ceklis item ini di §9, (4) update §6 SHA.
