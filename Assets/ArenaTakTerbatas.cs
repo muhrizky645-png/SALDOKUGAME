@@ -217,13 +217,13 @@ public class ArenaTakTerbatas : MonoBehaviour
             BlobLembut(cx, cy, rad, Jit(nuansa[_r.Next(nuansa.Length)], 0.04f), Acak(0.30f, 0.55f));
         }
 
-        // ---- 3) BERCAK TANAH COKLAT (gugusan blob organik, ukuran & warna beragam) ----
+        // ---- 3) BERCAK TANAH COKLAT (lebih JARANG, tidak terlalu penuh) ----
         Color d1 = new Color(0.66f, 0.48f, 0.29f), d2 = new Color(0.53f, 0.37f, 0.22f);
-        int jmlTanah = 6 + _r.Next(3);
+        int jmlTanah = 3 + _r.Next(2);
         for (int i = 0; i < jmlTanah; i++)
         {
             float cx = Acak(0, n), cy = Acak(0, n);
-            float rad = n * Acak(0.04f, 0.11f);
+            float rad = n * Acak(0.04f, 0.10f);
             Color td1 = Jit(d1, 0.05f), td2 = Jit(d2, 0.04f);
             int blobs = 4 + _r.Next(5);
             for (int b = 0; b < blobs; b++)
@@ -242,18 +242,18 @@ public class ArenaTakTerbatas : MonoBehaviour
         for (int i = 0; i < jmlRumput; i++)
             RumputKecil(Acak(0, n), Acak(0, n), n * Acak(0.010f, 0.024f));
 
-        // ---- 5) BUNGA warna-warni (kluster) ----
-        int jmlBunga = 30 + _r.Next(14);
+        // ---- 5) BUNGA warna-warni (lebih JARANG, kluster kecil) ----
+        int jmlBunga = 9 + _r.Next(5);
         for (int i = 0; i < jmlBunga; i++)
         {
             float cx = Acak(0, n), cy = Acak(0, n);
-            int grup = 1 + _r.Next(4);
+            int grup = 1 + _r.Next(2);
             for (int g = 0; g < grup; g++)
-                Bunga(cx + Acak(-n * 0.02f, n * 0.02f), cy + Acak(-n * 0.02f, n * 0.02f), n * Acak(0.006f, 0.013f));
+                Bunga(cx + Acak(-n * 0.02f, n * 0.02f), cy + Acak(-n * 0.02f, n * 0.02f), n * Acak(0.006f, 0.012f));
         }
 
         // ---- 6) KERIKIL kecil ----
-        int jmlKerikil = 26 + _r.Next(14);
+        int jmlKerikil = 16 + _r.Next(8);
         for (int i = 0; i < jmlKerikil; i++)
         {
             Color kb = Jit(new Color(0.60f, 0.60f, 0.62f), 0.06f);
