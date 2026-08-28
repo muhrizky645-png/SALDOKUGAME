@@ -14,6 +14,7 @@ public class GameMenu : MonoBehaviour
 
     private bool tampilHome = true;          // menu awal tampil
     private bool tampilPengaturan = false;   // panel pengaturan suara tampil
+    private string pesanKarakter = "";       // status buka karakter (mis. "Memuat iklan...")
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
@@ -61,6 +62,10 @@ public class GameMenu : MonoBehaviour
 
     void Mulai()
     {
+        // JANGAN pernah main dengan karakter terkunci -> paksa ke Ninja bila terkunci.
+        if (!KarakterManager.Terbuka(KarakterManager.Dipilih))
+            KarakterManager.Dipilih = KarakterManager.NinjaIndex;
+
         // pastikan karakter yang dipilih di Home dipakai walau scene tidak di-reload
         KarakterPemain.TerapkanPilihan();
 
@@ -148,7 +153,11 @@ public class GameMenu : MonoBehaviour
             GambarPilihKarakter(w, h);
 
             // ---- TOMBOL (diturunkan supaya ada ruang untuk pilih karakter) ----
-            if (Tombol("MAIN", 0.665f, 0.62f)) { SoundManager.Klik(); Mulai(); }
+            if (Tombol("MAIN", 0.665f, 0.62f))
+            {
+                if (KarakterManager.Terbuka(KarakterManager.Dipilih)) { SoundManager.Klik(); Mulai(); }
+                else MintaBukaKarakter(KarakterManager.Dipilih); // terkunci -> tawarkan buka via iklan
+            }
 
             // baris TOKO | PENGATURAN (setengah lebar masing-masing)
             {
@@ -286,12 +295,14 @@ public class GameMenu : MonoBehaviour
             SoundManager.Klik();
             KarakterManager.Sebelumnya();
             KarakterPemain.TerapkanPilihan();
+            pesanKarakter = "";
         }
         if (GUI.Button(rKanan, "", Tema.GayaTombol(1)))
         {
             SoundManager.Klik();
             KarakterManager.Berikutnya();
             KarakterPemain.TerapkanPilihan();
+            pesanKarakter = "";
         }
 
         // Panah digambar sebagai SEGITIGA manual -> center sempurna (glyph '<'/'>' font
@@ -301,22 +312,24 @@ public class GameMenu : MonoBehaviour
         SegitigaKanan(new Rect(rKanan.center.x - tw / 2f, rKanan.center.y - th / 2f, tw, th), Tema.Tulang);
 
         int idx = KarakterManager.Dipilih; // sudah termasuk hasil klik di atas
+        bool terbuka = KarakterManager.Terbuka(idx);
 
         // portrait SELURUH BADAN karakter di tengah (render rig lengkap; fallback ke kepala)
         float potH = aH;
         float potW = aH;
         float potX = (w - potW) / 2f;
+        Rect potRect = new Rect(potX, aY, potW, potH);
         Texture pratinjau = PratinjauKarakter.Ambil(idx);
         if (pratinjau != null)
         {
-            GUI.DrawTexture(new Rect(potX, aY, potW, potH), pratinjau, ScaleMode.ScaleToFit, true);
+            GUI.DrawTexture(potRect, pratinjau, ScaleMode.ScaleToFit, true);
         }
         else
         {
             Texture2D kepala = KarakterManager.Kepala(idx);
             if (kepala != null)
             {
-                GUI.DrawTexture(new Rect(potX, aY, potW, potH), kepala, ScaleMode.ScaleToFit, true);
+                GUI.DrawTexture(potRect, kepala, ScaleMode.ScaleToFit, true);
             }
             else
             {
@@ -325,9 +338,87 @@ public class GameMenu : MonoBehaviour
             }
         }
 
-        // nama karakter
-        Tema.Teks(new Rect(px, py + ph * 0.80f, pw, ph * 0.17f), KarakterManager.Nama[idx],
-            Mathf.RoundToInt(h * 0.026f), Tema.Tulang, TextAnchor.MiddleCenter, true);
+        if (terbuka)
+        {
+            // nama karakter di bawah
+            Tema.Teks(new Rect(px, py + ph * 0.80f, pw, ph * 0.17f), KarakterManager.Nama[idx],
+                Mathf.RoundToInt(h * 0.026f), Tema.Tulang, TextAnchor.MiddleCenter, true);
+        }
+        else
+        {
+            // ---- KARAKTER TERKUNCI ----
+            // redupkan portrait + gambar gembok di tengah
+            Tema.Kotak(potRect, new Color(0f, 0f, 0f, 0.58f));
+            float gs = potH * 0.40f;
+            GambarGembok(new Rect(potRect.center.x - gs * 0.4f, potRect.center.y - gs * 0.5f, gs * 0.8f, gs), Tema.Amber);
+
+            // nama kecil di atas portrait supaya tetap tahu karakternya
+            Tema.Teks(new Rect(px, aY - ph * 0.02f, pw, ph * 0.12f), KarakterManager.Nama[idx],
+                Mathf.RoundToInt(h * 0.020f), Tema.Redup, TextAnchor.MiddleCenter, true);
+
+            // baris bawah: pesan proses ATAU tombol buka via iklan
+            float bbw = pw * 0.80f, bbh = ph * 0.18f;
+            Rect bb = new Rect(px + (pw - bbw) / 2f, py + ph * 0.79f, bbw, bbh);
+            if (!string.IsNullOrEmpty(pesanKarakter))
+            {
+                Tema.Teks(bb, pesanKarakter, Mathf.RoundToInt(h * 0.020f), Tema.Amber, TextAnchor.MiddleCenter, true);
+            }
+            else
+            {
+                int fb = Mathf.Min(Mathf.RoundToInt(h * 0.020f), Mathf.RoundToInt(bbw * 0.06f));
+                if (GUI.Button(bb, "TONTON IKLAN", Tema.GayaTombol(fb)))
+                    MintaBukaKarakter(idx);
+            }
+        }
+    }
+
+    // Minta buka karakter terkunci lewat rewarded ad. Saat AdMob belum aktif,
+    // IklanKoin.TampilkanHadiah langsung memberi hadiah (buka) supaya bisa diuji.
+    void MintaBukaKarakter(int idx)
+    {
+        if (KarakterManager.Terbuka(idx)) return;
+        SoundManager.Klik();
+        pesanKarakter = "Memuat iklan...";
+        IklanKoin.Instance.TampilkanHadiah(
+            () =>
+            {
+                KarakterManager.Buka(idx);
+                KarakterManager.Dipilih = idx;
+                KarakterPemain.TerapkanPilihan();
+                pesanKarakter = KarakterManager.Nama[idx] + " TERBUKA!";
+                SoundManager.LevelUp();
+            },
+            (msg) => { pesanKarakter = string.IsNullOrEmpty(msg) ? "Iklan belum siap." : msg; });
+    }
+
+    // Gambar GEMBOK sederhana (tanda terkunci) dari kotak-kotak.
+    void GambarGembok(Rect r, Color c)
+    {
+        Color gelap = new Color(0.05f, 0.06f, 0.04f, 0.95f);
+
+        // ---- shackle (busur atas, bentuk U terbalik) ----
+        float sw = r.width * 0.18f;
+        float shW = r.width * 0.62f;
+        float shH = r.height * 0.46f;
+        float shX = r.x + (r.width - shW) / 2f;
+        // outline gelap di belakang biar kebaca di atas portrait
+        Tema.Kotak(new Rect(shX - 2f, r.y - 2f, sw + 4f, shH + 4f), gelap);
+        Tema.Kotak(new Rect(shX + shW - sw - 2f, r.y - 2f, sw + 4f, shH + 4f), gelap);
+        Tema.Kotak(new Rect(shX - 2f, r.y - 2f, shW + 4f, sw + 4f), gelap);
+        Tema.Kotak(new Rect(shX, r.y, sw, shH), c);
+        Tema.Kotak(new Rect(shX + shW - sw, r.y, sw, shH), c);
+        Tema.Kotak(new Rect(shX, r.y, shW, sw), c);
+
+        // ---- body (badan gembok) ----
+        float bH = r.height * 0.56f;
+        float bY = r.y + r.height - bH;
+        Tema.Kotak(new Rect(r.x - 2f, bY - 2f, r.width + 4f, bH + 4f), gelap);
+        Tema.Kotak(new Rect(r.x, bY, r.width, bH), c);
+
+        // ---- lubang kunci ----
+        float kh = r.width * 0.16f;
+        Tema.Kotak(new Rect(r.x + (r.width - kh) / 2f, bY + bH * 0.22f, kh, kh), gelap);
+        Tema.Kotak(new Rect(r.x + (r.width - kh * 0.45f) / 2f, bY + bH * 0.22f + kh * 0.7f, kh * 0.45f, bH * 0.34f), gelap);
     }
 
     // Segitiga panah menunjuk KIRI (apex di kiri) - digambar kolom per kolom, center vertikal.
