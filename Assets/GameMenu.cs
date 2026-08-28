@@ -347,8 +347,9 @@ public class GameMenu : MonoBehaviour
         else
         {
             // ---- KARAKTER TERKUNCI ----
-            // redupkan portrait + gambar gembok di tengah
-            Tema.Kotak(potRect, new Color(0f, 0f, 0f, 0.58f));
+            // Redupkan portrait TIPIS saja (0.30) supaya karakter ASLINYA tetap terlihat
+            // jelas di balik gembok -> pemain tahu karakter apa yang mau dibuka.
+            Tema.Kotak(potRect, new Color(0f, 0f, 0f, 0.30f));
             float gs = potH * 0.40f;
             GambarGembok(new Rect(potRect.center.x - gs * 0.4f, potRect.center.y - gs * 0.5f, gs * 0.8f, gs), Tema.Amber);
 
