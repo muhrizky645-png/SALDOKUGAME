@@ -82,15 +82,19 @@ public class Toko : MonoBehaviour
 
     void GambarInv()
     {
-        float slot = Mathf.Min(Screen.width * 0.135f, 88f);
-        float gap = slot * 0.20f;
-        float totalH = 3f * slot + 2f * gap;
-        float sx = Screen.width - slot - Tema.AmanKanan - Tema.Pad;
-        float sy = Screen.height * 0.5f - totalH * 0.5f;
+        float w = Screen.width, h = Screen.height;
+
+        // Kotak item dibuat LEBIH BESAR dan dipindah ke BAWAH layar (area kosong),
+        // lalu disusun MENDATAR & di TENGAH biar rapi dan gampang di-tap.
+        float slot = Mathf.Min(w * 0.20f, Tema.Unit * 0.21f);
+        float gap = slot * 0.18f;
+        float totalW = 3f * slot + 2f * gap;
+        float sx = (w - totalW) * 0.5f;
+        float sy = h - Tema.AmanBawah - Tema.Pad - slot;
 
         for (int i = 0; i < 3; i++)
         {
-            Rect rr = new Rect(sx, sy + i * (slot + gap), slot, slot);
+            Rect rr = new Rect(sx + i * (slot + gap), sy, slot, slot);
             bool ada = inv[i] > 0;
             Tema.Panel9(rr, ada ? Tema.Plate : new Color(0.05f, 0.06f, 0.04f, 0.5f),
                 ada ? Tema.GarisRedup : new Color(0.3f, 0.33f, 0.2f, 0.5f), 2f);
