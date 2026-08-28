@@ -84,9 +84,9 @@ public class Toko : MonoBehaviour
     {
         float w = Screen.width, h = Screen.height;
 
-        // Kotak item dibuat LEBIH BESAR dan dipindah ke BAWAH layar (area kosong),
-        // lalu disusun MENDATAR & di TENGAH biar rapi dan gampang di-tap.
-        float slot = Mathf.Min(w * 0.20f, Tema.Unit * 0.21f);
+        // Kotak item dipindah ke BAWAH layar (area kosong), disusun MENDATAR & di
+        // TENGAH. Ukuran sedang: cukup besar untuk di-tap tapi tidak makan layar.
+        float slot = Mathf.Min(w * 0.155f, Tema.Unit * 0.165f);
         float gap = slot * 0.18f;
         float totalW = 3f * slot + 2f * gap;
         float sx = (w - totalW) * 0.5f;
