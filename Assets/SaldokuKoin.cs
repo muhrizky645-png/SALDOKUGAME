@@ -287,4 +287,287 @@ public class Saldoku : MonoBehaviour
                 "4.   Masukkan kode di bawah",
             };
             float lineH = u * 0.062f;
-            float ix = cx + cw *
+            float ix = cx + cw * 0.06f, iw = cw * 0.88f;
+            float iy = yy + (insH - lineH * langkah.Length) / 2f;
+            for (int i = 0; i < langkah.Length; i++)
+                Tema.Teks(new Rect(ix, iy + lineH * i, iw, lineH), langkah[i], insF,
+                    Tema.Tulang, TextAnchor.MiddleLeft, false);
+            yy += insH + u * 0.045f;
+
+            // ---- Label KODE TAUTAN ----
+            Tema.Teks(new Rect(cx, yy, cw, u * 0.04f), "KODE TAUTAN", Mathf.RoundToInt(u * 0.03f),
+                Tema.Amber, TextAnchor.MiddleLeft, true);
+            yy += u * 0.05f;
+
+            // ---- Field kode (plate gelap + border army biar kontras) ----
+            float fieldH = u * 0.10f;
+            Tema.Panel9(new Rect(cx, yy, cw, fieldH), new Color(0.03f, 0.05f, 0.03f, 0.96f), Tema.Garis, 2f);
+            GUIStyle tf = new GUIStyle(GUI.skin.textField);
+            tf.font = Tema.FontUtama;
+            tf.fontSize = Mathf.RoundToInt(u * 0.052f);
+            tf.fontStyle = FontStyle.Bold;
+            tf.alignment = TextAnchor.MiddleCenter;
+            tf.normal.textColor = Tema.Tulang;
+            tf.focused.textColor = Tema.Tulang;
+            tf.normal.background = null;
+            tf.focused.background = null;
+            tf.active.background = null;
+            tf.hover.background = null;
+            GUI.SetNextControlName("KodeField");
+            string typed = GUI.TextField(new Rect(cx + 10f, yy, cw - 20f, fieldH), kode ?? "", 8, tf);
+            kode = typed.ToUpperInvariant();
+            yy += fieldH + u * 0.025f;
+
+            // ---- Status ----
+            if (!string.IsNullOrEmpty(statusPesan))
+                Tema.Teks(new Rect(cx, yy, cw, u * 0.04f), statusPesan, Mathf.RoundToInt(u * 0.028f),
+                    Tema.Amber, TextAnchor.MiddleCenter, true);
+            yy += u * 0.05f;
+
+            // ---- Tombol HUBUNGKAN | TUTUP ----
+            float gap = u * 0.03f;
+            float bw = (cw - gap) / 2f;
+            float bh = u * 0.10f;
+            if (GUI.Button(new Rect(cx, yy, bw, bh), sibuk ? "..." : "HUBUNGKAN", Tema.GayaTombol(Mathf.RoundToInt(u * 0.036f))) && !sibuk)
+                KirimKode();
+            if (GUI.Button(new Rect(cx + bw + gap, yy, bw, bh), "TUTUP", Tema.GayaTombol(Mathf.RoundToInt(u * 0.036f))))
+                Tutup();
+        }
+        else
+        {
+            // ---- Status terhubung ----
+            Tema.Teks(new Rect(cx, yy, cw, u * 0.05f), "Terhubung: " + NamaTampil(),
+                Mathf.RoundToInt(u * 0.034f), Tema.Army, TextAnchor.MiddleLeft, true);
+            yy += u * 0.06f;
+
+            Tema.Teks(new Rect(cx, yy, cw, u * 0.04f), "Julukan (nama tampilan):", Mathf.RoundToInt(u * 0.026f),
+                Tema.Redup, TextAnchor.UpperLeft, false);
+            yy += u * 0.045f;
+            GUIStyle jf = new GUIStyle(GUI.skin.textField);
+            jf.font = Tema.FontUtama;
+            jf.fontSize = Mathf.RoundToInt(u * 0.034f);
+            jf.alignment = TextAnchor.MiddleLeft;
+            jf.normal.textColor = Tema.Tulang;
+            jf.focused.textColor = Tema.Tulang;
+            float jbw = pw * 0.26f;
+            float jtw = cw - jbw - u * 0.025f;
+            float jh = u * 0.09f;
+            Tema.Panel9(new Rect(cx, yy, jtw, jh), new Color(0.03f, 0.05f, 0.03f, 0.96f), Tema.GarisRedup, 2f);
+            GUI.SetNextControlName("JulukanField");
+            julukan = GUI.TextField(new Rect(cx + 10f, yy, jtw - 20f, jh), julukan ?? "", 16, jf);
+            if (GUI.Button(new Rect(cx + jtw + u * 0.025f, yy, jbw, jh), "SIMPAN", Tema.GayaTombol(Mathf.RoundToInt(u * 0.028f))))
+                SimpanJulukan();
+            yy += jh + u * 0.03f;
+
+            // ---- Kartu Koin ----
+            long koin = (MataUang.Instance != null) ? MataUang.Instance.Koin : 0;
+            bool online = MataUang.Instance != null && MataUang.Instance.Online;
+            float koinH = u * 0.12f;
+            Tema.Panel9(new Rect(cx, yy, cw, koinH), Tema.Plate, Tema.GarisRedup, 2f);
+            Tema.Teks(new Rect(cx + cw * 0.05f, yy + koinH * 0.12f, cw * 0.9f, koinH * 0.32f), "KOIN SALDOKU",
+                Mathf.RoundToInt(u * 0.026f), Tema.Redup, TextAnchor.MiddleLeft, true);
+            Tema.Teks(new Rect(cx + cw * 0.05f, yy + koinH * 0.44f, cw * 0.9f, koinH * 0.5f),
+                MataUang.Ringkas(koin) + (online ? "" : "  (offline)"),
+                Mathf.RoundToInt(u * 0.044f), Tema.Amber, TextAnchor.MiddleLeft, true);
+            yy += koinH + u * 0.025f;
+
+            Tema.Teks(new Rect(cx, yy, cw, u * 0.04f),
+                "Peti: " + petiProgress + "/" + iklanPerPeti + "  (+" + poinPerPeti + " Koin)     Iklan: " + iklanHariIni + "/" + batasHarian,
+                Mathf.RoundToInt(u * 0.024f), Tema.Redup, TextAnchor.MiddleLeft, true);
+            yy += u * 0.05f;
+
+            if (GUI.Button(new Rect(cx, yy, cw, u * 0.10f),
+                    petiSibuk ? "Memuat iklan..." : ("TONTON IKLAN    " + petiProgress + "/" + iklanPerPeti),
+                    Tema.GayaTombol(Mathf.RoundToInt(u * 0.034f))) && !petiSibuk)
+                TontonIklanPeti();
+            yy += u * 0.12f;
+
+            if (!string.IsNullOrEmpty(petiPesan))
+            {
+                Tema.Teks(new Rect(cx, yy, cw, u * 0.04f), petiPesan, Mathf.RoundToInt(u * 0.024f),
+                    Tema.Army, TextAnchor.MiddleLeft, true);
+                yy += u * 0.045f;
+            }
+            if (!string.IsNullOrEmpty(statusPesan))
+            {
+                Tema.Teks(new Rect(cx, yy, cw, u * 0.04f), statusPesan, Mathf.RoundToInt(u * 0.024f),
+                    Tema.Amber, TextAnchor.MiddleLeft, true);
+                yy += u * 0.045f;
+            }
+            yy += u * 0.01f;
+
+            float gap = u * 0.03f;
+            float bw = (cw - gap) / 2f;
+            if (GUI.Button(new Rect(cx, yy, bw, u * 0.09f), sibuk ? "..." : "SEGARKAN", Tema.GayaTombol(Mathf.RoundToInt(u * 0.032f))) && !sibuk)
+                SegarkanSekarang();
+            if (GUI.Button(new Rect(cx + bw + gap, yy, bw, u * 0.09f), "PUTUSKAN", Tema.GayaTombol(Mathf.RoundToInt(u * 0.032f))))
+                Putuskan();
+            yy += u * 0.11f;
+            if (GUI.Button(new Rect(cx, yy, cw, u * 0.085f), "TUTUP", Tema.GayaTombol(Mathf.RoundToInt(u * 0.032f))))
+                Tutup();
+        }
+
+        // Penelan klik di LUAR panel: digambar PALING AKHIR supaya tombol di dalam
+        // panel (digambar lebih dulu) tetap menang menerima klik, sedangkan klik di
+        // area gelap sekitar panel tidak menembus ke menu di belakang.
+        GUI.Button(new Rect(0, 0, w, h), "", GUIStyle.none);
+    }
+}
+
+// =====================================================================
+//  Manajer Rewarded Ad (AdMob) - port KubikaAds. Diselubungi SALDOKU_ADMOB.
+//  Menyediakan DUA alur:
+//    * TampilkanPeti  -> peti Koin SALDOKU (butuh akun terhubung + SSV server).
+//    * TampilkanHadiah -> hadiah LOKAL generik (mis. buka karakter), pakai callback.
+// =====================================================================
+public class IklanKoin : MonoBehaviour
+{
+    // TODO: ganti dengan Ad Unit milik SALDOKUGAME sebelum aktifkan iklan.
+    const string AD_UNIT_PROD = "ca-app-pub-0000000000000000/0000000000";
+    const string AD_UNIT_TEST = "ca-app-pub-3940256099942544/5224354917";
+    const bool   USE_TEST_ADS = true;
+
+    static IklanKoin _inst;
+    public static IklanKoin Instance
+    {
+        get
+        {
+            if (_inst == null)
+            {
+                var go = new GameObject("IklanKoin");
+                DontDestroyOnLoad(go);
+                _inst = go.AddComponent<IklanKoin>();
+            }
+            return _inst;
+        }
+    }
+
+#if SALDOKU_ADMOB
+    RewardedAd _ad;
+    bool _init, _wantShow;
+    Saldoku _game;
+    string _customData;
+
+    // ---- alur rewarded GENERIK (mis. buka karakter) ----
+    RewardedAd _adH;
+    bool _wantShowH;
+    System.Action _onRewardH;
+    System.Action<string> _onFailH;
+
+    void EnsureInit() { if (_init) return; _init = true; MobileAds.Initialize(_ => { Load(); LoadH(); }); }
+    string Unit() { return USE_TEST_ADS ? AD_UNIT_TEST : AD_UNIT_PROD; }
+
+    void Load()
+    {
+        if (_ad != null) { _ad.Destroy(); _ad = null; }
+        RewardedAd.Load(Unit(), new AdRequest(), (ad, err) =>
+        {
+            if (err != null || ad == null)
+            {
+                if (_wantShow) { _wantShow = false; if (_game != null) _game.OnPetiGagal(_game.PesanIklanTakSiap()); }
+                return;
+            }
+            _ad = ad; Hook(_ad);
+            if (_wantShow) { _wantShow = false; DoShow(); }
+        });
+    }
+
+    void Hook(RewardedAd ad)
+    {
+        ad.OnAdFullScreenContentClosed += () => { if (_game != null) _game.SetPetiSibuk(false); Load(); };
+        ad.OnAdFullScreenContentFailed += (AdError e) =>
+        {
+            if (_game != null) { _game.SetPetiSibuk(false); _game.OnPetiGagal(_game.PesanIklanTakSiap()); }
+            Load();
+        };
+    }
+
+    void DoShow()
+    {
+        if (_ad == null || !_ad.CanShowAd()) { _wantShow = true; Load(); return; }
+        if (!string.IsNullOrEmpty(_customData))
+        {
+            var ssv = new ServerSideVerificationOptions.Builder().SetCustomData(_customData).Build();
+            _ad.SetServerSideVerificationOptions(ssv);
+        }
+        _ad.Show(reward => { if (_game != null) _game.OnPetiReward(); });
+    }
+
+    public void TampilkanPeti(Saldoku game, string customData)
+    {
+        _game = game; _customData = customData;
+        game.SetPetiSibuk(true);
+        EnsureInit();
+        if (_ad != null && _ad.CanShowAd()) DoShow();
+        else { _wantShow = true; Load(); }
+    }
+
+    // ---- Rewarded ad GENERIK dengan callback (buka karakter, dll) ----
+    void LoadH()
+    {
+        if (_adH != null) { _adH.Destroy(); _adH = null; }
+        RewardedAd.Load(Unit(), new AdRequest(), (ad, err) =>
+        {
+            if (err != null || ad == null)
+            {
+                if (_wantShowH) { _wantShowH = false; var f = _onFailH; _onFailH = null; if (f != null) f("Iklan belum siap. Coba lagi."); }
+                return;
+            }
+            _adH = ad; HookH(_adH);
+            if (_wantShowH) { _wantShowH = false; DoShowH(); }
+        });
+    }
+
+    void HookH(RewardedAd ad)
+    {
+        ad.OnAdFullScreenContentClosed += () => { LoadH(); };
+        ad.OnAdFullScreenContentFailed += (AdError e) =>
+        {
+            var f = _onFailH; _onFailH = null; if (f != null) f("Iklan belum siap. Coba lagi.");
+            LoadH();
+        };
+    }
+
+    void DoShowH()
+    {
+        if (_adH == null || !_adH.CanShowAd()) { _wantShowH = true; LoadH(); return; }
+        _adH.Show(reward => { var cb = _onRewardH; _onRewardH = null; if (cb != null) cb(); });
+    }
+
+    public void TampilkanHadiah(System.Action onReward, System.Action<string> onFail)
+    {
+        _onRewardH = onReward; _onFailH = onFail;
+        EnsureInit();
+        if (_adH != null && _adH.CanShowAd()) DoShowH();
+        else { _wantShowH = true; LoadH(); }
+    }
+#else
+    public void TampilkanPeti(Saldoku game, string customData)
+    {
+        game.OnPetiGagal(game.PesanIklanMati());
+    }
+
+    // Build ini belum mengaktifkan AdMob (SALDOKU_ADMOB). Supaya fitur buka karakter
+    // tetap berfungsi & bisa diuji sekarang, hadiah diberikan LANGSUNG. Setelah
+    // SALDOKU_ADMOB diaktifkan (Google Mobile Ads SDK + Ad Unit asli), ini otomatis
+    // menjadi rewarded ad sungguhan seperti alur peti Koin.
+    public void TampilkanHadiah(System.Action onReward, System.Action<string> onFail)
+    {
+        if (onReward != null) onReward();
+    }
+#endif
+}
+
+// ---- DTO JSON ----
+[System.Serializable] public class SalVerifyReq  { public string kode; public string device; }
+[System.Serializable] public class SalVerifyResp { public bool status; public string message; public SalVerifyData data; }
+[System.Serializable] public class SalVerifyData { public string game_token; public int user_id; public string nama; public string referral_code; }
+[System.Serializable] public class SalStatusResp { public bool status; public string message; public SalStatusData data; }
+[System.Serializable]
+public class SalStatusData
+{
+    public long koin; public long poin; public long rupiah; public int kurs;
+    public int iklan_per_peti; public int poin_per_peti; public int peti_progress; public int sisa_ke_peti;
+    public int iklan_hari_ini; public int batas_harian; public int sisa_iklan; public int peti_hari_ini;
+    public long poin_hari_ini; public string nama;
+}
