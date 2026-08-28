@@ -85,7 +85,7 @@ public class LevelSystem : MonoBehaviour
         float barY = pY + pH * 0.58f;
         float ratio = (xpUntukNaik > 0) ? Mathf.Clamp01((float)xp / xpUntukNaik) : 0f;
         Tema.Panel9(new Rect(barX, barY, barW, barH), new Color(0f, 0f, 0f, 0.55f), Tema.GarisRedup, 1f);
-        Tema.Kotak(new Rect(barX + 1f, barY + 1f, (barW - 2f) * ratio, barH - 2f),
-            new Color(0.45f, 0.95f, 1f, 0.95f));
+        Tema.BarIsi(new Rect(barX + 1f, barY + 1f, (barW - 2f) * ratio, barH - 2f),
+            new Color(0.40f, 0.90f, 1f, 0.98f));
     }
 }
