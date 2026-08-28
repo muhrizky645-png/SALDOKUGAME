@@ -34,14 +34,14 @@
   - Tombol: `GayaTombol(ukuran)` (biru default), `GayaTombolAksen(ukuran)` (hijau aksi).
   - Font: `FontUtama` = `Resources/ThaleahPixel.ttf` (pixel).
   - ⚠️ Semua tekstur runtime pakai `HideFlags.HideAndDontSave` biar tak terhapus saat scene reload.
-- **`Ikon.cs`** — ikon prosedural (tanpa file). Skill: `petir, peluru, target, chevron, hati, berlian, pisau, aura, roket, bintang`. Item: `bom, magnet, peti` (berwarna). `Ikon.UntukSkill(id)` & `Ikon.UntukItem(id)` mengutamakan FILE `Resources/Icons/<id>.png`, fallback ikon kode. Gambar: `Ikon.Gambar(rect, tex, warnaIsi[, warnaGaris])`.
+- **`Ikon.cs`** — ikon prosedural (tanpa file). Skill: `petir, peluru, target, chevron, hati, berlian, pisau, aura, roket, bintang`. Item: `bom, magnet, peti` (berwarna). UI: **`Piala`** (trophy, dipakai panel rekor). `Ikon.UntukSkill(id)` & `Ikon.UntukItem(id)` mengutamakan FILE `Resources/Icons/<id>.png`, fallback ikon kode. Gambar: `Ikon.Gambar(rect, tex, warnaIsi[, warnaGaris])`.
 
 ### HUD & menu (IMGUI, digambar di `OnGUI`)
-- **`GameMenu.cs`** — state game: `SedangMain`, `SedangJeda` (static). Home/pause/settings set `Time.timeScale=0`. Latar home = demo battle blur via `LatarDemo.Gambar(w,h)`. Helper `GameMenu.Tombol(...)`, `UlangiDanMain()`, `KeHome()`.
+- **`GameMenu.cs`** — state game: `SedangMain`, `SedangJeda` (static). Home/pause/settings set `Time.timeScale=0`. Latar home = demo battle blur via `LatarDemo.Gambar(w,h)`. Judul **SALDOKU / LAST STAND** jaraknya sudah DIRAPATKAN (tidak melebar ke atas). **Panel rekor** kini menampilkan `[ikon Piala] angka` (label "REKOR TERTINGGI" & 2 bintang SUDAH DIHAPUS). Helper `GameMenu.Tombol(...)`, `UlangiDanMain()`, `KeHome()`.
 - **`LatarDemo.cs`** — latar menu home: simulasi battle blur (dasar rumput hijau + hint blur + partikel). Kelas: `Musuh/Tracer/Kilat/Bara`.
-- **`LevelSystem.cs`** — panel HUD kiri-atas. **BARIS ATAS panel kini = BAR NYAWA (HP)** yang menyatu (bar penuh selebar panel, isi warna dinamis hijau→kuning→merah, ikon HATI merah di ujung kiri, tulisan `LEVEL x` MENIMPA/kepotong di kiri, angka `HP / MAX` di kanan). **BARIS BAWAH = bar XP biru.** Membaca `PlayerHealth.Instance.health/maxHealth`. `LevelSystem.TinggiPanel(w)` dipakai HUD lain untuk sejajar.
+- **`LevelSystem.cs`** — panel HUD kiri-atas. **BARIS ATAS = `LEVEL x` (TERPISAH di kiri) + ikon HATI merah + BAR NYAWA** yang mengisi sisa lebar ke kanan (isi warna dinamis hijau→kuning→merah dari `PlayerHealth.Instance`, angka `HP / MAX` di TENGAH bar). Tulisan LEVEL TIDAK lagi menimpa bar. **BARIS BAWAH = bar XP biru.** `LevelSystem.TinggiPanel(w)` dipakai HUD lain untuk sejajar.
 - **`GameTimer.cs`** — timer bertahan (kanan, sejajar skor) + **bar nyawa BOSS** (tengah, muncul saat `EnemyChase.JumlahBos>0`). Contoh bagus pemakaian `BarIsi` + `Panel9`.
-- **`ScoreManager.cs`** — skor & rekor.
+- **`ScoreManager.cs`** — skor & rekor (`RekorTertinggi`).
 - **`PlayerHealth.cs`** — nyawa player + layar Game Over (revive/tonton iklan sekali, main lagi, home). **HP bar sekarang TIDAK digambar di sini** — sudah dipindah menyatu ke panel LEVEL di `LevelSystem.cs`. Menyediakan `public static Instance`, `health`, `maxHealth`, `Kurangi/Pulih/HidupLagi`.
 
 ### Dunia / gameplay
@@ -63,43 +63,29 @@
 3. **Musuh menembus rintangan** (hanya player yang menabrak) — sengaja, biar swarm musuh tidak macet. **User belum keberatan.**
 4. **Y-sort relatif kamera** untuk occlusion (lihat §4 bug fix). Lantai `sortingOrder = -9` (paling bawah), jangan diubah.
 5. **Pohon/batu/semak = objek nyata** (RintanganArena), **bukan** bagian tekstur lantai (ArenaTakTerbatas). Lantai hanya rumput/tanah/bunga/kerikil.
-6. **HP bar player menyatu dengan panel LEVEL/XP** (satu panel di kiri-atas: baris atas = nyawa, baris bawah = XP). Jangan bikin HP bar terpisah lagi.
+6. **HP bar player = baris atas panel LEVEL/XP** dengan urutan: **`LEVEL x` (teks terpisah) + ikon HATI + bar nyawa** (baris bawah = XP). Tulisan LEVEL TIDAK menimpa bar. Jangan bikin HP bar terpisah lagi.
+7. **Panel rekor Home** = `[ikon Piala] angka` saja (tanpa label teks & tanpa bintang).
 
 ---
 
 ## 4. Yang Ditemukan & Diperbaiki
 
-### ❤️➡️📊 HP bar DIPINDAH menyatu ke panel LEVEL/XP (`LevelSystem.cs` + `PlayerHealth.cs`) — sesi 2026-08-28 (lanjutan)
-- **Permintaan user:** bar nyawa (hijau, ikon hati) dipindah ke ATAS menyatu dengan bar LEVEL/EXP; bar penuh selebar panel, tulisan `LEVEL` menimpa (kepotong), ikon hati merah tetap ada.
-- **Implementasi:**
-  - `LevelSystem.OnGUI` sekarang menggambar **BARIS ATAS = bar nyawa** di dalam panel yang sama: backing `Panel9` gelap + `BarIsi` gradien **warna dinamis** (hijau→kuning→merah dari `PlayerHealth.Instance`), **ikon `Ikon.Hati`** merah menonjol di ujung kiri, tulisan `LEVEL x` (`Tema.Tulang`) **menimpa** bar di kiri (setelah ikon hati), dan angka `HP / MAX` di kanan (`MiddleRight`). **BARIS BAWAH = bar XP biru** (tetap).
-  - `PlayerHealth.cs` **tidak lagi menggambar HP bar sendiri** — method `GambarBarNyawa()` dihapus & pemanggilannya di `OnGUI` dihilangkan (tinggal layar Game Over). Bar sprite lama tetap disembunyikan via `SembunyikanBarLama()`.
+### 🏠 Rapikan Home + ❤️ layout bar nyawa — sesi 2026-08-28 (lanjutan)
+- **Judul Home dirapatkan** (`GameMenu.cs`): jarak `SALDOKU` → `LAST STAND` → subtitle dipadatkan (SALDOKU `y=0.075h`, LAST STAND `y=0.138h`, subtitle `y=0.205h`) supaya tidak melebar ke atas.
+- **Panel rekor** (`GameMenu.cs`): hapus label "REKOR TERTINGGI" & 2 ikon bintang. Sekarang render **`[ikon Piala] angka`** (ikon + `ScoreManager.Instance.RekorTertinggi`) yang di-center sebagai grup.
+- **Ikon `Piala`** baru (`Ikon.cs`): trophy prosedural (mangkuk setengah-elips + rim + pegangan C kiri/kanan + batang + alas), dirender via `Buat(FPiala,72)` (monokrom + gradasi + outline, diwarnai `Tema.Amber`).
+- **Layout bar nyawa diubah** (`LevelSystem.cs`): dari "LEVEL menimpa bar" menjadi **`LEVEL x` TERPISAH di kiri → ikon HATI → BAR NYAWA mengisi sisa ke kanan**. `lvW = rowW*0.26`, hati `ik = hpH*1.5`, bar mulai `heartX + ik*0.95`. Angka `HP / MAX` kini di TENGAH bar. Warna bar tetap dinamis hijau→kuning→merah.
+
+### ❤️➡️📊 HP bar DIPINDAH menyatu ke panel LEVEL/XP — sesi 2026-08-28
+- HP bar player (dulu terpisah di bawah baris skor) dipindah menyatu ke panel LEVEL. `PlayerHealth.cs` tidak lagi menggambar HP bar sendiri (method `GambarBarNyawa()` dihapus). *(Layout awalnya "LEVEL menimpa bar", kemudian diubah jadi "LEVEL terpisah" — lihat subbagian teratas.)*
 
 ### 🐛 BUG: player hilang di tempat tertentu — DIPERBAIKI
 - **Gejala:** di titik tertentu, sprite player menghilang.
-- **Akar masalah:** `UrutanY` (di `RintanganArena.cs`) dulu memakai **sortingOrder ABSOLUT** `= -(y+offsetY)*100`. Saat player berjalan ke Y positif besar, nilai order jatuh **di bawah** `sortingOrder` lantai (`-9`), sehingga player ter-render **di belakang lantai/rumput** → tampak hilang.
-- **Perbaikan:** `UrutanY` kini menghitung order **relatif terhadap Y kamera** dengan **basis besar** supaya actor/rintangan **selalu di atas lantai**, sementara occlusion antar-objek tetap benar:
-  ```csharp
-  const int BASE = 20000; static Camera _cam;
-  void LateUpdate(){
-    if(_cam==null)_cam=Camera.main;
-    float camY=_cam!=null?_cam.transform.position.y:0f;
-    if(sg!=null) sg.sortingOrder = BASE - Mathf.RoundToInt((transform.position.y+offsetY-camY)*100f);
-  }
-  ```
-  Y lebih tinggi → order lebih kecil → di belakang (occlusion benar). Lantai `-9` tidak diubah.
+- **Akar masalah:** `UrutanY` (di `RintanganArena.cs`) dulu memakai **sortingOrder ABSOLUT** `= -(y+offsetY)*100`. Saat player berjalan ke Y positif besar, order jatuh **di bawah** `sortingOrder` lantai (`-9`) → player ter-render di belakang lantai → tampak hilang.
+- **Perbaikan:** `UrutanY` kini menghitung order **relatif terhadap Y kamera** dengan **basis besar** (`BASE=20000`, `order = BASE - round((y+offsetY-camY)*100)`) supaya actor/rintangan selalu di atas lantai, occlusion antar-objek tetap benar. Lantai `-9` tidak diubah.
 
 ### 🌸 Kepadatan bunga & tanah dikurangi (`ArenaTakTerbatas.cs`)
-- User: bunga & lumpur/tanah terlalu penuh. Batu/pohon/rumput sudah bagus & sudah menabrak.
-- Perubahan hitungan (elemen lain tidak diubah):
-  - `jmlTanah`: `6 + Next(3)` → `3 + Next(2)`
-  - `jmlBunga`: `30 + Next(14)` → `9 + Next(5)` *(dikurangi banyak)*
-  - grup bunga per kluster: `1 + Next(4)` → `1 + Next(2)`
-  - `jmlKerikil`: `26 + Next(14)` → `16 + Next(8)`
-
-### ❤️ HP bar player dibuat bertema (`PlayerHealth.cs`) — versi awal (kini digantikan §di atas)
-- **Sebelum:** HP bar = objek **sprite scene** (`hpFill`) yang flat & kotak, beda gaya dari HUD bertema.
-- **Sesudah (versi awal):** `SembunyikanBarLama()` mematikan sprite lama; `GambarBarNyawa()` menggambar HP bar bertema TERPISAH di bawah baris skor. **CATATAN:** versi terpisah ini SUDAH DIHAPUS — HP bar sekarang menyatu di panel LEVEL (lihat subbagian teratas §4).
+- `jmlTanah`: `6+Next(3)` → `3+Next(2)`; `jmlBunga`: `30+Next(14)` → `9+Next(5)`; grup bunga/kluster: `1+Next(4)` → `1+Next(2)`; `jmlKerikil`: `26+Next(14)` → `16+Next(8)`.
 
 ---
 
@@ -107,12 +93,14 @@
 
 | Urutan | File | Ringkas |
 |---|---|---|
-| 1 | `RintanganArena.cs` | Buat sistem rintangan nyata (pohon/batu/semak) + tabrakan + occlusion; lalu **fix Y-sort relatif kamera** (bug player hilang) |
-| 2 | `ArenaTakTerbatas.cs` | Lantai floor-only (pohon dll dipindah keluar); lalu **kurangi kepadatan bunga/tanah/kerikil** |
-| 3 | `LatarDemo.cs` | Latar home = demo battle blur, dasar rumput hijau (kurangi dominasi kuning) |
+| 1 | `RintanganArena.cs` | Sistem rintangan nyata (pohon/batu/semak) + tabrakan + occlusion; lalu fix Y-sort relatif kamera |
+| 2 | `ArenaTakTerbatas.cs` | Lantai floor-only; lalu kurangi kepadatan bunga/tanah/kerikil |
+| 3 | `LatarDemo.cs` | Latar home = demo battle blur, dasar rumput hijau |
 | 4 | `Tema.cs` | Tema cerah Survivor.io (oranye-emas, tombol biru/hijau) |
-| 5 | `PlayerHealth.cs` | HP bar bertema + sembunyikan bar sprite lama; lalu **HP bar terpisah DIHAPUS** (pindah ke LevelSystem) |
-| 6 | `LevelSystem.cs` | **HP bar nyawa menyatu di baris atas panel LEVEL** (bar penuh, tulisan LEVEL menimpa, ikon hati merah, angka HP di kanan) |
+| 5 | `PlayerHealth.cs` | HP bar bertema + sembunyikan bar sprite lama; lalu HP bar terpisah DIHAPUS (pindah ke LevelSystem) |
+| 6 | `LevelSystem.cs` | HP bar menyatu di panel LEVEL; lalu layout jadi **`LEVEL x` terpisah + hati + bar nyawa** (tidak menimpa) |
+| 7 | `Ikon.cs` | Tambah ikon **`Piala`** (trophy) prosedural untuk panel rekor |
+| 8 | `GameMenu.cs` | Rapatkan judul SALDOKU/LAST STAND + panel rekor `[Piala] angka` (hapus label & bintang) |
 
 (Perubahan sebelumnya: UI semi-3D di `Tema/LevelSystem/GameTimer`, `GameMenu` demo-blur, `Ikon.cs` chevron image-loadable.)
 
@@ -127,10 +115,10 @@
 - `PlayerHealth.cs` = `7cbbc7151868b1b0f74c8f9938a99f6600a3b37e`
 - `Tema.cs` = `7fbbeb537933829e721a4fdabd4222006f3517fb`
 - `LatarDemo.cs` = `11c18ee27245586574eb474f4ebe93a54fa9d47d`
-- `GameMenu.cs` = `906d54b5121c182c942dd6350a1ba6dd672bbeeb`
+- `GameMenu.cs` = `5777a7a0cc280fcdb951566bb7b4d6ff18d10770`
 - `GameTimer.cs` = `9a6c26cbbfe438ced4479d4bf068cf2888913ffe`
-- `LevelSystem.cs` = `828c36c20c5542d28750eb647b59ee74aa78c7ff`
-- `Ikon.cs` = `f167b2cd1683a8b7abd84ac80125f73b901c3e38`
+- `LevelSystem.cs` = `63937ac3151b93078a6a5d389dfb42a4688b5152`
+- `Ikon.cs` = `27ff259e4c25fdad923467713534166f11b2b0a4`
 - `MataUang.cs` = `571f605a5def5224fd1dbe175cbe85fa82cf4acc`
 - `SkillManager.cs` = `86df8e0d7a87147ae1f80cee2d7e6357abf88a79`
 - `ZombieSpawner.cs` = `a7b4c347f378b14a13091795c650597b5c47bb9b`
@@ -146,10 +134,13 @@
 
 1. **Ikon skill via PNG** (ditunda oleh user): user mungkin render ikon lewat ChatGPT/Flow → zip → upload → AI push ke `Assets/Resources/Icons/<id>.png`. Skill id: `petir, peluru, target, chevron, hati, berlian, pisau, aura, roket`. Semua sudah image-loadable via `Ikon.Dari`.
    - **Prompt tema ikon (ChatGPT):** *2D pixel-art game icon, survivor.io / survival roguelite style, single centered emblem, thick dark outline, flat cel shading with slight top light, palette army green #A9D961 / blood red #D12B21 / amber gold #FFCC38 / bone white #F2F0DE, transparent background, square 1024×1024, readable small, no text, no drop shadow.*
-2. **(Opsional) Musuh ikut menabrak rintangan** — sekarang hanya player. Perlu hati-hati agar swarm tidak macet.
+2. **(Opsional) Musuh ikut menabrak rintangan** — sekarang hanya player.
 3. **(Opsional) Tuning sorting peluru/gem** kalau occlusion terlihat aneh.
-4. **(Opsional) Tuning kepadatan rintangan** (hutan lebat vs jarang) di `RintanganArena.cs` (`SEL/RADIUS`/peluang spawn).
-5. **(Opsional) Verifikasi visual bar nyawa menyatu** — cek di device asli: posisi ikon hati vs tulisan `LEVEL` (jangan bertumpuk), keterbacaan angka HP di kanan, dan tinggi baris. Sesuaikan `hpH`/`ik`/`lvX` di `LevelSystem.cs` bila perlu.
+4. **(Opsional) Tuning kepadatan rintangan** di `RintanganArena.cs` (`SEL/RADIUS`/peluang spawn).
+5. **(Opsional) Verifikasi visual di device asli:** 
+   - Bar nyawa: cek `lvW` (ruang tulisan LEVEL) cukup untuk "LEVEL 99" tanpa kepotong; posisi hati & bar tidak bertumpuk; keterbacaan angka HP di tengah bar. Sesuaikan `lvW`/`ik` di `LevelSystem.cs`.
+   - Panel rekor Home: cek ikon Piala + angka ter-center rapi untuk angka panjang. Sesuaikan `estAngka`/`startX` di `GameMenu.cs`.
+   - Judul Home: pastikan jarak sudah pas (tidak terlalu dekat/jauh).
 
 ---
 
