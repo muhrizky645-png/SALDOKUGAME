@@ -5,6 +5,12 @@ using UnityEngine;
 // "panggung" jauh, lalu merendernya dengan kamera khusus ke RenderTexture. Dengan begitu
 // proporsi & posisi tiap bagian pasti benar (persis seperti saat main), dan gameplay
 // tidak terganggu karena clone berada jauh dari arena serta script-nya dimatikan.
+//
+// PENTING (URP): kamera TIDAK dirender manual lewat _cam.Render(). Di Universal Render
+// Pipeline, memanggil Camera.Render() dari dalam OnGUI melempar error
+// "UniversalCameraData has already been created" dan membuat hasilnya KOSONG. Solusinya:
+// biarkan kamera AKTIF (enabled = true) dengan targetTexture, sehingga URP merendernya
+// otomatis tiap frame ke RenderTexture (tidak ikut tampil ke layar).
 public static class PratinjauKarakter
 {
     static Camera _cam;
@@ -16,10 +22,8 @@ public static class PratinjauKarakter
     static readonly Vector3 PosPanggung = new Vector3(10000f, 10000f, 0f);
 
     // Kembalikan tekstur pratinjau untuk karakter idx (atau null bila rig belum ada).
-    // Klon hanya DIBANGUN ULANG saat karakter berganti (mahal: Instantiate rig), tapi
-    // RENDER dilakukan tiap Repaint supaya gambar tidak pernah KOSONG (mis. saat frame
-    // pertama rig pemain belum selesai dipasang). Render dibatasi ke event Repaint saja
-    // agar tidak dobel (OnGUI jalan di Layout + Repaint).
+    // Klon hanya DIBANGUN ULANG saat karakter berganti (mahal: Instantiate rig). Proses
+    // RENDER ditangani otomatis oleh kamera aktif (URP), jadi di sini cukup kembalikan RT.
     public static Texture Ambil(int idx)
     {
         Siapkan();
@@ -30,9 +34,6 @@ public static class PratinjauKarakter
             if (!BangunKlon()) return null;
             _idxTerakhir = idx;
         }
-
-        if (Event.current == null || Event.current.type == EventType.Repaint)
-            _cam.Render();
         return _rt;
     }
 
@@ -58,11 +59,12 @@ public static class PratinjauKarakter
             _cam.orthographic = true;
             _cam.clearFlags = CameraClearFlags.SolidColor;
             _cam.backgroundColor = new Color(0f, 0f, 0f, 0f); // transparan
-            _cam.cullingMask = ~0;      // hanya clone yang ada di panggung ini
+            _cam.cullingMask = ~0;      // hanya clone yang ada di panggung jauh ini yang terlihat
             _cam.nearClipPlane = 0.01f;
             _cam.farClipPlane = 100f;
-            _cam.targetTexture = _rt;
-            _cam.enabled = false;       // dirender manual lewat _cam.Render()
+            _cam.targetTexture = _rt;   // punya targetTexture => TIDAK ikut tampil ke layar
+            _cam.depth = -100;
+            _cam.enabled = true;        // URP merender otomatis tiap frame (JANGAN panggil _cam.Render() manual di URP!)
         }
     }
 
