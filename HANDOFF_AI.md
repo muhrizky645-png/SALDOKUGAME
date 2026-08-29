@@ -1,5 +1,5 @@
 # HANDOFF — ZOMBURST: Auto Shooter (SALDOKUGAME)
-_Update: 29 Aug 2026, 15:31 WIB. Untuk melanjutkan di sesi chat baru._
+_Update: 29 Aug 2026, 16:49 WIB. Untuk melanjutkan di sesi chat baru._
 
 ---
 
@@ -53,12 +53,15 @@ Kamu (AI sesi berikutnya) melanjutkan pekerjaan membangun fitur game Unity 2D (C
 - **Catatan balance:** CRIT menaikkan damage efektif sedikit (musuh mati lebih cepat). Kalau user mau variasi angka TANPA ubah balance, buat crit MURNI VISUAL — jangan kalikan dmg yang dikirim ke `KenaSerangan`, cukup kirim angka besar ke `DamageNumber.Munculkan` saja.
 - Tuning cepat: ukuran font = `0.02f` di DamageNumber.cs; peluang/lipatan crit = `0.22f` & `Random.Range(2,4)` di Bullet.cs.
 
+### PAKET 4 — Extra SFX: boss muncul + jingle menang (SHIPPED, 29 Aug 16:49)
+- SFX **boss muncul** dan **jingle menang** sudah ditambahkan & terkirim (edit `SoundManager.cs` + pemanggilnya). Menang tidak lagi hanya bunyi `LevelUp()`.
+- CATATAN sesi berikut: konfirmasi nama method SFX baru di `SoundManager.cs` (mis. `BosMuncul()` / `Menang()`) dari file asli terbaru sebelum dipakai ulang, karena detail implementasi belum tercatat di handoff ini.
+
 ---
 
 ## 4. YANG BELUM (LANJUTKAN DI SINI)
 
 ### Lain-lain / deferred
-- Extra SFX (boss muncul, jingle menang) → butuh edit SoundManager (minta upload asli). Menang sudah bunyi LevelUp.
 - Tema per-stage (background/tint musuh) pakai `StageManager.PengaliMusuhSekarang` — ZombieSpawner belum diwire ke pengali; stage sekarang beda hanya di durasi bertahan.
 - Asset asli (nanti swap): diorama_stage1.png (hutan), ikon nav, logo wordmark "ZOMBURST" (army green + amber + red, glossy 3D). Style base: "mobile game icon, Survivor.io art style, cute chibi, vibrant, thick dark outline, glossy, transparent bg, no text". HUD icon = Texture2D Default di `Assets/Resources/Icons/`; world drop = Sprite; bg 1080x2400.
 
