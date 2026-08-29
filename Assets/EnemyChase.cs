@@ -107,6 +107,7 @@ public class EnemyChase : MonoBehaviour
         {
             JumlahBos++;
             BosSaatIni = this;
+            SoundManager.BossMuncul();
         }
 
         MulaiGerak(); // mulai animasi JALAN

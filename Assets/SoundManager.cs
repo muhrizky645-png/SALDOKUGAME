@@ -21,6 +21,7 @@ public class SoundManager : MonoBehaviour
     private AudioSource efek;
 
     private AudioClip cTembak, cMusuhKena, cMusuhMati, cAmbilXp, cLevelUp, cKena, cGameOver, cKlik;
+    private AudioClip cBossMuncul, cMenang;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
@@ -99,6 +100,8 @@ public class SoundManager : MonoBehaviour
     public static void PlayerKena() { Play(Instance ? Instance.cKena : null); }
     public static void GameOver()   { Play(Instance ? Instance.cGameOver : null); }
     public static void Klik()       { Play(Instance ? Instance.cKlik : null); }
+    public static void BossMuncul() { Play(Instance ? Instance.cBossMuncul : null); }
+    public static void Menang()     { Play(Instance ? Instance.cMenang : null); }
 
     static void Play(AudioClip c)
     {
@@ -123,6 +126,26 @@ public class SoundManager : MonoBehaviour
         for (int i = 0; i < fs.Length; i++)
             TulisNada(b, (int)(i * 0.09f * SR), fs[i], 0.12f, 0.30f, 0);
         cLevelUp = BuatClip(b);
+
+        // boss muncul = motif rendah menegangkan (turun) + drone bass panjang
+        float[] bb = new float[(int)(0.9f * SR)];
+        float[] bf = { 130.81f, 123.47f, 110.00f, 98.00f }; // C3 B2 A2 G2 (turun)
+        for (int i = 0; i < bf.Length; i++)
+            TulisNada(bb, (int)(i * 0.16f * SR), bf[i], 0.28f, 0.34f, 2);
+        TulisNada(bb, 0, 55f, 0.9f, 0.20f, 2); // A1 drone biar terasa "besar"
+        cBossMuncul = BuatClip(bb);
+
+        // menang = fanfare naik + akor C mayor ditahan di akhir
+        float[] mb = new float[(int)(1.1f * SR)];
+        float[] mf = { 523.25f, 659.25f, 783.99f, 1046.5f }; // C5 E5 G5 C6
+        for (int i = 0; i < mf.Length; i++)
+            TulisNada(mb, (int)(i * 0.11f * SR), mf[i], 0.14f, 0.28f, 0);
+        int akhir = (int)(0.5f * SR);
+        TulisNada(mb, akhir, 523.25f, 0.55f, 0.20f, 1);
+        TulisNada(mb, akhir, 659.25f, 0.55f, 0.18f, 1);
+        TulisNada(mb, akhir, 783.99f, 0.55f, 0.18f, 1);
+        TulisNada(mb, akhir, 1046.5f, 0.55f, 0.16f, 1);
+        cMenang = BuatClip(mb);
     }
 
     // tulis satu nada ke buffer (additif). tipe: 0=kotak, 1=sinus, 2=segitiga

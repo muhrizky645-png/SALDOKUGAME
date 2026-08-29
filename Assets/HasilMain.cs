@@ -68,7 +68,7 @@ public class HasilMain : MonoBehaviour
         // ---- BUKA STAGE BERIKUTNYA ----
         StageManager.BukaSampai(StageManager.Dipilih + 1);
 
-        SoundManager.LevelUp();
+        SoundManager.Menang();
     }
 
     static string FormatWaktu(int detik)
