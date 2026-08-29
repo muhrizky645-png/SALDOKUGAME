@@ -15,7 +15,7 @@ public class PlayerHealth : MonoBehaviour
     private bool sudahHidupLagi = false;
 
     [Header("HP Bar (lama - sprite scene, kini disembunyikan; HUD bertema menggantikan)")]
-    public Transform hpFill;      // drag BarFill ke sini (opsional, kini di-hide)
+    public Transform hpFill; // drag BarFill ke sini (opsional, kini di-hide)
     private float fillWidth = 1f;
 
     private SpriteRenderer[] srs;
@@ -37,7 +37,7 @@ public class PlayerHealth : MonoBehaviour
         sudahHidupLagi = false;
         if (hpFill != null) fillWidth = hpFill.localScale.x;
         UpdateBar();
-        SembunyikanBarLama();   // matikan bar sprite lama; diganti HUD bertema di OnGUI
+        SembunyikanBarLama(); // matikan bar sprite lama; diganti HUD bertema di OnGUI
 
         Transform ninja = transform.Find("Ninja_Character_5");
         srs = (ninja != null) ? ninja.GetComponentsInChildren<SpriteRenderer>() : new SpriteRenderer[0];
@@ -179,21 +179,35 @@ public class PlayerHealth : MonoBehaviour
         int rekor = (ScoreManager.Instance != null) ? ScoreManager.Instance.RekorTertinggi : 0;
         bool rekorBaru = (skor > 0 && skor >= rekor);
 
-        float pw = w * 0.72f, ph = h * 0.15f, px = (w - pw) / 2f, py = h * 0.24f;
+        // ====== PANEL SKOR & REKOR (disusun ATAS-BAWAH: REKOR atas, SKOR bawah) ======
+        float pw = w * 0.72f, ph = h * 0.22f, px = (w - pw) / 2f, py = h * 0.22f;
         Tema.Panel9(new Rect(px, py, pw, ph), Tema.Plate, Tema.GarisRedup, 2f);
 
-        float colW = pw / 2f;
-        Tema.Teks(new Rect(px, py + ph * 0.14f, colW, ph * 0.35f), "SKOR", Mathf.RoundToInt(h * 0.026f),
-            Tema.Redup, TextAnchor.MiddleCenter, true);
-        Tema.Teks(new Rect(px, py + ph * 0.45f, colW, ph * 0.5f), skor.ToString(), Mathf.RoundToInt(h * 0.048f),
-            Tema.Tulang, TextAnchor.MiddleCenter, true);
+        float rowH = ph / 2f;
+        int fLabel = Mathf.RoundToInt(h * 0.024f);
+        int fNilai = Mathf.RoundToInt(h * 0.050f);
 
-        float ik = ph * 0.20f;
-        Ikon.Gambar(new Rect(px + colW + (colW - ik) / 2f, py + ph * 0.04f, ik, ik), Ikon.Bintang, Tema.Amber);
-        Tema.Teks(new Rect(px + colW, py + ph * 0.26f, colW, ph * 0.28f), "REKOR", Mathf.RoundToInt(h * 0.024f),
+        // ---- REKOR (baris ATAS) ----
+        float ryTop = py;
+        Tema.Teks(new Rect(px, ryTop + rowH * 0.14f, pw, rowH * 0.30f), "REKOR", fLabel,
             Tema.Redup, TextAnchor.MiddleCenter, true);
-        Tema.Teks(new Rect(px + colW, py + ph * 0.50f, colW, ph * 0.5f), rekor.ToString(), Mathf.RoundToInt(h * 0.048f),
+        // ikon PIALA di kiri nilai rekor (bukan bintang lagi)
+        float ik = rowH * 0.40f;
+        float nilaiY = ryTop + rowH * 0.44f;
+        Ikon.Gambar(new Rect(px + pw * 0.20f, nilaiY + (rowH * 0.52f - ik) / 2f, ik, ik), Ikon.Piala, Tema.Amber);
+        Tema.Teks(new Rect(px, nilaiY, pw, rowH * 0.52f), rekor.ToString(), fNilai,
             Tema.Amber, TextAnchor.MiddleCenter, true);
+
+        // garis pemisah tipis antara REKOR dan SKOR
+        Tema.Panel9(new Rect(px + pw * 0.10f, py + rowH - 1f, pw * 0.80f, 2f),
+            Tema.GarisRedup, Tema.GarisRedup, 0f);
+
+        // ---- SKOR (baris BAWAH) ----
+        float ryBot = py + rowH;
+        Tema.Teks(new Rect(px, ryBot + rowH * 0.14f, pw, rowH * 0.30f), "SKOR", fLabel,
+            Tema.Redup, TextAnchor.MiddleCenter, true);
+        Tema.Teks(new Rect(px, ryBot + rowH * 0.44f, pw, rowH * 0.52f), skor.ToString(), fNilai,
+            Tema.Tulang, TextAnchor.MiddleCenter, true);
 
         if (rekorBaru)
         {
@@ -232,7 +246,7 @@ public class PlayerHealth : MonoBehaviour
             yHome = h * 0.68f;
         }
 
-        if (GUI.Button(new Rect(bx, yMain, bw, bh), "MAIN LAGI (R)", Tema.GayaTombol(fb)))
+        if (GUI.Button(new Rect(bx, yMain, bw, bh), "MAIN LAGI", Tema.GayaTombol(fb)))
         {
             SoundManager.Klik();
             GameMenu.UlangiDanMain();

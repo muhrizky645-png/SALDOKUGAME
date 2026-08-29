@@ -44,7 +44,11 @@ public static class Tema
         {
             if (!_fontDicari)
             {
-                _font = Resources.Load<Font>("ThaleahPixel");
+                                // Utamakan font baru "Square-Black". Taruh TTF-nya di Assets/Resources/.
+                // Kalau tak ada, otomatis balik ke ThaleahPixel (fallback aman).
+                _font = Resources.Load<Font>("Square-Black");
+                if (_font == null) _font = Resources.Load<Font>("Fonts/Square-Black");
+                if (_font == null) _font = Resources.Load<Font>("ThaleahPixel");
                 _fontDicari = true;
             }
             return _font;
