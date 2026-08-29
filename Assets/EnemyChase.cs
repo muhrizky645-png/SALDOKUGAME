@@ -230,6 +230,7 @@ public class EnemyChase : MonoBehaviour
     {
         if (sudahMati) return;
         nyawaSekarang -= Mathf.Max(1, damage);
+        DamageNumber.Munculkan(transform.position, Mathf.Max(1, damage));
         if (nyawaSekarang <= 0)
         {
             Mati();

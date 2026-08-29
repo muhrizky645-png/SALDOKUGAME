@@ -41,12 +41,15 @@ public class Bullet : MonoBehaviour
             if (musuh != null)
             {
                 // kurangi nyawa musuh; kalau habis, musuh mati (diatur di EnemyChase)
-                musuh.KenaSerangan(damage);
+                int dmg = damage;
+                if (Random.value < 0.22f) dmg = damage * Random.Range(2, 4); // CRIT 2x/3x biar angka bervariasi
+                musuh.KenaSerangan(dmg);
             }
             else
             {
                 // cadangan kalau musuh tidak punya EnemyChase
                 HitEffect.Munculkan(other.transform.position);
+                DamageNumber.Munculkan(other.transform.position, damage);
                 XpGem.Munculkan(other.transform.position, 1);
                 if (ScoreManager.Instance != null) ScoreManager.Instance.AddScore(10);
                 Destroy(other.gameObject);

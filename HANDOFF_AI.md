@@ -1,5 +1,5 @@
 # HANDOFF — ZOMBURST: Auto Shooter (SALDOKUGAME)
-_Update: 29 Aug 2026, 15:11 WIB. Untuk melanjutkan di sesi chat baru._
+_Update: 29 Aug 2026, 15:31 WIB. Untuk melanjutkan di sesi chat baru._
 
 ---
 
@@ -46,16 +46,16 @@ Kamu (AI sesi berikutnya) melanjutkan pekerjaan membangun fitur game Unity 2D (C
 ### PAKET 3 (bag. 1) — Screen shake (SHIPPED)
 - **`ScreenShake.cs`** (BARU → `Assets/`, 99 baris, brace 14/14): `[DefaultExecutionOrder(10000)]` → LateUpdate jalan SETELAH CameraFollow, tambah offset getar (tanpa edit CameraFollow). Auto-getar saat HP pemain turun (cooldown 0.22s biar tak gemetar terus). API publik `ScreenShake.Getar(kuat, durasi)`.
 
+### PAKET 3 (bag. 2) — Floating damage number (SHIPPED, 29 Aug 15:31)
+- **`DamageNumber.cs`** (BARU → `Assets/`): singleton auto-bootstrap (`DontDestroyOnLoad`), `[DefaultExecutionOrder(9000)]`, gambar via OnGUI + `WorldToScreenPoint` (nol asset/prefab/font). API `DamageNumber.Munculkan(Vector3 posisiDunia, int jumlah)`. Angka mengapung naik + fade pakai `Time.unscaledTime` (tetap jalan saat pause). 3 tingkat: 1=putih kecil(0.72×), 2–4=kuning muda(0.9×), ≥5=emas(1.05×). Basis font `Screen.height*0.02`. Batas 80 angka. brace 12/12.
+- **`EnemyChase.cs`** (EDIT surgical): sisip 1 baris di `KenaSerangan(int damage)` tepat setelah `nyawaSekarang -= Mathf.Max(1, damage);` → `DamageNumber.Munculkan(transform.position, Mathf.Max(1, damage));`. INI titik terpusat (semua peluru lewat sini, termasuk hit yang membunuh). brace 40/40.
+- **`Bullet.cs`** (EDIT surgical): (a) jalur cadangan (musuh tanpa EnemyChase) sisip `DamageNumber.Munculkan(...)`; (b) tambah **CRIT** sebelum `KenaSerangan`: `int dmg = damage; if (Random.value < 0.22f) dmg = damage * Random.Range(2,4);` lalu `KenaSerangan(dmg)` → biar angka bervariasi (bukan cuma "1" karena base damage prefab = 1). brace 8/8.
+- **Catatan balance:** CRIT menaikkan damage efektif sedikit (musuh mati lebih cepat). Kalau user mau variasi angka TANPA ubah balance, buat crit MURNI VISUAL — jangan kalikan dmg yang dikirim ke `KenaSerangan`, cukup kirim angka besar ke `DamageNumber.Munculkan` saja.
+- Tuning cepat: ukuran font = `0.02f` di DamageNumber.cs; peluang/lipatan crit = `0.22f` & `Random.Range(2,4)` di Bullet.cs.
+
 ---
 
 ## 4. YANG BELUM (LANJUTKAN DI SINI)
-### PAKET 3 (bag. 2) — Angka damage / floating damage number
-**User SUDAH setuju & akan UPLOAD `Bullet.cs` + `EnemyChase.cs` asli.** Begitu file masuk:
-1. Buat **`DamageNumber.cs`** (BARU): teks angka mengapung naik + memudar, digambar via kode (nol asset), API `DamageNumber.Munculkan(Vector3 pos, int jumlah)`. Warna beda hit biasa vs besar.
-2. Edit SURGICAL (sisip 1 baris) di titik hit:
-   - `Bullet.cs` → saat kena musuh / `musuh.KenaSerangan(damage)` → `DamageNumber.Munculkan(posisiMusuh, damage)`.
-   - `EnemyChase.cs` → cek jalur damage lain (bom/area) biar konsisten.
-3. Verifikasi brace/paren → download `DamageNumber.cs` + `Bullet.cs` + `EnemyChase.cs` (yang sudah diedit dari upload asli).
 
 ### Lain-lain / deferred
 - Extra SFX (boss muncul, jingle menang) → butuh edit SoundManager (minta upload asli). Menang sudah bunyi LevelUp.
@@ -78,6 +78,7 @@ Kamu (AI sesi berikutnya) melanjutkan pekerjaan membangun fitur game Unity 2D (C
 ## 6. FILE DI SANDBOX `/data` (siap download)
 - `user_GameMenu.cs` ← GameMenu.cs TERBARU (Paket 2, timpa yg lama, buang prefix `user_`)
 - `UpgradePermanen.cs`, `ScreenShake.cs`, `StageManager.cs`, `HasilMain.cs` ← file BARU ke `Assets/`
+- `DamageNumber.cs` (BARU → `Assets/`) + `EnemyChase.cs` & `Bullet.cs` (EDIT, timpa lama) ← Paket 3 bag.2, sudah SHIPPED
 - `orig.cs` = versi rusak, JANGAN dipakai. `GameMenu.cs`/`GameMenu_src.cs` lama = abaikan.
 - `HANDOFF_AI.md` (file ini), `ASSET_LIST.md`, `SkillManager.cs`.
 
