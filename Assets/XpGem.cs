@@ -15,15 +15,30 @@ public class XpGem : MonoBehaviour
         g.nilai = nilai;
     }
 
-    public int nilai = 1;             // XP yang diberikan
-    public float ukuran = 1.2f;       // besar permata
-    public float jarakMagnet = 2.5f;  // mulai ketarik ke pemain
-    public float jarakAmbil = 0.5f;   // langsung dipungut
+    public int nilai = 1; // XP yang diberikan
+    public float ukuran = 1.2f; // besar permata
+    public float jarakMagnet = 2.5f; // mulai ketarik ke pemain
+    public float jarakAmbil = 0.5f; // langsung dipungut
     public float kecepatanTarik = 9f; // kecepatan ketarik ke pemain
 
     private Transform player;
     private SpriteRenderer sr;
     private float t = 0f;
+    private bool pakaiFile = false; // true kalau sprite dari PNG (Assets/Resources/Icons/xp)
+
+    // Sprite dari file (Assets/Resources/Icons/xp.png), dicache sekali. null = tidak ada.
+    // CATATAN: PNG HARUS di-import sebagai Texture Type = "Sprite (2D and UI)".
+    static Sprite _fileSprite;
+    static bool _fileDicek;
+    static Sprite FileSprite()
+    {
+        if (!_fileDicek)
+        {
+            _fileSprite = Resources.Load<Sprite>("Icons/xp");
+            _fileDicek = true;
+        }
+        return _fileSprite;
+    }
 
     // Dipanggil item Magnet: paksa permata langsung terbang ke pemain
     public void PaksaTarik()
@@ -40,8 +55,19 @@ public class XpGem : MonoBehaviour
         jarakMagnet *= MagnetMult; // terapkan skill Magnet (kalau ada)
 
         sr = gameObject.AddComponent<SpriteRenderer>();
-        sr.sprite = BuatPermata(32);
-        sr.color = new Color(0.4f, 1f, 1f, 1f); // cyan
+        Sprite file = FileSprite();
+        if (file != null)
+        {
+            sr.sprite = file;              // pakai PNG asli
+            sr.color = Color.white;        // jangan tint biar warna PNG asli
+            pakaiFile = true;
+        }
+        else
+        {
+            sr.sprite = BuatPermata(32);   // fallback: sprite prosedural
+            sr.color = new Color(0.4f, 1f, 1f, 1f); // cyan
+            pakaiFile = false;
+        }
         sr.sortingOrder = 40;
         transform.localScale = Vector3.one * ukuran;
     }
@@ -51,7 +77,13 @@ public class XpGem : MonoBehaviour
         // efek berkedip halus biar kelihatan
         t += Time.deltaTime;
         float kilau = 0.75f + 0.25f * Mathf.Sin(t * 6f);
-        if (sr != null) sr.color = new Color(0.4f * kilau, 1f * kilau, 1f, 1f);
+        if (sr != null)
+        {
+            if (pakaiFile)
+                sr.color = new Color(kilau, kilau, kilau, 1f); // shimmer tanpa ubah warna PNG
+            else
+                sr.color = new Color(0.4f * kilau, 1f * kilau, 1f, 1f);
+        }
 
         if (player == null)
         {
@@ -91,7 +123,7 @@ public class XpGem : MonoBehaviour
             {
                 float dx = Mathf.Abs(x - r + 0.5f);
                 float dy = Mathf.Abs(y - r + 0.5f);
-                float m = (dx + dy) / r;               // 0 tengah, 1 ujung wajik
+                float m = (dx + dy) / r; // 0 tengah, 1 ujung wajik
                 float a = Mathf.Clamp01((1f - m) * 4f); // tepi halus
                 tex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
             }
