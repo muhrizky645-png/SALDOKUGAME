@@ -35,6 +35,13 @@ public class Ledakan : MonoBehaviour
         Ledakan e = go.AddComponent<Ledakan>();
         e.radius = radius;
         e.warna = warna;
+
+        // ---- getar layar ----
+        // HANYA untuk ledakan yang melukai musuh (bom pemain). Ledakan musuh Peledak
+        // (dmgMusuh = 0, cuma melukai pemain) TIDAK getar biar tak kerasa "getar terus".
+        // Kekuatan sudah dikurangi biar tak terlalu goyang.
+        if (dmgMusuh > 0)
+            ScreenShake.Getar(Mathf.Clamp(radius * 0.10f, 0.20f, 0.40f), 0.22f);
     }
 
     public float radius = 1.5f;

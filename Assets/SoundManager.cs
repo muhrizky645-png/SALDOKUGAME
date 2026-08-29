@@ -23,6 +23,13 @@ public class SoundManager : MonoBehaviour
     private AudioClip cTembak, cMusuhKena, cMusuhMati, cAmbilXp, cLevelUp, cKena, cGameOver, cKlik;
     private AudioClip cBossMuncul, cMenang;
 
+    // throttle: batasi frekuensi bunyi 'player kena' biar tak menumpuk "brebet" saat dikepung musuh
+    float tKenaTerakhir = -1f;
+    const float JEDA_KENA = 0.12f;
+    // throttle bunyi 'musuh kena' biar tak brebet saat spam tembak ke kerumunan
+    float tMusuhKenaTerakhir = -1f;
+    const float JEDA_MUSUH = 0.05f;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
     {
@@ -93,11 +100,25 @@ public class SoundManager : MonoBehaviour
 
     // ---------------- API statis dipanggil script lain ----------------
     public static void Tembak()     { Play(Instance ? Instance.cTembak : null); }
-    public static void MusuhKena()  { Play(Instance ? Instance.cMusuhKena : null); }
+    public static void MusuhKena()
+    {
+        if (Instance == null || MuteEfek) return;
+        // Spam tembak ke kerumunan: jangan tumpuk suara (biar tidak "brebet").
+        if (Time.unscaledTime - Instance.tMusuhKenaTerakhir < JEDA_MUSUH) return;
+        Instance.tMusuhKenaTerakhir = Time.unscaledTime;
+        Play(Instance.cMusuhKena);
+    }
     public static void MusuhMati()  { Play(Instance ? Instance.cMusuhMati : null); }
     public static void AmbilXp()    { Play(Instance ? Instance.cAmbilXp : null); }
     public static void LevelUp()    { Play(Instance ? Instance.cLevelUp : null); }
-    public static void PlayerKena() { Play(Instance ? Instance.cKena : null); }
+    public static void PlayerKena()
+    {
+        if (Instance == null || MuteEfek) return;
+        // Saat dikepung / kena beruntun, jangan tumpuk suara (biar tidak "brebet").
+        if (Time.unscaledTime - Instance.tKenaTerakhir < JEDA_KENA) return;
+        Instance.tKenaTerakhir = Time.unscaledTime;
+        Play(Instance.cKena);
+    }
     public static void GameOver()   { Play(Instance ? Instance.cGameOver : null); }
     public static void Klik()       { Play(Instance ? Instance.cKlik : null); }
     public static void BossMuncul() { Play(Instance ? Instance.cBossMuncul : null); }

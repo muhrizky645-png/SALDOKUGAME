@@ -260,6 +260,11 @@ public class EnemyChase : MonoBehaviour
         sudahMati = true;
 
         SoundManager.MusuhMati();
+        ComboMeter.Tambah();
+        // kilat putih sesaat + hit-stop kecil biar momen membunuh musuh terasa "nendang"
+        if (semuaSprite != null)
+            foreach (var s in semuaSprite) if (s != null) s.color = Color.white;
+        HitStop.Beku(bos ? 0.10f : 0.04f, bos ? 0f : 0.35f);
 
         Vector3 pos = transform.position;
         HitEffect.Munculkan(pos);
