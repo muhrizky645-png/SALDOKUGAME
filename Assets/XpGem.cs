@@ -34,7 +34,8 @@ public class XpGem : MonoBehaviour
     {
         if (!_fileDicek)
         {
-            _fileSprite = Resources.Load<Sprite>("Icons/xp");
+            _fileSprite = Resources.Load<Sprite>("Icons/xpgem");
+            if (_fileSprite == null) _fileSprite = Resources.Load<Sprite>("Icons/xp");
             _fileDicek = true;
         }
         return _fileSprite;
@@ -61,15 +62,21 @@ public class XpGem : MonoBehaviour
             sr.sprite = file;              // pakai PNG asli
             sr.color = Color.white;        // jangan tint biar warna PNG asli
             pakaiFile = true;
+            // Normalisasi ukuran: samakan dimensi terbesar sprite ke target world-units,
+            // apa pun resolusi/PPU PNG-nya. Mencegah drop jadi kegedean.
+            float maxDim = Mathf.Max(file.bounds.size.x, file.bounds.size.y);
+            float target = ukuran * 0.32f; // ~0.38 unit, mirip sprite prosedural lama
+            float sc = (maxDim > 0.0001f) ? target / maxDim : ukuran;
+            transform.localScale = Vector3.one * sc;
         }
         else
         {
             sr.sprite = BuatPermata(32);   // fallback: sprite prosedural
             sr.color = new Color(0.4f, 1f, 1f, 1f); // cyan
             pakaiFile = false;
+            transform.localScale = Vector3.one * ukuran;
         }
         sr.sortingOrder = 40;
-        transform.localScale = Vector3.one * ukuran;
     }
 
     void Update()

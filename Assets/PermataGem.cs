@@ -31,7 +31,8 @@ public class PermataGem : MonoBehaviour
     {
         if (!_fileDicek)
         {
-            _fileSprite = Resources.Load<Sprite>("Icons/permata");
+            _fileSprite = Resources.Load<Sprite>("Icons/permatagem");
+            if (_fileSprite == null) _fileSprite = Resources.Load<Sprite>("Icons/permata");
             _fileDicek = true;
         }
         return _fileSprite;
@@ -57,15 +58,21 @@ public class PermataGem : MonoBehaviour
             sr.sprite = file;              // pakai PNG asli
             sr.color = Color.white;        // jangan tint biar warna PNG asli
             pakaiFile = true;
+            // Normalisasi ukuran: samakan dimensi terbesar sprite ke target world-units,
+            // apa pun resolusi/PPU PNG-nya. Mencegah drop jadi kegedean.
+            float maxDim = Mathf.Max(file.bounds.size.x, file.bounds.size.y);
+            float target = ukuran * 0.32f; // ~0.37 unit, mirip sprite prosedural lama
+            float sc = (maxDim > 0.0001f) ? target / maxDim : ukuran;
+            transform.localScale = Vector3.one * sc;
         }
         else
         {
             sr.sprite = BuatPermata(32);   // fallback: sprite prosedural
             sr.color = new Color(0.8f, 0.4f, 1f, 1f); // ungu
             pakaiFile = false;
+            transform.localScale = Vector3.one * ukuran;
         }
         sr.sortingOrder = 41;
-        transform.localScale = Vector3.one * ukuran;
     }
 
     void Update()
