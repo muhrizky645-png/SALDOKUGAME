@@ -2,32 +2,32 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // =====================================================================
-//  SALDOKU LAST STAND - SISTEM DUA MATA UANG (Permata & Koin)
-//  Mengikuti pola manager lain (bootstrap + sceneLoaded singleton).
+// SALDOKU LAST STAND - SISTEM DUA MATA UANG (Permata & Koin)
+// Mengikuti pola manager lain (bootstrap + sceneLoaded singleton).
 //
-//   * PERMATA : mata uang IN-GAME lokal (PlayerPrefs). Didapat dari drop
-//               musuh (mirip XP, tapi lebih jarang). Dipakai beli buff di TOKO.
-//   * KOIN    : cermin poin SALDOKU (1 Koin = 1 poin). READ-ONLY di game;
-//               hanya server yang menambah (via SSV iklan). Terkunci sampai
-//               akun SALDOKU dihubungkan.
+// * PERMATA : mata uang IN-GAME lokal (PlayerPrefs). Didapat dari drop
+//            musuh (mirip XP, tapi lebih jarang). Dipakai beli buff di TOKO.
+// * KOIN    : cermin poin SALDOKU (1 Koin = 1 poin). READ-ONLY di game;
+//            hanya server yang menambah (via SSV iklan). Terkunci sampai
+//            akun SALDOKU dihubungkan.
 // =====================================================================
 public class MataUang : MonoBehaviour
 {
     public static MataUang Instance;
 
-    const string PP_PERMATA    = "permata";
+    const string PP_PERMATA = "permata";
     const string PP_KOIN_CACHE = "koin_cache";
-    const string PP_LINKED     = "saldoku_linked";
+    const string PP_LINKED = "saldoku_linked";
 
-    int  permata;
+    int permata;
     long koin;
     bool linked;
     bool online;
 
-    public int  Permata   { get { return permata; } }
-    public long Koin      { get { return koin; } }
+    public int Permata { get { return permata; } }
+    public long Koin { get { return koin; } }
     public bool Terhubung { get { return linked; } }
-    public bool Online    { get { return online; } }
+    public bool Online { get { return online; } }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
@@ -46,9 +46,9 @@ public class MataUang : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         permata = PlayerPrefs.GetInt(PP_PERMATA, 0);
-        koin    = PlayerPrefs.GetInt(PP_KOIN_CACHE, 0);
-        linked  = PlayerPrefs.GetInt(PP_LINKED, 0) == 1;
-        online  = false;
+        koin = PlayerPrefs.GetInt(PP_KOIN_CACHE, 0);
+        linked = PlayerPrefs.GetInt(PP_LINKED, 0) == 1;
+        online = false;
     }
 
     public void TambahPermata(int n)
@@ -71,7 +71,7 @@ public class MataUang : MonoBehaviour
     // Dipanggil hasil sinkron server (Saldoku). Game TIDAK menambah Koin sendiri.
     public void SetKoinDariServer(long value, bool isOnline, bool isLinked)
     {
-        koin   = value < 0 ? 0 : value;
+        koin = value < 0 ? 0 : value;
         online = isOnline;
         linked = isLinked;
         PlayerPrefs.SetInt(PP_KOIN_CACHE, (int)Mathf.Clamp(koin, 0, int.MaxValue));
@@ -86,7 +86,7 @@ public class MataUang : MonoBehaviour
     public static string Ringkas(long v)
     {
         if (v >= 1000000) return (v / 1000000f).ToString("0.#") + "M";
-        if (v >= 1000)    return (v / 1000f).ToString("0.#") + "K";
+        if (v >= 1000) return (v / 1000f).ToString("0.#") + "K";
         return v.ToString();
     }
 
@@ -104,13 +104,13 @@ public class MataUang : MonoBehaviour
                 _koinTex.wrapMode = TextureWrapMode.Clamp;
                 float r = size / 2f;
                 for (int y = 0; y < size; y++)
-                    for (int x = 0; x < size; x++)
-                    {
-                        float dx = x - r + 0.5f, dy = y - r + 0.5f;
-                        float d = Mathf.Sqrt(dx * dx + dy * dy);
-                        float a = Mathf.Clamp01(r - d);
-                        _koinTex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
-                    }
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = x - r + 0.5f, dy = y - r + 0.5f;
+                    float d = Mathf.Sqrt(dx * dx + dy * dy);
+                    float a = Mathf.Clamp01(r - d);
+                    _koinTex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
+                }
                 _koinTex.Apply();
             }
             return _koinTex;
@@ -125,16 +125,24 @@ public class MataUang : MonoBehaviour
         Rect ir = new Rect(r.x + r.height * 0.16f, r.y + (r.height - ic) / 2f, ic, ic);
         if (gem)
         {
-            Ikon.Gambar(ir, Ikon.Berlian, aksen);
+            Ikon.Gambar(ir, Ikon.Dari("permata", Ikon.Berlian), aksen);
         }
         else
         {
-            Color s = GUI.color;
-            GUI.color = new Color(0f, 0f, 0f, 0.5f);
-            GUI.DrawTexture(new Rect(ir.x + 1f, ir.y + 1f, ir.width, ir.height), KoinTex, ScaleMode.ScaleToFit, true);
-            GUI.color = aksen;
-            GUI.DrawTexture(ir, KoinTex, ScaleMode.ScaleToFit, true);
-            GUI.color = s;
+            Texture2D koinFile = Ikon.Dari("koin", null);
+            if (koinFile != null)
+            {
+                Ikon.Gambar(ir, koinFile, Color.white);
+            }
+            else
+            {
+                Color s = GUI.color;
+                GUI.color = new Color(0f, 0f, 0f, 0.5f);
+                GUI.DrawTexture(new Rect(ir.x + 1f, ir.y + 1f, ir.width, ir.height), KoinTex, ScaleMode.ScaleToFit, true);
+                GUI.color = aksen;
+                GUI.DrawTexture(ir, KoinTex, ScaleMode.ScaleToFit, true);
+                GUI.color = s;
+            }
         }
         float tx = ir.xMax + r.height * 0.14f;
         Tema.Teks(new Rect(tx, r.y, r.xMax - tx - r.height * 0.14f, r.height), teks, font,

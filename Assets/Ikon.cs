@@ -42,18 +42,18 @@ public static class Ikon
         t.wrapMode = TextureWrapMode.Clamp;
         for (int y = 0; y < size; y++)
         {
-            float ny = ((y + 0.5f) / size) * 2f - 1f;        // -1 bawah .. 1 atas
-            float g = 0.70f + 0.30f * ((ny + 1f) * 0.5f);     // 0.70 bawah .. 1.0 atas
+            float ny = ((y + 0.5f) / size) * 2f - 1f; // -1 bawah .. 1 atas
+            float g = 0.70f + 0.30f * ((ny + 1f) * 0.5f); // 0.70 bawah .. 1.0 atas
             for (int x = 0; x < size; x++)
             {
                 int hit = 0;
                 for (int sy = 0; sy < 2; sy++)
-                    for (int sx = 0; sx < 2; sx++)
-                    {
-                        float nx = ((x + (sx + 0.5f) / 2f) / size) * 2f - 1f;
-                        float my = ((y + (sy + 0.5f) / 2f) / size) * 2f - 1f;
-                        if (f(nx, my)) hit++;
-                    }
+                for (int sx = 0; sx < 2; sx++)
+                {
+                    float nx = ((x + (sx + 0.5f) / 2f) / size) * 2f - 1f;
+                    float my = ((y + (sy + 0.5f) / 2f) / size) * 2f - 1f;
+                    if (f(nx, my)) hit++;
+                }
                 t.SetPixel(x, y, new Color(g, g, g, hit / 4f));
             }
         }
@@ -77,13 +77,13 @@ public static class Ikon
                 for (int i = 0; i < hitung.Length; i++) hitung[i] = 0;
                 int total = 0;
                 for (int sy = 0; sy < 2; sy++)
-                    for (int sx = 0; sx < 2; sx++)
-                    {
-                        float nx = ((x + (sx + 0.5f) / 2f) / size) * 2f - 1f;
-                        float my = ((y + (sy + 0.5f) / 2f) / size) * 2f - 1f;
-                        int k = kelas(nx, my);
-                        if (k > 0) { hitung[k]++; total++; }
-                    }
+                for (int sx = 0; sx < 2; sx++)
+                {
+                    float nx = ((x + (sx + 0.5f) / 2f) / size) * 2f - 1f;
+                    float my = ((y + (sy + 0.5f) / 2f) / size) * 2f - 1f;
+                    int k = kelas(nx, my);
+                    if (k > 0) { hitung[k]++; total++; }
+                }
                 if (total == 0) { t.SetPixel(x, y, new Color(0f, 0f, 0f, 0f)); continue; }
                 int best = 1;
                 for (int i = 2; i < hitung.Length; i++) if (hitung[i] > hitung[best]) best = i;
@@ -106,7 +106,7 @@ public static class Ikon
         = new System.Collections.Generic.HashSet<Texture2D>();
 
     // Muat "Icons/<nama>" dari Resources. Kalau file belum ada, pakai ikon KODE (bawaan).
-    static Texture2D Dari(string nama, Texture2D bawaan)
+    public static Texture2D Dari(string nama, Texture2D bawaan)
     {
         Texture2D t;
         if (!_fileCache.TryGetValue(nama, out t))
@@ -129,7 +129,7 @@ public static class Ikon
     public static Texture2D Aura { get { if (_aura == null) _aura = Buat(FAura, 72); return _aura; } }
     public static Texture2D Roket { get { if (_roket == null) _roket = Buat(FRoket, 72); return _roket; } }
     public static Texture2D Pisau { get { if (_pisau == null) _pisau = Buat(FPisau, 72); return _pisau; } }
-    public static Texture2D Piala { get { if (_piala == null) _piala = Buat(FPiala, 72); return _piala; } }
+    public static Texture2D Piala { get { if (_piala == null) _piala = Buat(FPiala, 72); return Dari("piala", _piala); } }
 
     // ====== ITEM LAPANGAN: ikon KODE BERWARNA & TRANSPARAN (tanpa background) ======
     static readonly Color[] _paletBom = new Color[] {
@@ -291,12 +291,12 @@ public static class Ikon
     // ====== BOM BERWARNA ====== (1 badan, 2 kilau, 3 sumbu, 4 percik)
     static int BomKelas(float x, float y)
     {
-        if (Disc(x, y, 0.5f, 0.90f, 0.14f)) return 4;                               // percik api
+        if (Disc(x, y, 0.5f, 0.90f, 0.14f)) return 4; // percik api
         if (Garis(x, y, 0.25f, 0.45f, 0.38f, 0.72f, 0.075f)
-            || Garis(x, y, 0.38f, 0.72f, 0.50f, 0.86f, 0.07f)) return 3;           // sumbu
-        if (Disc(x, y, 0f, -0.15f, 0.62f))                                          // badan
+            || Garis(x, y, 0.38f, 0.72f, 0.50f, 0.86f, 0.07f)) return 3; // sumbu
+        if (Disc(x, y, 0f, -0.15f, 0.62f)) // badan
         {
-            if (Disc(x, y, -0.22f, 0.08f, 0.16f)) return 2;                         // kilau kiri-atas
+            if (Disc(x, y, -0.22f, 0.08f, 0.16f)) return 2; // kilau kiri-atas
             return 1;
         }
         return 0;
@@ -307,7 +307,7 @@ public static class Ikon
     {
         float ax = Mathf.Abs(x);
         if (y < -0.52f && y >= -0.84f && ax >= 0.40f && ax <= 0.86f) return 2; // ujung kutub (perak)
-        if (Cincin(x, y, 0.44f, 0.82f) && y >= -0.05f) return 1;               // lengkung atas
+        if (Cincin(x, y, 0.44f, 0.82f) && y >= -0.05f) return 1; // lengkung atas
         if (y < -0.05f && y >= -0.52f && ax >= 0.44f && ax <= 0.82f) return 1; // kaki
         return 0;
     }
@@ -326,13 +326,13 @@ public static class Ikon
             {
                 int badan = 0, kutub = 0;
                 for (int sy = 0; sy < 2; sy++)
-                    for (int sx = 0; sx < 2; sx++)
-                    {
-                        float nx = ((x + (sx + 0.5f) / 2f) / size) * 2f - 1f;
-                        float my = ((y + (sy + 0.5f) / 2f) / size) * 2f - 1f;
-                        int k = MagnetKelas(nx, my);
-                        if (k == 1) badan++; else if (k == 2) kutub++;
-                    }
+                for (int sx = 0; sx < 2; sx++)
+                {
+                    float nx = ((x + (sx + 0.5f) / 2f) / size) * 2f - 1f;
+                    float my = ((y + (sy + 0.5f) / 2f) / size) * 2f - 1f;
+                    int k = MagnetKelas(nx, my);
+                    if (k == 1) badan++; else if (k == 2) kutub++;
+                }
                 int hit = badan + kutub;
                 if (hit == 0) { t.SetPixel(x, y, new Color(0f, 0f, 0f, 0f)); continue; }
                 Color isi = (kutub >= badan)
@@ -352,12 +352,12 @@ public static class Ikon
         bool basis = Kotak(x, y, -0.75f, -0.65f, 0.75f, 0.24f);
         bool tutup = Kotak(x, y, -0.80f, 0.24f, 0.80f, 0.58f);
         if (!(basis || tutup)) return 0;
-        if (Disc(x, y, 0f, 0.20f, 0.12f)) return 4;   // kunci di tengah
-        if (ax <= 0.12f) return 3;                    // pita logam vertikal
-        if (y >= 0.18f && y <= 0.30f) return 3;       // seam logam horizontal
-        if (tutup && y >= 0.50f) return 3;            // trim atas tutup
-        if (tutup) return 2;                          // kayu tutup (lebih gelap)
-        return 1;                                     // kayu badan
+        if (Disc(x, y, 0f, 0.20f, 0.12f)) return 4; // kunci di tengah
+        if (ax <= 0.12f) return 3; // pita logam vertikal
+        if (y >= 0.18f && y <= 0.30f) return 3; // seam logam horizontal
+        if (tutup && y >= 0.50f) return 3; // trim atas tutup
+        if (tutup) return 2; // kayu tutup (lebih gelap)
+        return 1; // kayu badan
     }
 
     static bool FAura(float x, float y)
@@ -420,15 +420,15 @@ public static class Ikon
         }
     }
 
-    // Ambil ikon untuk ITEM lapangan: ikon KODE BERWARNA (transparan, tanpa background).
+    // Ambil ikon untuk ITEM lapangan. Utamakan FILE, fallback ke ikon KODE BERWARNA.
     public static Texture2D UntukItem(string id)
     {
         switch (id)
         {
-            case "bom": return Bom;
-            case "magnet": return Magnet;
-            case "peti": return Peti;
-            default: return Peti;
+            case "bom": return Dari("bom", Bom);
+            case "magnet": return Dari("magnet", Magnet);
+            case "peti": return Dari("peti", Peti);
+            default: return Dari("peti", Peti);
         }
     }
 
