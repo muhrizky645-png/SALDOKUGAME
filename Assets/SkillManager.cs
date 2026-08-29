@@ -150,58 +150,104 @@ public class SkillManager : MonoBehaviour
         // latar gelap survival
         Tema.LatarGelap();
 
-        // ukuran kartu: 3 kartu persegi sejajar di tengah
-        float margin = w * 0.05f;
-        float gap = w * 0.03f;
+        // ==== 3 KARTU VERTIKAL SEJAJAR (gaya Survivor.io) ====
+        // Tiap kartu: TAB NAMA kuning di atas, label "Baru!" di pojok,
+        // IKON besar dalam kotak inset, deskripsi, lalu BINTANG rating.
+        float margin = w * 0.035f;
+        float gap = w * 0.022f;
+        int jumlah = pilihanSekarang.Count;
+        if (jumlah < 1) return;
         float totalW = w - margin * 2f;
-        float cardW = (totalW - gap * 2f) / 3f;
-        float cardH = cardW * 1.32f;
-        float y = (h - cardH) / 2f;
+        float cardW = (totalW - gap * (jumlah - 1)) / jumlah;
+        float cardH = Mathf.Min(cardW * 2.35f, h * 0.55f);
+        float y = (h - cardH) / 2f + h * 0.045f;
 
-        // ---- HEADER GABUNGAN (tidak lagi tabrakan) ----
-        int fBig = Mathf.RoundToInt(h * 0.055f);
-        int fSub = Mathf.RoundToInt(h * 0.032f);
-        float headY = y - h * 0.22f;
-        Tema.Teks(new Rect(0, headY, w, fBig * 1.4f), "LEVEL UP!", fBig, Tema.Darah, TextAnchor.MiddleCenter, true);
-        Tema.Teks(new Rect(0, headY + fBig * 1.25f, w, fSub * 1.6f), "PILIH SKILL", fSub, Tema.Army, TextAnchor.MiddleCenter, true);
+        // ---- HEADER + banner ----
+        int fBig = Mathf.RoundToInt(h * 0.050f);
+        int fSub = Mathf.RoundToInt(h * 0.028f);
+        Tema.Teks(new Rect(0, y - h * 0.165f, w, fBig * 1.3f), "LEVEL UP!", fBig, Tema.Darah, TextAnchor.MiddleCenter, true);
+        float banW = w * 0.62f, banH = h * 0.052f, banX = (w - banW) / 2f, banY = y - h * 0.085f;
+        Tema.Panel9(new Rect(banX, banY, banW, banH), Tema.Amber, Tema.Garis, 2f);
+        Tema.Teks(new Rect(banX, banY, banW, banH), "PILIH SKILL", fSub, new Color(0.15f, 0.09f, 0.02f, 1f), TextAnchor.MiddleCenter, true);
 
-        int fNama = Mathf.RoundToInt(cardW * 0.11f);
-        int fDesk = Mathf.RoundToInt(cardW * 0.088f);
-        int fLevel = Mathf.RoundToInt(cardW * 0.095f);
+        // font relatif LEBAR kartu
+        int fNama = Mathf.RoundToInt(cardW * 0.120f);
+        int fDesk = Mathf.RoundToInt(cardW * 0.090f);
+        int fBaru = Mathf.RoundToInt(cardW * 0.100f);
 
-        for (int i = 0; i < pilihanSekarang.Count; i++)
+        // warna kartu slate + tab kuning (mirip referensi)
+        Color bodi = new Color(0.24f, 0.28f, 0.34f, 0.98f);
+        Color bodiHover = new Color(0.31f, 0.37f, 0.45f, 1f);
+        Color inset = new Color(0.14f, 0.17f, 0.22f, 1f);
+        Color txtGelap = new Color(0.13f, 0.08f, 0.02f, 1f);
+
+        Texture2D starTex = Ikon.Dari("bintang", Ikon.Bintang);
+
+        for (int i = 0; i < jumlah; i++)
         {
             float x = margin + i * (cardW + gap);
             Rect cr = new Rect(x, y, cardW, cardH);
             Skill s = pilihanSekarang[i];
-
             bool hover = cr.Contains(Event.current.mousePosition);
 
-            // kartu bertema
-            Tema.Panel9(cr, hover ? Tema.PanelTerang : Tema.Panel, hover ? Tema.Army : Tema.Garis, Mathf.Max(2f, cardW * 0.02f));
-            Tema.StripAtas(cr, Tema.Army, cardH * 0.045f); // strip aksen di atas
+            // ===== BODY KARTU =====
+            Tema.Panel9(cr, hover ? bodiHover : bodi, Tema.Garis, Mathf.Max(2f, cardW * 0.02f));
 
-            // IKON skill (dibuat lewat kode)
-            float isz = cardH * 0.26f;
-            Ikon.Gambar(new Rect(cr.x + (cardW - isz) / 2f, cr.y + cardH * 0.07f, isz, isz),
-                Ikon.UntukSkill(s.ikon), hover ? Tema.Amber : Tema.Army);
+            // ===== TAB NAMA (header kuning di atas) =====
+            float tabH = cardH * 0.17f;
+            Rect tab = new Rect(cr.x + cardW * 0.05f, cr.y + cardH * 0.02f, cardW * 0.90f, tabH);
+            Tema.Panel9(tab, hover ? Tema.PanelTerang : Tema.Amber, Tema.Garis, 1.5f);
+            Tema.Teks(new Rect(tab.x + 3, tab.y, tab.width - 6, tab.height), s.nama, fNama, txtGelap, TextAnchor.MiddleCenter, true);
 
-            // KETERANGAN LEVEL skill (posisi level saat ini)
+            // ===== LABEL "Baru!" / "Lv x" / "MAX!" di POJOK KANAN ATAS =====
             int cur = LevelSaatIni(s);
-            string tk;
-            if (s.maks > 0 && cur >= s.maks) tk = "Lv MAKS (" + s.maks + ")";
-            else if (cur == 0) tk = "BARU  >  Lv 1";
-            else tk = "Lv " + cur + "  >  " + (cur + 1);
-            Tema.Teks(new Rect(cr.x + 4, cr.y + cardH * 0.35f, cr.width - 8, cardH * 0.09f),
-                tk, fLevel, Tema.Amber, TextAnchor.MiddleCenter, true);
+            string lbl; Color lblCol;
+            if (s.maks > 0 && cur >= s.maks) { lbl = "MAX!"; lblCol = Tema.Darah; }
+            else if (cur == 0) { lbl = "Baru!"; lblCol = Tema.Army; }
+            else { lbl = "Lv " + (cur + 1); lblCol = Tema.Amber; }
+            float lblW = lbl.Length * fBaru * 0.60f + fBaru * 1.1f;
+            float lblH = fBaru * 1.7f;
+            Rect lblR = new Rect(cr.xMax - lblW - cardW * 0.03f, cr.y - lblH * 0.55f, lblW, lblH);
+            Tema.Panel9(lblR, lblCol, Tema.Garis, 1.5f);
+            Tema.Teks(lblR, lbl, fBaru, txtGelap, TextAnchor.MiddleCenter, true);
 
-            // nama skill (hijau army) + deskripsi (putih tulang)
-            Tema.Teks(new Rect(cr.x + 6, cr.y + cardH * 0.45f, cr.width - 12, cardH * 0.22f),
-                s.nama, fNama, Tema.Army, TextAnchor.MiddleCenter, true);
-            Tema.Teks(new Rect(cr.x + 6, cr.y + cardH * 0.68f, cr.width - 12, cardH * 0.30f),
-                s.deskripsi, fDesk, Tema.Tulang, TextAnchor.MiddleCenter, false);
+            // ===== IKON dalam INSET gelap =====
+            float insz = cardW * 0.72f;
+            float insx = cr.x + (cardW - insz) / 2f;
+            float insy = cr.y + tabH + cardH * 0.045f;
+            Tema.Panel9(new Rect(insx, insy, insz, insz), inset, Tema.GarisRedup, 1.5f);
+            float ik = insz * 0.76f;
+            Texture2D ikTex = Ikon.Dari(s.ikon, Ikon.UntukSkill(s.ikon));
+            Ikon.Gambar(new Rect(insx + (insz - ik) / 2f, insy + (insz - ik) / 2f, ik, ik),
+                ikTex, hover ? Tema.Amber : Tema.Army);
 
-            // tombol transparan di atas kartu untuk deteksi klik/sentuh
+            // ===== DESKRIPSI =====
+            float dy = insy + insz + cardH * 0.03f;
+            Tema.Teks(new Rect(cr.x + cardW * 0.07f, dy, cardW * 0.86f, cardH * 0.26f),
+                s.deskripsi, fDesk, Tema.Tulang, TextAnchor.UpperCenter, false);
+
+            // ===== BINTANG RATING (bawah) =====
+            int totalStar = (s.maks > 0) ? s.maks : 5;
+            totalStar = Mathf.Clamp(totalStar, 1, 5);
+            int filled;
+            if (s.maks > 0 && cur >= s.maks) filled = totalStar;
+            else filled = Mathf.Clamp(cur + 1, 1, totalStar);
+
+            float ssz = cardW * 0.145f;
+            float sgap = ssz * 0.16f;
+            float rowW = totalStar * ssz + (totalStar - 1) * sgap;
+            float sx = cr.x + (cardW - rowW) / 2f;
+            float sy = cr.yMax - cardH * 0.105f;
+            Color gc = GUI.color;
+            for (int k = 0; k < totalStar; k++)
+            {
+                Rect sr = new Rect(sx + k * (ssz + sgap), sy, ssz, ssz);
+                GUI.color = (k < filled) ? Color.white : new Color(1f, 1f, 1f, 0.20f);
+                GUI.DrawTexture(sr, starTex);
+            }
+            GUI.color = gc;
+
+            // ===== KLIK / SENTUH untuk pilih =====
             if (GUI.Button(cr, "", GUIStyle.none))
             {
                 Pilih(s);

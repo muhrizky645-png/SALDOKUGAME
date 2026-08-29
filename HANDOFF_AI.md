@@ -1,4 +1,4 @@
-# 🧠 HANDOFF AI — SALDOKUGAME
+# 🧠 HANDOFF AI — Zomburst (repo: SALDOKUGAME)
 
 > **Tujuan file ini:** catatan estafet supaya sesi AI berikutnya (di chat lain) langsung nyambung tanpa perlu menjelaskan ulang. Berisi konteks proyek, arsitektur, semua yang sudah dikerjakan, keputusan desain, bug yang sudah diperbaiki, dan tugas lanjutan.
 >
@@ -12,7 +12,7 @@
 
 - **Repo:** `muhrizky645-png/SALDOKUGAME` (privat, branch `main`).
 - **Engine:** Unity (game 2D top-down **survivor / roguelite** ala **Survivor.io**).
-- **Nama game:** ⚠️ SEDANG DIGANTI. Nama lama "SALDOKU LAST STAND" akan diganti; nama baru **belum ditentukan** user (lihat §7). Repo tetap `SALDOKUGAME`.
+- **Nama game:** ✅ **Zomburst** — judul toko **"Zomburst: Auto Shooter"** (dipilih user 2026-08-29; nama lama "SALDOKU LAST STAND" sudah diganti). Repo tetap `SALDOKUGAME`. ⚠️ Judul Home di `GameMenu.cs` masih perlu di-update ke nama baru (lihat §7).
 - **Bahasa kode:** C# (nama kelas/variabel campuran Indonesia–Inggris).
 - **Filosofi visual:** **semua UI & ikon & tekstur dibuat lewat KODE saat runtime** (IMGUI + Texture2D prosedural), **tanpa file gambar**. Ikon skill boleh pakai file PNG kalau tersedia di `Assets/Resources/Icons/`, tapi selalu ada fallback ikon kode.
 - **Tema warna:** cerah & playful ala Survivor.io — oranye-emas dominan, tombol default biru, tombol aksi hijau, teks putih dengan bayangan (kesan outline).
@@ -38,7 +38,7 @@
 - **`Ikon.cs`** — ikon prosedural (tanpa file). Skill: `petir, peluru, target, chevron, hati, berlian, pisau, aura, roket, bintang`. Item: `bom, magnet, peti` (berwarna). UI: **`Piala`** (trophy, dipakai panel rekor). `Ikon.UntukSkill(id)` mengutamakan FILE `Resources/Icons/<id>.png` via `Dari()`, fallback ikon kode. **PENTING:** `Ikon.UntukItem(id)` (bom/magnet/peti), mata uang (koin/permata di `MataUang.cs`), dan `Piala` **belum** lewat `Dari()` — masih ikon kode, jadi butuh hook kalau mau pakai PNG (lihat §9). Gambar: `Ikon.Gambar(rect, tex, warnaIsi[, warnaGaris])`.
 
 ### HUD & menu (IMGUI, digambar di `OnGUI`)
-- **`GameMenu.cs`** — state game: `SedangMain`, `SedangJeda` (static). Home/pause/settings set `Time.timeScale=0`. Latar home = demo battle blur via `LatarDemo.Gambar(w,h)`. **Judul Home** saat ini teks "SALDOKU / LAST STAND" (font pixel) — ⚠️ AKAN DIGANTI nama (lihat §7). Jaraknya sudah DIRAPATKAN. **Panel rekor** kini menampilkan `[ikon Piala] angka` (label "REKOR TERTINGGI" & 2 bintang SUDAH DIHAPUS). Helper `GameMenu.Tombol(...)`, `UlangiDanMain()`, `KeHome()`.
+- **`GameMenu.cs`** — state game: `SedangMain`, `SedangJeda` (static). Home/pause/settings set `Time.timeScale=0`. Latar home = demo battle blur via `LatarDemo.Gambar(w,h)`. **Judul Home** saat ini masih teks "SALDOKU / LAST STAND" (font pixel) — ⚠️ HARUS DIGANTI ke **"ZOMBURST"** (judul toko "Zomburst: Auto Shooter"), lihat §7. Jaraknya sudah DIRAPATKAN. **Panel rekor** kini menampilkan `[ikon Piala] angka` (label "REKOR TERTINGGI" & 2 bintang SUDAH DIHAPUS). Helper `GameMenu.Tombol(...)`, `UlangiDanMain()`, `KeHome()`.
 - **`LatarDemo.cs`** — latar menu home: simulasi battle blur (dasar rumput hijau + hint blur + partikel). Kelas: `Musuh/Tracer/Kilat/Bara`.
 - **`LevelSystem.cs`** — panel HUD kiri-atas. **BARIS ATAS = `LEVEL x` (TERPISAH di kiri, tulisan DIPERBESAR `fLv*1.28`, ruang `lvW` disesuaikan lebar teks "LEVEL 88" = pas untuk 2 digit) + ikon HATI merah + BAR NYAWA** yang mengisi sisa lebar ke kanan (isi warna dinamis hijau→kuning→merah dari `PlayerHealth.Instance`, angka `HP / MAX` di TENGAH bar). Karena `lvW` mengikuti lebar teks, hati & bar MERAPAT (tidak ada celah kosong lebar). Tulisan LEVEL TIDAK menimpa bar. **BARIS BAWAH = bar XP biru.** `LevelSystem.TinggiPanel(w)` dipakai HUD lain untuk sejajar.
 - **`GameTimer.cs`** — timer bertahan (kanan, sejajar skor) + **bar nyawa BOSS** (tengah, muncul saat `EnemyChase.JumlahBos>0`). Contoh bagus pemakaian `BarIsi` + `Panel9`.
@@ -67,7 +67,7 @@
 6. **HP bar player = baris atas panel LEVEL/XP** dengan urutan: **`LEVEL x` (teks terpisah, diperbesar, ruang pas 2 digit) + ikon HATI + bar nyawa** (baris bawah = XP). Tulisan LEVEL TIDAK menimpa bar. Jangan bikin HP bar terpisah lagi.
 7. **Panel rekor Home** = `[ikon Piala] angka` saja (tanpa label teks & tanpa bintang).
 8. **RENCANA ASET:** user akan mengganti SELURUH ikon/logo dengan render AI sendiri (lihat CHECKLIST §9). **Gaya seni target = ikon Survivor.io asli: glossy, semi-3D render, chunky, cartoon mengilap — BUKAN pixel-art, BUKAN realistis** (referensi: screenshot "Weapons & evolutions" dari user). Filosofi ikon-kode tetap jadi FALLBACK bila file belum ada.
-9. **NAMA GAME akan diganti** (bukan "SALDOKU LAST STAND"). Nama baru belum ditentukan — pengaruhi judul Home (`GameMenu`), subtitle, logo, dan (opsional) app name. Lihat §7.
+9. **NAMA GAME = Zomburst** ✅ (judul toko "Zomburst: Auto Shooter"; sebelumnya "SALDOKU LAST STAND"). Tinggal diterapkan ke judul Home (`GameMenu`), subtitle, logo, dan (opsional) app name. Lihat §7.
 
 ---
 
@@ -136,7 +136,7 @@
 
 ## 7. Tugas Lanjutan (belum dikerjakan)
 
-1. **🆕 GANTI NAMA GAME** — user mau ganti nama (BUKAN "SALDOKU LAST STAND"). **Nama baru belum ditentukan.** Setelah nama final:
+1. **🆕 GANTI NAMA GAME → Zomburst** ✅ — nama SUDAH final: **"Zomburst: Auto Shooter"** (nama lama "SALDOKU LAST STAND"). Yang masih perlu dikerjakan di kode:
    - Update judul Home + subtitle di `GameMenu.cs`.
    - Baru bikin **logo** (§9 grup E) dengan nama baru.
    - (Opsional) update nama aplikasi di Player Settings + appicon.
@@ -169,8 +169,8 @@
 > **⏳ = prompt sudah dikirim, nunggu hasil render dari user**, **[ ] = belum**.
 > **Style reference:** gunakan `petir.png` (ikon pertama, hasil bagus & disetujui user) sebagai
 > acuan gaya untuk ikon-ikon berikutnya biar seragam.
-> ⚠️ **LOGO DITUNDA:** user mau GANTI NAMA game dulu (bukan "SALDOKU LAST STAND"). Prompt logo
-> baru dibuat setelah nama final ditentukan (lihat §7).
+> ✅ **NAMA FINAL = Zomburst** (judul toko "Zomburst: Auto Shooter"). Logo/wordmark siap dibuat pakai nama "ZOMBURST". Prompt logo
+> lihat §7 & grup E di §9.
 >
 > **🎨 GAYA SENI TARGET (WAJIB):** meniru ikon **Survivor.io asli** — render **glossy semi-3D**,
 > bentuk **chunky/tebal**, cartoon **mengilap**, outline gelap tebal, highlight kilau + bayangan
@@ -228,7 +228,7 @@ photorealistic, no text, no watermark, no ground shadow.
 
 ### E. Opsional (logo & app)
 
-- [ ] ⏸️ 🔧 **logo** (wordmark) → `Icons/logo.png` — **DITUNDA: nunggu NAMA GAME baru** (user mau ganti nama, bukan "SALDOKU LAST STAND"). Setelah nama final, buat prompt wordmark: `game logo wordmark reading "<NAMA BARU>", bold glossy 3D letters, army green and amber with red accents` lalu wire-kan di `GameMenu`.
+- [ ] ⏸️ 🔧 **logo** (wordmark) → `Icons/logo.png` — **SIAP DIBUAT** (nama final = Zomburst). Prompt wordmark: `game logo wordmark reading "ZOMBURST", bold glossy 3D letters, army green and amber with red accents` lalu wire-kan di `GameMenu`.
 - [ ] **appicon** (ikon aplikasi Android) → di-set di Player Settings (bukan Resources). Nunggu nama/tema final. Subjek: `mobile game app launcher icon, glossy 3D, a heart + trophy motif, bold, centered, filled background`.
 
 > **Catatan untuk AI sesi berikutnya:** kalau user bilang "ikon X sudah aku render", (1) pastikan file ada di `Assets/Resources/Icons/X.png`, (2) untuk item 🔧 tambahkan hook `Dari("X", <ikonKodeBawaan>)`, (3) ceklis item ini di §9, (4) update §6 SHA.
