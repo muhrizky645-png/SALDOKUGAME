@@ -65,7 +65,7 @@ public class Roket : MonoBehaviour
 
     void Meledak()
     {
-        Ledakan.Munculkan(transform.position, radius, dmg, 0f, new Color(1f, 0.6f, 0.2f, 0.7f));
+        Ledakan.Munculkan(transform.position, radius, dmg, 0f, new Color(1f, 0.6f, 0.2f, 0.7f), false);
         Destroy(gameObject);
     }
 

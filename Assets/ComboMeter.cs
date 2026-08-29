@@ -9,6 +9,7 @@ public class ComboMeter : MonoBehaviour
     int combo = 0;
     int comboTertinggi = 0;
     float tKillTerakhir = -999f;
+    float tPop = -999f;         // waktu (unscaled) combo terakhir naik, untuk efek pop-up
     const float JENDELA = 2.5f; // detik tanpa kill -> combo reset
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -26,6 +27,7 @@ public class ComboMeter : MonoBehaviour
         if (Instance == null) return;
         Instance.combo++;
         Instance.tKillTerakhir = Time.time;
+        Instance.tPop = Time.unscaledTime;
         if (Instance.combo > Instance.comboTertinggi) Instance.comboTertinggi = Instance.combo;
     }
 
@@ -49,7 +51,14 @@ public class ComboMeter : MonoBehaviour
         if (!GameMenu.SedangMain) return;
 
         float sisa = Mathf.Clamp01(1f - (Time.time - tKillTerakhir) / JENDELA);
-        int fontBesar = Mathf.RoundToInt(Screen.height * 0.045f);
+        // Lebih kecil dari sebelumnya (dulu 0.045). Sedikit membesar seiring combo naik.
+        float skalaFont = 0.028f + Mathf.Min(combo, 40) * 0.00025f; // ~0.028 -> ~0.038
+        int fontBesar = Mathf.RoundToInt(Screen.height * skalaFont);
+
+        // Efek POP-UP: tiap combo naik, teks memantul membesar sekejap lalu settle.
+        const float popDur = 0.22f;
+        float k = Mathf.Clamp01((Time.unscaledTime - tPop) / popDur);
+        float pop = 1f + 0.5f * (1f - k) * Mathf.Cos(k * Mathf.PI * 1.5f); // mulai ~1.5x, memantul ke 1.0
 
         // makin banyak combo, warna makin "panas"
         Color c = combo >= 30 ? new Color(1f, 0.35f, 0.2f)
@@ -64,25 +73,32 @@ public class ComboMeter : MonoBehaviour
 
         float w = Screen.width * 0.6f;
         float x = (Screen.width - w) * 0.5f;
-        float y = Screen.height * 0.13f;
+        float y = Screen.height * 0.12f;
         Rect r = new Rect(x, y, w, fontBesar * 1.4f);
 
+        // Skala pop di sekitar titik tengah teks (biar efek pantul terpusat).
+        Matrix4x4 simpanM = GUI.matrix;
+        Vector2 pivot = new Vector2(r.x + r.width * 0.5f, r.y + r.height * 0.5f);
+        GUIUtility.ScaleAroundPivot(new Vector2(pop, pop), pivot);
+
         // bayangan
-        style.normal.textColor = new Color(0f, 0f, 0f, 0.6f);
+        style.normal.textColor = new Color(0f, 0f, 0f, 0.55f);
         GUI.Label(new Rect(r.x + 2f, r.y + 2f, r.width, r.height), teks, style);
         // teks utama
         style.normal.textColor = c;
         GUI.Label(r, teks, style);
 
-        // bar sisa waktu combo
-        float barW = w * 0.45f;
+        // bar sisa waktu combo (ikut skala pop biar menyatu)
+        float barW = w * 0.4f;
         float bx = (Screen.width - barW) * 0.5f;
         float by = y + fontBesar * 1.4f;
         Color simpan = GUI.color;
         GUI.color = new Color(0f, 0f, 0f, 0.4f);
-        GUI.DrawTexture(new Rect(bx, by, barW, 5f), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(bx, by, barW, 4f), Texture2D.whiteTexture);
         GUI.color = c;
-        GUI.DrawTexture(new Rect(bx, by, barW * sisa, 5f), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(bx, by, barW * sisa, 4f), Texture2D.whiteTexture);
         GUI.color = simpan;
+
+        GUI.matrix = simpanM;
     }
 }

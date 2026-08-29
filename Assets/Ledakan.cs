@@ -5,7 +5,7 @@ using UnityEngine;
 public class Ledakan : MonoBehaviour
 {
     // pos: pusat ledakan; radius: jangkauan; dmgMusuh: damage ke musuh; dmgPemain: damage ke pemain
-    public static void Munculkan(Vector3 pos, float radius, int dmgMusuh, float dmgPemain, Color warna)
+    public static void Munculkan(Vector3 pos, float radius, int dmgMusuh, float dmgPemain, Color warna, bool getar = true)
     {
         // ---- damage musuh ----
         if (dmgMusuh > 0)
@@ -40,8 +40,8 @@ public class Ledakan : MonoBehaviour
         // HANYA untuk ledakan yang melukai musuh (bom pemain). Ledakan musuh Peledak
         // (dmgMusuh = 0, cuma melukai pemain) TIDAK getar biar tak kerasa "getar terus".
         // Kekuatan sudah dikurangi biar tak terlalu goyang.
-        if (dmgMusuh > 0)
-            ScreenShake.Getar(Mathf.Clamp(radius * 0.10f, 0.20f, 0.40f), 0.22f);
+        if (dmgMusuh > 0 && getar)
+            ScreenShake.Getar(Mathf.Clamp(radius * 0.20f, 0.45f, 0.85f), 0.25f);
     }
 
     public float radius = 1.5f;
