@@ -534,8 +534,26 @@ public class GameMenu : MonoBehaviour
             }
         }
 
-        // tombol KEMBALI ke Home
-        if (Tombol("KEMBALI", 0.86f, 0.5f)) { SoundManager.Klik(); tampilPeta = false; }
+        // baris bawah: UPGRADE (kiri) | KEMBALI (kanan)
+        {
+            float rowW = w * 0.82f;
+            float g = w * 0.03f;
+            float bw = (rowW - g) / 2f;
+            float bx = (w - rowW) / 2f;
+            float by = h * 0.86f;
+            float bh = h * 0.085f;
+            int f = Mathf.RoundToInt(h * 0.030f);
+            if (GUI.Button(new Rect(bx, by, bw, bh), "UPGRADE", Tema.GayaTombolAksen(f)))
+            {
+                SoundManager.Klik();
+                if (UpgradePermanen.Instance != null) UpgradePermanen.Instance.Buka();
+            }
+            if (GUI.Button(new Rect(bx + bw + g, by, bw, bh), "KEMBALI", Tema.GayaTombol(f)))
+            {
+                SoundManager.Klik();
+                tampilPeta = false;
+            }
+        }
     }
 
     // ====== PANEL PENGATURAN SUARA ======
