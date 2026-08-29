@@ -9,7 +9,7 @@ public class LevelSystem : MonoBehaviour
 
     private int level = 1;
     private int xp = 0;
-    private int xpUntukNaik = 5;   // XP yang dibutuhkan untuk naik ke level berikutnya
+    private int xpUntukNaik = 5; // XP yang dibutuhkan untuk naik ke level berikutnya
 
     public int Level { get { return level; } }
     public int Xp { get { return xp; } }
@@ -80,22 +80,23 @@ public class LevelSystem : MonoBehaviour
         // ============ BARIS ATAS: LEVEL (terpisah) + HATI + BAR NYAWA ============
         float rowX = pX + pW * 0.03f;
         float rowW = pW * 0.94f;
-        float hpH  = pH * 0.36f;
-        float hpY  = pY + pH * 0.09f;
+        float hpH = pH * 0.36f;
+        float hpY = pY + pH * 0.09f;
 
         // 1) tulisan "LEVEL x" TERPISAH di kiri, DIPERBESAR, ruang PAS untuk 2 digit
-        //    (level 10, 88, dst). Karena ruang disesuaikan lebar teks, hati & bar
-        //    merapat, tidak ada celah kosong lebar seperti sebelumnya.
+        // (level 10, 88, dst). Karena ruang disesuaikan lebar teks, hati & bar
+        // merapat, tidak ada celah kosong lebar seperti sebelumnya.
         int fLvTeks = Mathf.Min(Mathf.RoundToInt(fLv * 1.28f), Mathf.RoundToInt(hpH * 0.92f));
-        float charW = fLvTeks * 0.62f;                 // estimasi lebar 1 huruf (font piksel tebal)
-        float lvW = "LEVEL 88".Length * charW;         // sediakan ruang untuk level 2 digit
+        float charW = fLvTeks * 0.62f; // estimasi lebar 1 huruf (font piksel tebal)
+        float lvW = "LEVEL 88".Length * charW; // sediakan ruang untuk level 2 digit
         Tema.Teks(new Rect(rowX, hpY, lvW, hpH), "LEVEL " + level, fLvTeks,
             Tema.Army, TextAnchor.MiddleLeft, true);
 
         // 2) ikon HATI merah tepat setelah tulisan level (jarak rapat)
+        //    Utamakan FILE (Assets/Resources/Icons/hati.png), fallback ke hati-kode.
         float ik = hpH * 1.5f;
         float heartX = rowX + lvW + hpH * 0.06f;
-        Ikon.Gambar(new Rect(heartX, hpY + hpH / 2f - ik / 2f, ik, ik), Ikon.Hati, Tema.Darah);
+        Ikon.Gambar(new Rect(heartX, hpY + hpH / 2f - ik / 2f, ik, ik), Ikon.Dari("hati", Ikon.Hati), Tema.Darah);
 
         // 3) BAR NYAWA mengisi sisa lebar setelah hati sampai ujung kanan panel
         float barNX = heartX + ik * 0.95f;
