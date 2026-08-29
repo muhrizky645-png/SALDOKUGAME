@@ -14,6 +14,7 @@ public class GameMenu : MonoBehaviour
 
     private bool tampilHome = true;          // menu awal tampil
     private bool tampilPengaturan = false;   // panel pengaturan suara tampil
+    private bool tampilPeta = false;         // layar pilih stage (Peta) tampil
     private string pesanKarakter = "";       // status buka karakter (mis. "Memuat iklan...")
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -36,6 +37,7 @@ public class GameMenu : MonoBehaviour
         Instance = this;
         SedangJeda = false;
         tampilPengaturan = false;
+        tampilPeta = false;
 
         if (langsungMainSetelahLoad)
         {
@@ -57,7 +59,7 @@ public class GameMenu : MonoBehaviour
     void Update()
     {
         // paksa game tetap beku selama menu awal / menu jeda / pengaturan tampil
-        if (tampilHome || SedangJeda || tampilPengaturan) Time.timeScale = 0f;
+        if (tampilHome || SedangJeda || tampilPengaturan || tampilPeta) Time.timeScale = 0f;
     }
 
     void Mulai()
@@ -73,6 +75,7 @@ public class GameMenu : MonoBehaviour
         SedangMain = true;
         SedangJeda = false;
         tampilPengaturan = false;
+        tampilPeta = false;
         Time.timeScale = 1f;
     }
 
@@ -118,6 +121,13 @@ public class GameMenu : MonoBehaviour
             return;
         }
 
+        // ====== LAYAR PILIH STAGE (PETA) ======
+        if (tampilPeta)
+        {
+            GambarPeta();
+            return;
+        }
+
         // ====== MENU AWAL (HOME) ======
         if (tampilHome)
         {
@@ -127,12 +137,10 @@ public class GameMenu : MonoBehaviour
             GambarChipMataUang(w, h);
 
             // ---- JUDUL (jarak antar-baris DIRAPATKAN, tidak melebar ke atas) ----
-            Tema.Teks(new Rect(0, h * 0.075f, w, h * 0.09f), "SALDOKU", Mathf.RoundToInt(h * 0.072f),
+            Tema.Teks(new Rect(0, h * 0.10f, w, h * 0.09f), "ZOMBURST", Mathf.RoundToInt(h * 0.072f),
                 Tema.Darah, TextAnchor.MiddleCenter, true);
-            Tema.Teks(new Rect(0, h * 0.138f, w, h * 0.065f), "LAST STAND", Mathf.RoundToInt(h * 0.05f),
+            Tema.Teks(new Rect(0, h * 0.163f, w, h * 0.065f), "AUTO SHOOTER", Mathf.RoundToInt(h * 0.05f),
                 Tema.Army, TextAnchor.MiddleCenter, true);
-            Tema.Teks(new Rect(0, h * 0.205f, w, h * 0.04f), "BERTAHAN SELAMA MUNGKIN", Mathf.RoundToInt(h * 0.023f),
-                Tema.Redup, TextAnchor.MiddleCenter, true);
 
             // ---- PANEL REKOR ( [ikon PIALA] angka ) ----
             if (ScoreManager.Instance != null)
@@ -161,7 +169,7 @@ public class GameMenu : MonoBehaviour
             // MAIN pakai gaya AKSEN (emas) biar jadi pusat perhatian.
             if (Tombol("MAIN", 0.665f, 0.62f, true))
             {
-                if (KarakterManager.Terbuka(KarakterManager.Dipilih)) { SoundManager.Klik(); Mulai(); }
+                if (KarakterManager.Terbuka(KarakterManager.Dipilih)) { SoundManager.Klik(); tampilPeta = true; }
                 else MintaBukaKarakter(KarakterManager.Dipilih); // terkunci -> tawarkan buka via iklan
             }
 
@@ -207,8 +215,8 @@ public class GameMenu : MonoBehaviour
         }
 
         // ====== TOMBOL JEDA SAAT MAIN ======
-        // sembunyikan saat Game Over atau saat memilih skill
-        if (PlayerHealth.GameOver || SkillManager.AktifMemilih) return;
+        // sembunyikan saat Game Over, saat memilih skill, atau saat layar MENANG
+        if (PlayerHealth.GameOver || SkillManager.AktifMemilih || HasilMain.Menang) return;
 
         // Pojok KANAN atas, ukuran responsif (sisi terpendek) + hormati safe area
         float sz = Tema.Unit * 0.09f;
@@ -453,6 +461,81 @@ public class GameMenu : MonoBehaviour
             float colH = (1f - f) * r.height;
             Tema.Kotak(new Rect(r.x + i * cw, r.y + (r.height - colH) / 2f, cw + 1f, colH), col);
         }
+    }
+
+    // ====== LAYAR PILIH STAGE (PETA) ======
+    // Menu -> MAIN -> Peta -> pilih stage -> Mulai. Stage terkunci butuh
+    // menang di stage sebelumnya dulu.
+    void GambarPeta()
+    {
+        float h = Screen.height;
+        float w = Screen.width;
+
+        Tema.LatarGelap();
+        Tema.Vignette();
+        Tema.Teks(new Rect(0, h * 0.08f, w, h * 0.08f), "PILIH STAGE", Mathf.RoundToInt(h * 0.05f),
+            Tema.Army, TextAnchor.MiddleCenter, true);
+
+        float pw = w * 0.82f;
+        float px = (w - pw) / 2f;
+        float ph = h * 0.11f;         // tinggi tiap kartu stage
+        float gap = h * 0.022f;
+        float y0 = h * 0.20f;
+
+        for (int i = 0; i < StageManager.Jumlah; i++)
+        {
+            StageManager.Stage st = StageManager.Daftar[i];
+            bool terbuka = StageManager.Terbuka(i);
+            bool dipilih = (StageManager.Dipilih == i);
+            float y = y0 + i * (ph + gap);
+            Rect r = new Rect(px, y, pw, ph);
+
+            // panel kartu (yang dipilih -> border amber lebih tebal)
+            Tema.Panel9(r, Tema.Plate, dipilih ? Tema.Amber : Tema.GarisRedup, dipilih ? 3f : 2f);
+
+            // tombol tak terlihat menutupi seluruh kartu (klik = pilih & main)
+            if (GUI.Button(r, "", GUIStyle.none))
+            {
+                SoundManager.Klik();
+                if (terbuka)
+                {
+                    StageManager.Dipilih = i;
+                    Mulai();
+                    return;
+                }
+            }
+
+            // nomor stage (kiri)
+            float ns = ph * 0.5f;
+            Tema.Teks(new Rect(r.x + pw * 0.04f, r.y + (ph - ns) / 2f, ns, ns),
+                (i + 1).ToString(), Mathf.RoundToInt(h * 0.045f),
+                terbuka ? Tema.Amber : Tema.Redup, TextAnchor.MiddleCenter, true);
+
+            // nama + tagline (tengah-kiri)
+            float tx = r.x + pw * 0.16f;
+            Tema.Teks(new Rect(tx, r.y + ph * 0.16f, pw * 0.66f, ph * 0.40f),
+                st.nama, Mathf.RoundToInt(h * 0.028f),
+                terbuka ? Tema.Tulang : Tema.Redup, TextAnchor.MiddleLeft, true);
+            Tema.Teks(new Rect(tx, r.y + ph * 0.54f, pw * 0.66f, ph * 0.34f),
+                terbuka ? st.tagline : "TERKUNCI - menangi stage sebelumnya",
+                Mathf.RoundToInt(h * 0.020f), Tema.Redup, TextAnchor.MiddleLeft, true);
+
+            // kanan: gembok (terkunci) atau label MAIN (terbuka)
+            if (!terbuka)
+            {
+                float gs = ph * 0.5f;
+                GambarGembok(new Rect(r.xMax - pw * 0.04f - gs * 0.8f, r.y + (ph - gs) / 2f, gs * 0.8f, gs), Tema.Amber);
+            }
+            else
+            {
+                float bw = pw * 0.20f, bh = ph * 0.5f;
+                Rect rb = new Rect(r.xMax - pw * 0.03f - bw, r.y + (ph - bh) / 2f, bw, bh);
+                Tema.Teks(rb, "MAIN >", Mathf.RoundToInt(h * 0.024f), Tema.Army, TextAnchor.MiddleCenter, true);
+            }
+        }
+
+        // tombol KEMBALI ke Home
+        if (Tombol("KEMBALI", 0.86f, 0.5f)) { SoundManager.Klik(); tampilPeta = false; }
     }
 
     // ====== PANEL PENGATURAN SUARA ======
