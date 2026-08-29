@@ -781,6 +781,7 @@ UnityEngine.GUIStyle::get_imagePosition_Injected
 UnityEngine.GUIStyle::get_alignment_Injected
 UnityEngine.GUIStyle::get_clipping_Injected
 UnityEngine.GUIStyleState::Init
+UnityEngine.GUIStyleState::get_background_Injected
 UnityEngine.GUIStyleState::Cleanup_Injected
 UnityEngine.GUIStyleState::set_background_Injected
 UnityEngine.GUIStyleState::set_textColor_Injected
@@ -1466,6 +1467,7 @@ UnityEngine.Rendering.SortingGroup::get_invalidSortingGroupID
 UnityEngine.Rendering.SortingGroup::get_sortingLayerID_Injected
 UnityEngine.Rendering.SortingGroup::get_sortingOrder_Injected
 UnityEngine.Rendering.SortingGroup::GetSortingGroupByIndex_Injected
+UnityEngine.Rendering.SortingGroup::set_sortingOrder_Injected
 UnityEngine.Rendering.SpeedTreeWindManager::UpdateWindAndWriteBufferWindParams_Injected
 UnityEngine.Rendering.Watermark::IsVisible
 UnityEngine.RenderingLayerMask::GetDefinedRenderingLayerCount
