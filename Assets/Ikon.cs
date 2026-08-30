@@ -118,17 +118,17 @@ public static class Ikon
         return (t != null) ? t : bawaan;
     }
 
-    public static Texture2D Bintang { get { if (_bintang == null) _bintang = Buat(FBintang, 72); return _bintang; } }
-    public static Texture2D Petir { get { if (_petir == null) _petir = Buat(FPetir, 72); return _petir; } }
-    public static Texture2D Peluru { get { if (_peluru == null) _peluru = Buat(FPeluru, 72); return _peluru; } }
-    public static Texture2D Target { get { if (_target == null) _target = Buat(FTarget, 72); return _target; } }
-    public static Texture2D Chevron { get { if (_chevron == null) _chevron = Buat(FChevron, 72); return _chevron; } }
-    public static Texture2D Hati { get { if (_hati == null) _hati = Buat(FHati, 72); return _hati; } }
-    public static Texture2D Berlian { get { if (_berlian == null) _berlian = Buat(FBerlian, 72); return _berlian; } }
-    public static Texture2D Tengkorak { get { if (_tengkorak == null) _tengkorak = Buat(FTengkorak, 72); return _tengkorak; } }
-    public static Texture2D Aura { get { if (_aura == null) _aura = Buat(FAura, 72); return _aura; } }
-    public static Texture2D Roket { get { if (_roket == null) _roket = Buat(FRoket, 72); return _roket; } }
-    public static Texture2D Pisau { get { if (_pisau == null) _pisau = Buat(FPisau, 72); return _pisau; } }
+    public static Texture2D Bintang { get { if (_bintang == null) _bintang = Buat(FBintang, 72); return Dari("bintang", _bintang); } }
+    public static Texture2D Petir { get { if (_petir == null) _petir = Buat(FPetir, 72); return Dari("petir", _petir); } }
+    public static Texture2D Peluru { get { if (_peluru == null) _peluru = Buat(FPeluru, 72); return Dari("peluru", _peluru); } }
+    public static Texture2D Target { get { if (_target == null) _target = Buat(FTarget, 72); return Dari("target", _target); } }
+    public static Texture2D Chevron { get { if (_chevron == null) _chevron = Buat(FChevron, 72); return Dari("chevron", _chevron); } }
+    public static Texture2D Hati { get { if (_hati == null) _hati = Buat(FHati, 72); return Dari("hati", _hati); } }
+    public static Texture2D Berlian { get { if (_berlian == null) _berlian = Buat(FBerlian, 72); return Dari("berlian", _berlian); } }
+    public static Texture2D Tengkorak { get { if (_tengkorak == null) _tengkorak = Buat(FTengkorak, 72); return Dari("tengkorak", _tengkorak); } }
+    public static Texture2D Aura { get { if (_aura == null) _aura = Buat(FAura, 72); return Dari("aura", _aura); } }
+    public static Texture2D Roket { get { if (_roket == null) _roket = Buat(FRoket, 72); return Dari("roket", _roket); } }
+    public static Texture2D Pisau { get { if (_pisau == null) _pisau = Buat(FPisau, 72); return Dari("pisau", _pisau); } }
     public static Texture2D Piala { get { if (_piala == null) _piala = Buat(FPiala, 72); return Dari("piala", _piala); } }
 
     // ====== ITEM LAPANGAN: ikon KODE BERWARNA & TRANSPARAN (tanpa background) ======
