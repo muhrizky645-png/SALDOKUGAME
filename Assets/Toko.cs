@@ -64,7 +64,7 @@ public class Toko : MonoBehaviour
         {
             case 0:  return Ikon.UntukItem("bom");
             case 1:  return Ikon.UntukSkill("hati");
-            default: return Ikon.UntukSkill("aura");
+            default: return Ikon.Dari("jampasir", Ikon.Aura); // icon jam pasir (fallback: aura)
         }
     }
 

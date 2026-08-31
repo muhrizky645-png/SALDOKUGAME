@@ -21,6 +21,25 @@ public static class PratinjauKarakter
 
     static readonly Vector3 PosPanggung = new Vector3(10000f, 10000f, 0f);
 
+    // ===== FIX: bersihkan semua state static tiap masuk Play Mode =====
+    // Objek panggung/kamera/klon dibuat dengan HideAndDontSave, jadi TIDAK ikut
+    // hancur saat Stop Play. Kalau "Reload Domain" mati, sisa objek + _idxTerakhir
+    // dari sesi sebelumnya nyangkut, sementara RenderTexture-nya sudah mati ->
+    // kamera lama render ke texture kosong -> preview blank di Play kedua.
+    // Reset ini maksa semuanya dibangun ulang fresh.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatic()
+    {
+        if (_cam != null) _cam.targetTexture = null; // lepas dulu dari kamera -> hindari warning "Releasing render texture..."
+        if (_rt != null) { _rt.Release(); Object.Destroy(_rt); }
+        if (_panggung != null) Object.Destroy(_panggung); // ikut hapus kamera & klon (anak panggung)
+        _rt = null;
+        _cam = null;
+        _panggung = null;
+        _klon = null;
+        _idxTerakhir = -999;
+    }
+
     // Kembalikan tekstur pratinjau untuk karakter idx (atau null bila rig belum ada).
     // Klon hanya DIBANGUN ULANG saat karakter berganti (mahal: Instantiate rig). Proses
     // RENDER ditangani otomatis oleh kamera aktif (URP), jadi di sini cukup kembalikan RT.
