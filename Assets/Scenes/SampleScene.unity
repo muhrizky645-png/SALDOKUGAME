@@ -211,13 +211,10 @@ MonoBehaviour:
     xp: 5
     skala: 4
   zombiePrefab: {fileID: 5876629510968562606, guid: a5826430ce8d6f14597fb0b3092c0b38, type: 3}
-  bossPrefabs:
-  - {fileID: 5650423630096164307, guid: ed7afb02a2246614da8d0e93b155ef48, type: 3}
-  - {fileID: 3676971076677257608, guid: 0b5757230de2ac846926c905719e30e3, type: 3}
-  - {fileID: 6828922712980065891, guid: 0c7fdddfb0724a241be092dac8fdf9dc, type: 3}
-  - {fileID: 3945939611434538402, guid: 42e8d62848b3a7c4c93521c2a038e3da, type: 3}
   spawnDistance: 8
   ukuranMusuh: 1
+  pengaliMin: 0.7
+  pengaliMax: 1.5
   spawnAwal: 1.5
   penguranganTiapLevel: 0.1
   spawnTercepat: 0.2
@@ -225,6 +222,14 @@ MonoBehaviour:
   tambahMaxTiapLevel: 5
   maxMutlak: 90
   spawnSekaligus: 1
+  bossPrefabs:
+  - {fileID: 5650423630096164307, guid: ed7afb02a2246614da8d0e93b155ef48, type: 3}
+  - {fileID: 3676971076677257608, guid: 0b5757230de2ac846926c905719e30e3, type: 3}
+  - {fileID: 6828922712980065891, guid: 0c7fdddfb0724a241be092dac8fdf9dc, type: 3}
+  - {fileID: 3945939611434538402, guid: 42e8d62848b3a7c4c93521c2a038e3da, type: 3}
+  jedaBoss: 45
+  skalaBoss: 4.5
+  ukuranBossMinimal: 4.5
 --- !u!4 &475604592
 Transform:
   m_ObjectHideFlags: 0
@@ -548,7 +553,11 @@ MonoBehaviour:
         m_SelectedSource:
           rid: -2
         m_Provider2DCache:
-          rid: -2
+          rid: 8261231899128102912
+    - rid: 8261231899128102912
+      type: {class: 'Provider2DCache`1[[UnityEngine.Rendering.Universal.Light2DProvider, Unity.RenderPipelines.Universal.2D.Runtime]]', ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.2D.Runtime}
+      data:
+        m_Cache: []
 --- !u!4 &619394802
 Transform:
   m_ObjectHideFlags: 0

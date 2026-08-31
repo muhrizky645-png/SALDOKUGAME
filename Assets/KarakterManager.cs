@@ -83,12 +83,21 @@ public static class KarakterManager
     static readonly System.Collections.Generic.Dictionary<string, Texture2D> _cache
         = new System.Collections.Generic.Dictionary<string, Texture2D>();
 
+    // ===== FIX: reset cache tiap masuk Play Mode =====
+    // Kalau "Reload Domain" dimatikan di Enter Play Mode Settings, variabel
+    // static tetap hidup antar sesi Play, PADAHAL tekstur Resources-nya sudah
+    // di-unload saat Stop. Tanpa reset ini, Play kedua memakai referensi
+    // tekstur yang sudah mati -> sprite kosong -> karakter hilang.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetCache() { _cache.Clear(); }
+
     public static Texture2D Tekstur(int idx, string bagian)
     {
         if (idx < 0 || idx >= Id.Length) return null;
         string path = "Chars/" + Id[idx] + "/" + bagian;
         Texture2D t;
-        if (!_cache.TryGetValue(path, out t))
+        // FIX: load ulang kalau belum ada di cache ATAU teksturnya sudah mati (null).
+        if (!_cache.TryGetValue(path, out t) || t == null)
         {
             t = Resources.Load<Texture2D>(path);
             _cache[path] = t;
