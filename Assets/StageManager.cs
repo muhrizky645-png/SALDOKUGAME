@@ -5,9 +5,17 @@ using UnityEngine;
 // Static class murni (tanpa MonoBehaviour): cuma data + penyimpanan
 // PlayerPrefs. Dipakai GameMenu (layar Peta) & HasilMain (win condition).
 //
-// Untuk sekarang tiap stage BEDA di TARGET BERTAHAN (durasi menang) dan
-// pengali kesulitan ringan. Tema latar / musuh khusus per-stage bisa
-// ditambah belakangan (aset alakadarnya dulu -> lantai prosedural).
+// PERUBAHAN PENTING - durasi run kini 15 MENIT untuk semua stage.
+//
+// Dulu tiap stage dibedakan oleh DURASI (3/4/5/6 menit). Itu bermasalah
+// begitu jadwal bos masuk: bos tiap 5 menit berarti stage 1 dan 2 tidak
+// akan pernah kedatangan bos sama sekali, dan musuh Peledak yang terbuka
+// di menit ke-6 tidak akan pernah muncul di stage mana pun.
+//
+// Sekarang semua stage berdurasi sama (Balance.DurasiRunDetik) dan yang
+// membedakannya adalah PENGALI KESULITAN - persis seperti ChapterMultiplier
+// di PRD. Ini juga lebih jujur: stage yang lebih sulit seharusnya terasa
+// lebih berat, bukan sekadar lebih lama.
 // =====================================================================
 public static class StageManager
 {
@@ -16,7 +24,7 @@ public static class StageManager
         public string nama;
         public string tagline;
         public float targetDetik;   // bertahan sampai sekian detik = MENANG
-        public float pengaliMusuh;  // 1.0 = normal (dipakai nanti untuk balance per-stage)
+        public float pengaliMusuh;  // 1.0 = normal
 
         public Stage(string nama, string tagline, float targetDetik, float pengaliMusuh)
         {
@@ -28,12 +36,13 @@ public static class StageManager
     }
 
     // Daftar stage (urut: hutan dulu, sesuai konsep doc).
+    // Durasi diambil dari Balance supaya cukup diubah di SATU tempat.
     public static readonly Stage[] Daftar = new Stage[]
     {
-        new Stage("HUTAN TERKONTAMINASI", "Bertahan 3 menit", 180f, 1.0f),
-        new Stage("KOTA RUNTUH",          "Bertahan 4 menit", 240f, 1.15f),
-        new Stage("GURUN RERUNTUHAN",     "Bertahan 5 menit", 300f, 1.3f),
-        new Stage("KUTUB BEKU",           "Bertahan 6 menit", 360f, 1.5f),
+        new Stage("HUTAN TERKONTAMINASI", "Tingkat I - 3 bos",   Balance.DurasiRunDetik, 1.0f),
+        new Stage("KOTA RUNTUH",          "Tingkat II - 3 bos",  Balance.DurasiRunDetik, 1.15f),
+        new Stage("GURUN RERUNTUHAN",     "Tingkat III - 3 bos", Balance.DurasiRunDetik, 1.3f),
+        new Stage("KUTUB BEKU",           "Tingkat IV - 3 bos",  Balance.DurasiRunDetik, 1.5f),
     };
 
     const string PP_DIPILIH = "stage_dipilih";
