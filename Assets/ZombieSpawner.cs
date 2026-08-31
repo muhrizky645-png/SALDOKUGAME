@@ -7,7 +7,7 @@ public class ZombieSpawner : MonoBehaviour
     {
         [Tooltip("Prefab musuh (drag dari folder DungeonMonsters2D/Characters). Contoh: Rat, Bat, Spider, dst.")]
         public GameObject prefab;
-        [Tooltip("Musuh mulai muncul di Level ini. Isi 0 = otomatis dari urutan (baris ke-1 = Level 1, baris ke-2 = Level 2, dst).")]
+        [Tooltip("Gerbang TAMBAHAN opsional. Isi 0 = biarkan JadwalRun yang mengatur kapan musuh ini terbuka (disarankan). Kalau diisi, musuh ini juga harus menunggu level pemain segini.")]
         public int mulaiLevel = 0;
         [Tooltip("Nyawa: berapa kali kena tembak untuk mati. Isi 0 = otomatis (makin ke bawah makin tebal).")]
         public int nyawa = 0;
@@ -20,6 +20,7 @@ public class ZombieSpawner : MonoBehaviour
     }
 
     [Header("Daftar musuh (URUTKAN dari paling lemah ke paling kuat)")]
+    [Tooltip("URUTAN PENTING. JadwalRun membuka daftar ini dari atas ke bawah seiring waktu, jadi baris pertama adalah musuh menit pertama.")]
     public MusuhTier[] daftarMusuh;
 
     [Header("Cadangan (dipakai kalau Daftar Musuh kosong)")]
@@ -49,10 +50,10 @@ public class ZombieSpawner : MonoBehaviour
     public int maxMutlak = 90;
     public int spawnSekaligus = 2;
 
-    [Header("BOSS (muncul mengikuti waktu bertahan)")]
+    [Header("BOSS (dijadwalkan JadwalRun, tiap 5 menit)")]
     [Tooltip("Daftar prefab BOSS gahar (mis. DragonRed, Demon, MagmaGolem, StoneGolem). Tiap boss muncul, dipilih ACAK dari daftar ini. Kalau kosong, otomatis pakai musuh terkuat di daftar musuh.")]
     public GameObject[] bossPrefabs;
-    [Tooltip("Jeda kemunculan boss dalam detik.")]
+    [Tooltip("TIDAK DIPAKAI LAGI. Jadwal bos kini dipegang JadwalRun.SiklusDetik (300 detik).")]
     public float jedaBoss = 45f;
     [Tooltip("Pengali ukuran boss dibanding musuh biasa. Boss sengaja dibuat besar (minimal dipaksa besar lewat kode).")]
     public float skalaBoss = 4.5f;
@@ -61,7 +62,6 @@ public class ZombieSpawner : MonoBehaviour
 
     private Transform player;
     private float timer = 0f;
-    private float bossBerikut = 0f;
     private int bossKe = 0;
     private int bossTerakhir = -1;
 
@@ -81,7 +81,6 @@ public class ZombieSpawner : MonoBehaviour
 
         GameObject p = GameObject.FindWithTag("Player");
         if (p != null) player = p.transform;
-        bossBerikut = jedaBoss; // boss pertama setelah 'jedaBoss' detik
         bossKe = 0;
     }
 
@@ -89,15 +88,26 @@ public class ZombieSpawner : MonoBehaviour
     {
         if (player == null) return;
 
-        int level = (LevelSystem.Instance != null) ? LevelSystem.Instance.Level : 1;
         float detik = GameTimer.Detik;
-        float menit = Mathf.Max(0f, detik) / 60f;
+        int level = (LevelSystem.Instance != null) ? LevelSystem.Instance.Level : 1;
 
-        // ==== BOSS mengikuti waktu ====
-        if (detik >= bossBerikut)
+        // ==== BOS MENGIKUTI JADWAL, BUKAN TIMER SENDIRI ====
+        // Dulu: bossBerikut += jedaBoss (45 detik). Bos yang datang tiap 45
+        // detik berhenti terasa istimewa - ia jadi sekadar musuh besar yang
+        // rutin lewat. Sekarang tiap 5 menit, didahului gelombang dan hening.
+        //
+        // Dibandingkan dengan hitungan (bukan ditambahkan ke timer) supaya
+        // bos tidak pernah dobel atau terlewat kalau satu frame tersendat.
+        if (JadwalRun.JumlahBosSeharusnya(detik) > bossKe)
+            SpawnBos(detik);
+
+        FaseRun fase = JadwalRun.Fase(detik);
+
+        // HENING: spawn berhenti total. Inilah jeda mencekam sebelum bos.
+        if (fase == FaseRun.Hening)
         {
-            bossBerikut += jedaBoss;
-            SpawnBos(level);
+            timer = 0f;
+            return;
         }
 
         // ==== KESULITAN MENGIKUTI WAKTU, BUKAN LEVEL PEMAIN ====
@@ -107,22 +117,24 @@ public class ZombieSpawner : MonoBehaviour
         // kuat menghadapi ledakan kesulitan, pemain lemah menghadapi layar
         // kosong. Kurva kesulitannya berbeda untuk tiap pemain sehingga
         // mustahil diseimbangkan. Waktu memberi kurva yang sama untuk semua.
+        float menit = Mathf.Max(0f, detik) / 60f;
         float jedaSpawn = Mathf.Max(spawnTercepat, spawnAwal - penguranganTiapLevel * menit);
+        jedaSpawn *= JadwalRun.PengaliJedaSpawn(fase);
 
-        int maxSekarang = Mathf.Min(maxMutlak, Balance.MaxMusuhHidup(detik, Pengali));
+        float pengaliFase = JadwalRun.PengaliJumlah(fase);
+        int maxSekarang = Mathf.Min(maxMutlak,
+            Mathf.RoundToInt(Balance.MaxMusuhHidup(detik, Pengali) * pengaliFase));
+        maxSekarang = Mathf.Max(1, maxSekarang);
+
+        int sekaligus = Mathf.Max(1, Mathf.RoundToInt(spawnSekaligus * pengaliFase));
 
         timer += Time.deltaTime;
         if (timer >= jedaSpawn)
         {
             timer = 0f;
-            for (int i = 0; i < spawnSekaligus; i++)
-                Spawn(level, maxSekarang);
+            for (int i = 0; i < sekaligus; i++)
+                Spawn(detik, level, maxSekarang);
         }
-    }
-
-    int LevelBuka(int index, MusuhTier t)
-    {
-        return (t.mulaiLevel > 0) ? t.mulaiLevel : (index + 1);
     }
 
     int NyawaTier(int index, MusuhTier t)
@@ -136,7 +148,7 @@ public class ZombieSpawner : MonoBehaviour
         return player.position + new Vector3(arahAcak.x, arahAcak.y, 0f) * spawnDistance;
     }
 
-    void Spawn(int level, int maxSekarang)
+    void Spawn(float detik, int level, int maxSekarang)
     {
         // DULU: FindGameObjectsWithTag("Enemy").Length menyisir seluruh scene
         // dan mengalokasikan array baru, setiap kali mau spawn.
@@ -146,7 +158,7 @@ public class ZombieSpawner : MonoBehaviour
         Vector3 posisi = PosisiSpawn();
 
         int index;
-        MusuhTier tier = PilihTier(level, out index);
+        MusuhTier tier = PilihTier(detik, level, out index);
         GameObject prefab = (tier != null && tier.prefab != null) ? tier.prefab : zombiePrefab;
         if (prefab == null) return;
 
@@ -154,6 +166,30 @@ public class ZombieSpawner : MonoBehaviour
 
         if (tier != null && tier.prefab != null)
             SiapkanMusuh(musuh, tier, index);
+    }
+
+    // Munculkan musuh MENGELILINGI sebuah titik, bukan mengelilingi pemain.
+    // Dipakai BosPola saat bos memanggil bawahan, supaya bawahan muncul dari
+    // bos dan memutus jalur mundur pemain - bukan sekadar menambah keramaian.
+    public void SpawnDiSekitar(Vector3 pusat, int jumlah)
+    {
+        float detik = GameTimer.Detik;
+        int level = (LevelSystem.Instance != null) ? LevelSystem.Instance.Level : 1;
+
+        for (int i = 0; i < jumlah; i++)
+        {
+            Vector2 r = Random.insideUnitCircle.normalized * Random.Range(1.8f, 3.2f);
+            Vector3 posisi = pusat + new Vector3(r.x, r.y, 0f);
+
+            int index;
+            MusuhTier tier = PilihTier(detik, level, out index);
+            GameObject prefab = (tier != null && tier.prefab != null) ? tier.prefab : zombiePrefab;
+            if (prefab == null) return;
+
+            GameObject musuh = Instantiate(prefab, posisi, Quaternion.identity);
+            if (tier != null && tier.prefab != null)
+                SiapkanMusuh(musuh, tier, index);
+        }
     }
 
     // Paksa spawn sejumlah musuh, mengabaikan batas maksimum.
@@ -167,19 +203,23 @@ public class ZombieSpawner : MonoBehaviour
         }
         if (player == null) return;
 
+        float detik = GameTimer.Detik;
         int level = (LevelSystem.Instance != null) ? LevelSystem.Instance.Level : 1;
-        for (int i = 0; i < jumlah; i++) Spawn(level, int.MaxValue);
+        for (int i = 0; i < jumlah; i++) Spawn(detik, level, int.MaxValue);
     }
 
     // Spawn satu BOSS: dipilih ACAK dari daftar bossPrefabs, kalau kosong pakai yang terkuat.
-    void SpawnBos(int level)
+    void SpawnBos(float detik)
     {
         GameObject prefab = PilihBoss();
         if (prefab == null) prefab = PrefabTerkuat();
         if (prefab == null) prefab = zombiePrefab;
+
+        // Naikkan hitungan APA PUN yang terjadi. Kalau tidak, dan prefab-nya
+        // kosong, Update akan mencoba spawn bos yang sama tiap frame selamanya.
+        bossKe++;
         if (prefab == null) return;
 
-        bossKe++;
         Vector3 posisi = PosisiSpawn();
         GameObject go = Instantiate(prefab, posisi, Quaternion.identity);
 
@@ -193,10 +233,18 @@ public class ZombieSpawner : MonoBehaviour
         EnemyChase ec = go.GetComponent<EnemyChase>();
         if (ec == null) ec = go.AddComponent<EnemyChase>();
         ec.moveSpeed = 1.3f;
-        ec.nyawa = Mathf.Max(1, Mathf.RoundToInt((60 + level * 8 + (bossKe - 1) * 40) * Pengali));
+        ec.nyawa = JadwalRun.NyawaBos(bossKe, detik, Pengali);
         ec.skor = 500;
         ec.xp = 25;
         ec.bos = true; // ditandai boss (diproses di EnemyChase.Start)
+
+        // Pola serangan dipasang lewat kode, jadi kamu TIDAK perlu mengedit
+        // satu pun prefab bos di Inspector. Prefab bos apa pun yang kamu drag
+        // ke bossPrefabs langsung mendapat tembakan melingkar, terjangan, dan
+        // panggil bawahan.
+        BosPola pola = go.GetComponent<BosPola>();
+        if (pola == null) pola = go.AddComponent<BosPola>();
+        pola.tingkat = bossKe;
     }
 
     // Pilih boss acak dari daftar; hindari mengulang boss yang sama dua kali berturut-turut bila memungkinkan.
@@ -242,30 +290,58 @@ public class ZombieSpawner : MonoBehaviour
         return null;
     }
 
-    MusuhTier PilihTier(int level, out int indexTerpilih)
+    // Pilih satu tier dari yang SUDAH TERBUKA pada detik ini.
+    //
+    // Dulu gerbangnya level pemain: tier ke-N terbuka di level N. Terlihat
+    // bertahap, tapi dengan kurva XP lama pemain mencapai level 5 dalam
+    // sekitar setengah menit - jadi seluruh daftar musuh terbuka hampir
+    // seketika. Gerbangnya ada, pemain hanya melewatinya terlalu cepat.
+    //
+    // Sekarang gerbangnya WAKTU. mulaiLevel tetap dihormati kalau kamu
+    // sengaja mengisinya, sebagai syarat tambahan.
+    MusuhTier PilihTier(float detik, int level, out int indexTerpilih)
     {
         indexTerpilih = -1;
         if (daftarMusuh == null || daftarMusuh.Length == 0) return null;
 
+        int batas = JadwalRun.JenisTerbuka(detik);
+
         int jumlah = 0;
         for (int i = 0; i < daftarMusuh.Length; i++)
         {
-            var t = daftarMusuh[i];
-            if (t != null && t.prefab != null && LevelBuka(i, t) <= level) jumlah++;
+            if (Terbuka(i, batas, level)) jumlah++;
         }
-        if (jumlah == 0) return null;
+
+        // Jaring pengaman: kalau belum ada yang terbuka (misal daftar kosong
+        // di baris-baris awal), pakai baris pertama yang punya prefab.
+        if (jumlah == 0)
+        {
+            for (int i = 0; i < daftarMusuh.Length; i++)
+            {
+                var t0 = daftarMusuh[i];
+                if (t0 != null && t0.prefab != null) { indexTerpilih = i; return t0; }
+            }
+            return null;
+        }
 
         int pilih = Random.Range(0, jumlah);
         int hitung = 0;
         for (int i = 0; i < daftarMusuh.Length; i++)
         {
-            var t = daftarMusuh[i];
-            if (t == null || t.prefab == null) continue;
-            if (LevelBuka(i, t) > level) continue;
-            if (hitung == pilih) { indexTerpilih = i; return t; }
+            if (!Terbuka(i, batas, level)) continue;
+            if (hitung == pilih) { indexTerpilih = i; return daftarMusuh[i]; }
             hitung++;
         }
         return null;
+    }
+
+    bool Terbuka(int i, int batas, int level)
+    {
+        var t = daftarMusuh[i];
+        if (t == null || t.prefab == null) return false;
+        if (i >= batas) return false;
+        if (t.mulaiLevel > 0 && level < t.mulaiLevel) return false;
+        return true;
     }
 
     void SiapkanMusuh(GameObject go, MusuhTier tier, int index)
