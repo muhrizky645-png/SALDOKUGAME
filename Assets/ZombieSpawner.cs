@@ -35,12 +35,17 @@ public class ZombieSpawner : MonoBehaviour
     public float pengaliMin = 0.7f;
     public float pengaliMax = 1.5f;
 
-    [Header("Kesulitan mengikuti Level pemain")]
+    [Header("Kesulitan mengikuti WAKTU bertahan")]
+    [Tooltip("Jeda antar gelombang spawn di detik ke-0.")]
     public float spawnAwal = 0.9f;
+    [Tooltip("Pengurangan jeda spawn setiap MENIT (dulu: setiap level).")]
     public float penguranganTiapLevel = 0.1f;
     public float spawnTercepat = 0.2f;
+    [Tooltip("TIDAK DIPAKAI LAGI. Jumlah musuh kini dihitung Balance.MaxMusuhHidup.")]
     public int maxAwal = 20;
+    [Tooltip("TIDAK DIPAKAI LAGI. Jumlah musuh kini dihitung Balance.MaxMusuhHidup.")]
     public int tambahMaxTiapLevel = 5;
+    [Tooltip("Langit-langit keras. Naikkan bertahap SETELAH stress test membuktikan HP-mu sanggup. Target PRD: 320.")]
     public int maxMutlak = 90;
     public int spawnSekaligus = 2;
 
@@ -85,19 +90,26 @@ public class ZombieSpawner : MonoBehaviour
         if (player == null) return;
 
         int level = (LevelSystem.Instance != null) ? LevelSystem.Instance.Level : 1;
+        float detik = GameTimer.Detik;
+        float menit = Mathf.Max(0f, detik) / 60f;
 
         // ==== BOSS mengikuti waktu ====
-        if (GameTimer.Detik >= bossBerikut)
+        if (detik >= bossBerikut)
         {
             bossBerikut += jedaBoss;
             SpawnBos(level);
         }
 
-        float jedaSpawn = Mathf.Max(spawnTercepat, spawnAwal - penguranganTiapLevel * (level - 1));
+        // ==== KESULITAN MENGIKUTI WAKTU, BUKAN LEVEL PEMAIN ====
+        // Dulu jeda spawn dan jumlah musuh dihitung dari level pemain. Itu
+        // menciptakan umpan balik: makin banyak bunuh -> makin cepat naik level
+        // -> makin banyak musuh -> makin banyak XP -> naik level lagi. Pemain
+        // kuat menghadapi ledakan kesulitan, pemain lemah menghadapi layar
+        // kosong. Kurva kesulitannya berbeda untuk tiap pemain sehingga
+        // mustahil diseimbangkan. Waktu memberi kurva yang sama untuk semua.
+        float jedaSpawn = Mathf.Max(spawnTercepat, spawnAwal - penguranganTiapLevel * menit);
 
-        // Stage yang lebih sulit menampung lebih banyak musuh sekaligus.
-        int maxDasar = maxAwal + tambahMaxTiapLevel * (level - 1);
-        int maxSekarang = Mathf.Min(maxMutlak, Mathf.RoundToInt(maxDasar * Pengali));
+        int maxSekarang = Mathf.Min(maxMutlak, Balance.MaxMusuhHidup(detik, Pengali));
 
         timer += Time.deltaTime;
         if (timer >= jedaSpawn)
