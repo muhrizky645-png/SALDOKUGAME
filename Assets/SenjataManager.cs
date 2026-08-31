@@ -4,10 +4,19 @@ using System.Collections.Generic;
 
 // Mengelola senjata otomatis ala Survivor.io: Pisau Berputar (orbit), Aura Setrum, Roket Pelacak.
 // Tiap senjata bisa naik sampai level MAX. Di level 5+ senjata OTOMATIS berevolusi (lebih kuat).
+//
+// CATATAN FASE 0:
+// Semua pencarian musuh sekarang lewat EnemyRegistry, bukan
+// GameObject.FindGameObjectsWithTag("Enemy"). Lihat komentar di tiap blok.
+// Angka balancing di file ini masih hardcoded; pemindahannya ke SenjataSO
+// adalah pekerjaan Fase 1.
 public class SenjataManager : MonoBehaviour
 {
     public static SenjataManager Instance;
     public const int MAX = 6;
+
+    // Sejauh apa roket mau mencari sasaran (satuan dunia).
+    const float JangkauanCariTarget = 30f;
 
     public int lvOrbit = 0;
     public int lvAura = 0;
@@ -130,13 +139,18 @@ public class SenjataManager : MonoBehaviour
             if (auraTimer >= 0.4f) // sedikit lebih sering
             {
                 auraTimer = 0f;
-                GameObject[] musuh = GameObject.FindGameObjectsWithTag("Enemy");
-                foreach (var m in musuh)
+
+                // DULU: FindGameObjectsWithTag menyisir seluruh scene lalu
+                // menghitung Vector3.Distance (pakai akar kuadrat) ke SETIAP
+                // musuh, 2.5x per detik.
+                // SEKARANG: registry hanya memeriksa sel grid yang bersinggungan
+                // dengan radius aura, dan membandingkan kuadrat jarak.
+                int n = EnemyRegistry.DalamRadius(pl.position, radius, EnemyRegistry.Buffer);
+                for (int i = 0; i < n; i++)
                 {
-                    if (m == null) continue;
-                    if (Vector3.Distance(pl.position, m.transform.position) > radius) continue;
-                    EnemyChase ec = m.GetComponentInParent<EnemyChase>();
-                    if (ec != null) ec.KenaSerangan(dmg);
+                    EnemyChase ec = EnemyRegistry.Buffer[i];
+                    if (ec == null) continue;
+                    ec.KenaSerangan(dmg);
                 }
             }
         }
@@ -154,18 +168,20 @@ public class SenjataManager : MonoBehaviour
             if (roketTimer >= jeda)
             {
                 roketTimer = 0f;
-                // kumpulkan musuh, urutkan dari yang terdekat, lalu bagikan target ke tiap roket
-                List<Transform> ts = new List<Transform>();
-                GameObject[] musuh = GameObject.FindGameObjectsWithTag("Enemy");
-                foreach (var m in musuh) if (m != null) ts.Add(m.transform);
-                if (ts.Count > 0)
+
+                // DULU: alokasi List<Transform> baru + Sort penuh atas SEMUA
+                // musuh di scene, setiap gelombang roket.
+                // SEKARANG: NTerdekat menyaring lewat grid dulu, lalu hanya
+                // mengurutkan kandidat yang benar-benar dekat, ke buffer
+                // bersama. Nol alokasi per gelombang.
+                int n = EnemyRegistry.NTerdekat(pl.position, JangkauanCariTarget, jumlahRoket, EnemyRegistry.Buffer);
+                if (n > 0)
                 {
-                    ts.Sort((a, b) => (a.position - pl.position).sqrMagnitude
-                        .CompareTo((b.position - pl.position).sqrMagnitude));
                     for (int i = 0; i < jumlahRoket; i++)
                     {
-                        Transform t = ts[i % ts.Count]; // kalau musuh sedikit, target dipakai ulang
-                        Roket.Tembak(pl.position, t, 8f, dmg, radius);
+                        EnemyChase ec = EnemyRegistry.Buffer[i % n]; // kalau musuh sedikit, target dipakai ulang
+                        if (ec == null) continue;
+                        Roket.Tembak(pl.position, ec.transform, 8f, dmg, radius);
                     }
                 }
             }
@@ -174,16 +190,14 @@ public class SenjataManager : MonoBehaviour
 
     Transform MusuhTerdekat(Vector3 pos, Transform kecuali)
     {
-        GameObject[] musuh = GameObject.FindGameObjectsWithTag("Enemy");
-        Transform t = null; float min = Mathf.Infinity;
-        foreach (var m in musuh)
-        {
-            if (m == null) continue;
-            if (kecuali != null && m.transform == kecuali) continue;
-            float d = Vector3.Distance(pos, m.transform.position);
-            if (d < min) { min = d; t = m.transform; }
-        }
-        return t;
+        EnemyChase e = EnemyRegistry.Terdekat(pos, JangkauanCariTarget, null);
+        if (e == null) return null;
+
+        // Kalau yang terdekat justru yang mau dihindari, cari lagi tanpa dia.
+        if (kecuali != null && e.transform == kecuali)
+            e = EnemyRegistry.Terdekat(pos, JangkauanCariTarget, e);
+
+        return (e != null) ? e.transform : null;
     }
 
     Sprite BuatLingkaran(int size)

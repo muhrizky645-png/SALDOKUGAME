@@ -31,6 +31,12 @@ public class LevelSystem : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
+
+        // Kurva XP kini berasal dari Balance, bukan dari rumus yang tertanam
+        // di dalam AddXp. Lihat Balance.XpUntukLevel untuk alasan penggantian.
+        level = 1;
+        xp = 0;
+        xpUntukNaik = Balance.XpUntukLevel(level);
     }
 
     public void AddXp(int jumlah)
@@ -41,7 +47,7 @@ public class LevelSystem : MonoBehaviour
         {
             xp -= xpUntukNaik;
             level++;
-            xpUntukNaik = Mathf.RoundToInt(xpUntukNaik * 1.3f) + 2;
+            xpUntukNaik = Balance.XpUntukLevel(level);
             naik = true;
         }
         if (naik) SoundManager.LevelUp();

@@ -6,7 +6,8 @@ using UnityEngine.SceneManagement;
 // Manager auto-bootstrap (pola sama seperti manager lain).
 //
 // Tugas:
-//  1) Deteksi MENANG: bertahan sampai StageManager.TargetSekarang detik.
+//  1) Deteksi MENANG: bertahan sampai StageManager.TargetSekarang detik
+//     DAN tidak ada bos yang masih hidup.
 //  2) Bekukan game, beri hadiah Permata, buka stage berikutnya.
 //  3) Gambar layar Hasil MENANG (waktu bertahan, hadiah, tombol lanjut).
 //
@@ -47,7 +48,17 @@ public class HasilMain : MonoBehaviour
         if (!GameMenu.SedangMain || GameMenu.SedangJeda || Menang) return;
         if (PlayerHealth.GameOver || SkillManager.AktifMemilih) return;
 
-        if (GameTimer.Detik >= StageManager.TargetSekarang)
+        // Waktu habis TAPI bos masih hidup -> belum menang.
+        //
+        // Tanpa syarat ini, bos terakhir tidak punya arti: pemain cukup lari
+        // memutar sampai timer habis dan layar MENANG muncul di tengah
+        // pertarungan. Sekarang bos akhir benar-benar harus dijatuhkan.
+        //
+        // Aman dari kondisi tidak bisa menang: JumlahBos hanya bertambah saat
+        // bos berhasil di-spawn dan selalu berkurang di EnemyChase.Mati().
+        // Kalau bossPrefabs kosong, bos tidak pernah spawn dan syarat ini
+        // langsung terpenuhi.
+        if (GameTimer.Detik >= StageManager.TargetSekarang && EnemyChase.JumlahBos == 0)
             PicuMenang();
     }
 
@@ -55,7 +66,9 @@ public class HasilMain : MonoBehaviour
     {
         Menang = true;
         Time.timeScale = 0f;
-        waktuBertahan = Mathf.RoundToInt(StageManager.TargetSekarang);
+        // Pakai waktu SEBENARNYA, bukan target. Kalau pemain bertahan lebih
+        // lama karena menuntaskan bos akhir, itu layak ditampilkan apa adanya.
+        waktuBertahan = Mathf.RoundToInt(Mathf.Max(GameTimer.Detik, StageManager.TargetSekarang));
 
         // ---- HADIAH PERMATA ----
         // Dasar per-stage + bonus dari skor. Modest, biar tetap seimbang.

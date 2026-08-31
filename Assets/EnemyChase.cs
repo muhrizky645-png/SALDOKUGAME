@@ -18,6 +18,11 @@ public class EnemyChase : MonoBehaviour
     public static int JumlahBos = 0;         // berapa boss hidup sekarang
     public static EnemyChase BosSaatIni = null; // boss terakhir (untuk bar nyawa)
 
+    // Posisi musuh ini di dalam EnemyRegistry. -1 = belum terdaftar.
+    // Disimpan di sini supaya hapus dari registry bisa O(1) tanpa mencari.
+    // Jangan diubah manual; hanya EnemyRegistry yang boleh menulisnya.
+    [System.NonSerialized] public int IndexRegistry = -1;
+
     // ===== Buff PERLAMBAT (dari Toko): perlambat SEMUA musuh sementara =====
     public static float slowSampai = 0f;   // Time.time batas akhir efek
     public static float slowFaktor = 1f;   // pengali kecepatan saat aktif
@@ -56,6 +61,23 @@ public class EnemyChase : MonoBehaviour
 
     public int NyawaSisa { get { return nyawaSekarang; } }
     public int NyawaMaks { get { return nyawaMaks; } }
+
+    // Dibaca EnemyRegistry supaya senjata tidak menargetkan musuh yang sudah
+    // mati tapi objeknya masih ada (menunggu animasi hancur selesai).
+    public bool SudahMati { get { return sudahMati; } }
+
+    // Daftar ke registry SEBELUM Start, supaya musuh langsung bisa jadi target
+    // di frame pertama kemunculannya.
+    void OnEnable()
+    {
+        EnemyRegistry.Daftar(this);
+    }
+
+    // Jaring pengaman: dipanggil juga saat objek di-Destroy atau scene ditutup.
+    void OnDisable()
+    {
+        EnemyRegistry.Hapus(this);
+    }
 
     void Start()
     {
@@ -113,15 +135,20 @@ public class EnemyChase : MonoBehaviour
         MulaiGerak(); // mulai animasi JALAN
     }
 
-    // Acak tipe musuh; peluang tipe khusus naik seiring waktu bertahan
+    // Acak tipe musuh.
+    //
+    // DULU: peluang = 0.12 + menit * 0.05, lalu Random.Range(1, 5) memilih
+    // bebas di antara Cepat/Tank/Peledak/Penembak. Artinya keempat perilaku
+    // khusus itu sudah bisa muncul sejak DETIK KE-0. Ini penyebab utama
+    // "musuh langsung muncul semua" - lebih menentukan daripada daftar tier,
+    // karena berlaku untuk prefab apa pun yang di-spawn.
+    //
+    // SEKARANG: jadwalnya dipegang JadwalRun, tiap tipe punya menit
+    // pembukaannya sendiri sehingga pemain sempat mempelajari satu ancaman
+    // sebelum ancaman berikutnya datang.
     void RollTipe()
     {
-        float menit = GameTimer.Detik / 60f;
-        float peluang = Mathf.Clamp01(0.12f + menit * 0.05f);
-        if (Random.value < peluang)
-            tipe = (Tipe)Random.Range(1, 5); // Cepat/Tank/Peledak/Penembak
-        else
-            tipe = Tipe.Biasa;
+        tipe = JadwalRun.RollTipe(GameTimer.Detik);
     }
 
     // Terapkan pengali stat + warna sesuai tipe / boss
@@ -258,6 +285,11 @@ public class EnemyChase : MonoBehaviour
     {
         if (sudahMati) return;
         sudahMati = true;
+
+        // Keluar dari registry SEKARANG, bukan nanti saat objek dihancurkan.
+        // Objek ini masih hidup selama 'waktuHancur' detik untuk animasi mati;
+        // tanpa baris ini, aura dan roket akan terus membuang damage ke mayat.
+        EnemyRegistry.Hapus(this);
 
         SoundManager.MusuhMati();
         ComboMeter.Tambah();

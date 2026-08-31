@@ -9,7 +9,30 @@ public class PlayerShooting : MonoBehaviour
     public int jumlahPeluru = 1;    // berapa peluru sekali tembak (naik lewat skill)
     public float sudutSebar = 12f;  // sebaran sudut antar peluru (derajat)
 
+    [Header("Stat dasar")]
+    [Tooltip("Kalau dicentang, fireRate / range / jumlahPeluru di atas DIABAIKAN " +
+             "dan diambil dari Balance.cs saat game mulai. Matikan kalau kamu " +
+             "lebih suka menyetel lewat Inspector.")]
+    public bool pakaiBalance = true;
+
     private float timer = 0.5f;      // sedikit jeda sebelum tembakan pertama
+
+    // Nilai dasar diterapkan di AWAKE, bukan Start.
+    //
+    // Alasannya penting: UpgradePermanen menumpuk pengalinya di Start
+    // (fireRate *= 1 - 0.08 * level). Kalau nilai dasar ditulis di Start juga,
+    // urutan eksekusinya tidak dijamin Unity dan upgrade permanen bisa
+    // terhapus. Awake selalu berjalan lebih dulu, jadi urutannya pasti benar:
+    // dasar dulu, upgrade menumpuk di atasnya.
+    void Awake()
+    {
+        if (pakaiBalance)
+        {
+            fireRate     = Balance.JedaTembakAwal;
+            jumlahPeluru = Balance.JumlahPeluruAwal;
+            range        = Balance.JangkauanTembakAwal;
+        }
+    }
 
     // ====== SPRITE PROYEKTIL PER KARAKTER ======
     // Sebagian karakter memakai proyektil KHUSUS yang lebih masuk akal:
@@ -167,28 +190,20 @@ public class PlayerShooting : MonoBehaviour
 
     void Shoot()
     {
-        GameObject[] zombies = GameObject.FindGameObjectsWithTag("Enemy");
-        if (zombies.Length == 0) return;
-
         // MODE DEWA: jangkauan tembak jauh lebih luas
         float rangeEfektif = range * (ModeDewa.Aktif ? 4f : 1f);
 
-        // cari zombie terdekat
-        GameObject terdekat = null;
-        float jarakTerdekat = rangeEfektif;
-        foreach (GameObject z in zombies)
-        {
-            float jarak = Vector3.Distance(transform.position, z.transform.position);
-            if (jarak < jarakTerdekat)
-            {
-                jarakTerdekat = jarak;
-                terdekat = z;
-            }
-        }
+        // Dulu di sini ada GameObject.FindGameObjectsWithTag("Enemy") yang menyisir
+        // SELURUH scene lalu menghitung Vector3.Distance ke setiap musuh -- padahal
+        // fungsi ini adalah senjata utama pemain dan berjalan terus-menerus
+        // (di MODE DEWA bahkan tiap ~0,14 detik). Sekarang lewat grid spasial.
+        //
+        // Bonus: registry otomatis mengabaikan musuh yang sudah mati, jadi pemain
+        // tidak lagi menembaki mayat yang masih menunggu animasi hancur selesai.
+        EnemyChase target = EnemyRegistry.Terdekat(transform.position, rangeEfektif);
+        if (target == null) return;
 
-        if (terdekat == null) return;
-
-        Vector3 arah = (terdekat.transform.position - transform.position).normalized;
+        Vector3 arah = (target.transform.position - transform.position).normalized;
 
         // proyektil sesuai karakter terpilih
         bool orient;
@@ -210,8 +225,11 @@ public class PlayerShooting : MonoBehaviour
                 if (psr != null) { psr.sprite = peluruSpr; psr.color = Color.white; }
             }
             Bullet b = peluru.GetComponent<Bullet>();
-            b.direction = arahPeluru;
-            b.orientKeArah = orient;
+            if (b != null)
+            {
+                b.direction = arahPeluru;
+                b.orientKeArah = orient;
+            }
         }
 
         SoundManager.Tembak(); // suara tembak

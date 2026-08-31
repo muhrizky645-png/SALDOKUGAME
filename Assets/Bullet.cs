@@ -8,6 +8,17 @@ public class Bullet : MonoBehaviour
     public float putaran = 720f; // kecepatan putar shuriken (derajat per detik)
     public int damage = 1;       // seberapa banyak nyawa musuh yang dikurangi tiap kena
 
+    // ---- KRITIS (sementara) ----
+    // Dulu nilainya tertanam langsung di dalam OnTriggerEnter2D sehingga tidak bisa
+    // diubah tanpa compile ulang dan tidak bisa di-upgrade lewat skill.
+    // Sekarang minimal bisa diatur dari Inspector prefab peluru.
+    // CATATAN: ini BELUM sesuai PRD. Kritis seharusnya jadi stat pemain
+    // (PeluangKritis / DamageKritis di PasifSO), bukan properti peluru.
+    [Header("Kritis (sementara; nanti pindah ke stat pemain)")]
+    [Range(0f, 1f)] public float peluangKritis = 0.22f;
+    public int pengaliKritMin = 2;
+    public int pengaliKritMaks = 4; // eksklusif -> menghasilkan 2x atau 3x
+
     // Kalau true: proyektil MENGHADAP arah terbang & TIDAK berputar (peluru/anak panah).
     // Kalau false: proyektil berputar (shuriken / pedang yang dilempar).
     public bool orientKeArah = false;
@@ -40,9 +51,16 @@ public class Bullet : MonoBehaviour
             EnemyChase musuh = other.GetComponentInParent<EnemyChase>();
             if (musuh != null)
             {
+                // Musuh yang sudah mati tetap ber-tag "Enemy" selama animasi hancur
+                // (EnemyChase.waktuHancur). Tanpa penjagaan ini peluru habis di mayat
+                // dan damage-nya terbuang percuma. Biarkan peluru menembus terus
+                // supaya bisa mengenai musuh yang masih hidup di belakangnya.
+                if (musuh.SudahMati) return;
+
                 // kurangi nyawa musuh; kalau habis, musuh mati (diatur di EnemyChase)
                 int dmg = damage;
-                if (Random.value < 0.22f) dmg = damage * Random.Range(2, 4); // CRIT 2x/3x biar angka bervariasi
+                if (Random.value < peluangKritis)
+                    dmg = damage * Random.Range(pengaliKritMin, pengaliKritMaks);
                 musuh.KenaSerangan(dmg);
             }
             else
