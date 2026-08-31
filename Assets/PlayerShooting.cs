@@ -9,7 +9,30 @@ public class PlayerShooting : MonoBehaviour
     public int jumlahPeluru = 1;    // berapa peluru sekali tembak (naik lewat skill)
     public float sudutSebar = 12f;  // sebaran sudut antar peluru (derajat)
 
+    [Header("Stat dasar")]
+    [Tooltip("Kalau dicentang, fireRate / range / jumlahPeluru di atas DIABAIKAN " +
+             "dan diambil dari Balance.cs saat game mulai. Matikan kalau kamu " +
+             "lebih suka menyetel lewat Inspector.")]
+    public bool pakaiBalance = true;
+
     private float timer = 0.5f;      // sedikit jeda sebelum tembakan pertama
+
+    // Nilai dasar diterapkan di AWAKE, bukan Start.
+    //
+    // Alasannya penting: UpgradePermanen menumpuk pengalinya di Start
+    // (fireRate *= 1 - 0.08 * level). Kalau nilai dasar ditulis di Start juga,
+    // urutan eksekusinya tidak dijamin Unity dan upgrade permanen bisa
+    // terhapus. Awake selalu berjalan lebih dulu, jadi urutannya pasti benar:
+    // dasar dulu, upgrade menumpuk di atasnya.
+    void Awake()
+    {
+        if (pakaiBalance)
+        {
+            fireRate     = Balance.JedaTembakAwal;
+            jumlahPeluru = Balance.JumlahPeluruAwal;
+            range        = Balance.JangkauanTembakAwal;
+        }
+    }
 
     // ====== SPRITE PROYEKTIL PER KARAKTER ======
     // Sebagian karakter memakai proyektil KHUSUS yang lebih masuk akal:

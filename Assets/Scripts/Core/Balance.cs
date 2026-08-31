@@ -17,6 +17,32 @@ using UnityEngine;
 public static class Balance
 {
     // =================================================================
+    //  STAT DASAR PEMAIN
+    // =================================================================
+
+    // Jeda antar tembakan di awal permainan, dalam detik.
+    //
+    // Survivor.io memakai sekitar 1 detik untuk senjata dasar di Lv.1.
+    // Kode ini dulu menulis 1.2f, TAPI angka itu hanya berlaku untuk
+    // komponen yang baru dibuat. Nilai yang benar-benar dipakai tersimpan
+    // di dalam prefab pemain, dan bisa saja berbeda tanpa terlihat di kode.
+    // Itulah sebabnya sulit tahu kenapa tembakan terasa terlalu cepat.
+    //
+    // Sekarang PlayerShooting mengambil nilainya dari sini saat Awake,
+    // jadi yang tertulis di file inilah yang benar-benar terjadi.
+    public const float JedaTembakAwal = 1.0f;
+
+    public const int JumlahPeluruAwal = 1;
+
+    // Jarak pemain mulai menembak musuh, dalam satuan dunia.
+    // Kamera memakai orthographicSize 10, jadi layar potret kira-kira
+    // 11 satuan lebar dan 20 satuan tinggi. Musuh muncul di radius 10.
+    // Nilai 8 berarti pemain menembak musuh yang sudah terlihat di layar.
+    // PERIKSA ANGKA INI DULU saat pertama main - kode lama menulis 1f yang
+    // hampir pasti bukan nilai sebenarnya di prefab.
+    public const float JangkauanTembakAwal = 8f;
+
+    // =================================================================
     //  RUN
     // =================================================================
 
