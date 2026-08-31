@@ -105,3 +105,21 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# ============================================================
+# Artefak build Unity - JANGAN di-commit.
+# Folder-folder ini dibuat ulang otomatis tiap kali build, isinya
+# simbol debug dan cadangan yang bisa mencapai ratusan MB. Nama
+# foldernya sendiri sudah memberi tahu: "DoNotShip" dan
+# "ButDontShipItWithYourGame".
+#
+# CATATAN: menambahkan baris di sini TIDAK menghapus file yang
+# terlanjur terlacak git. Jalankan sekali di komputer:
+#
+#   git rm -r --cached "SALDOKUGAME_BurstDebugInformation_DoNotShip"
+#   git rm -r --cached "Saldokugame_BackUpThisFolder_ButDontShipItWithYourGame"
+#   git rm -r --cached "debug_BackUpThisFolder_ButDontShipItWithYourGame"
+#   git commit -m "Hapus artefak build dari pelacakan git"
+# ============================================================
+*_BurstDebugInformation_DoNotShip/
+*_BackUpThisFolder_ButDontShipItWithYourGame/

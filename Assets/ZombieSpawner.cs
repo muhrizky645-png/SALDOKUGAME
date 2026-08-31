@@ -60,8 +60,20 @@ public class ZombieSpawner : MonoBehaviour
     private int bossKe = 0;
     private int bossTerakhir = -1;
 
+    // Pengali kesulitan dari stage yang sedang dimainkan.
+    // CATATAN: StageManager.PengaliMusuhSekarang sudah lama ada tapi TIDAK
+    // PERNAH dibaca siapa pun, sehingga keempat stage praktis identik dan
+    // hanya berbeda durasi. Sekarang benar-benar dipakai.
+    float Pengali
+    {
+        get { return Mathf.Max(0.1f, StageManager.PengaliMusuhSekarang); }
+    }
+
     void Start()
     {
+        // Buang sisa pendaftaran dari sesi permainan sebelumnya.
+        EnemyRegistry.Bersihkan();
+
         GameObject p = GameObject.FindWithTag("Player");
         if (p != null) player = p.transform;
         bossBerikut = jedaBoss; // boss pertama setelah 'jedaBoss' detik
@@ -82,7 +94,10 @@ public class ZombieSpawner : MonoBehaviour
         }
 
         float jedaSpawn = Mathf.Max(spawnTercepat, spawnAwal - penguranganTiapLevel * (level - 1));
-        int maxSekarang = Mathf.Min(maxMutlak, maxAwal + tambahMaxTiapLevel * (level - 1));
+
+        // Stage yang lebih sulit menampung lebih banyak musuh sekaligus.
+        int maxDasar = maxAwal + tambahMaxTiapLevel * (level - 1);
+        int maxSekarang = Mathf.Min(maxMutlak, Mathf.RoundToInt(maxDasar * Pengali));
 
         timer += Time.deltaTime;
         if (timer >= jedaSpawn)
@@ -111,7 +126,10 @@ public class ZombieSpawner : MonoBehaviour
 
     void Spawn(int level, int maxSekarang)
     {
-        if (GameObject.FindGameObjectsWithTag("Enemy").Length >= maxSekarang) return;
+        // DULU: FindGameObjectsWithTag("Enemy").Length menyisir seluruh scene
+        // dan mengalokasikan array baru, setiap kali mau spawn.
+        // SEKARANG: registry sudah tahu jumlahnya, O(1).
+        if (EnemyRegistry.Jumlah >= maxSekarang) return;
 
         Vector3 posisi = PosisiSpawn();
 
@@ -124,6 +142,21 @@ public class ZombieSpawner : MonoBehaviour
 
         if (tier != null && tier.prefab != null)
             SiapkanMusuh(musuh, tier, index);
+    }
+
+    // Paksa spawn sejumlah musuh, mengabaikan batas maksimum.
+    // Dipakai StressTest untuk mengukur FPS pada beban tinggi.
+    public void SpawnPaksa(int jumlah)
+    {
+        if (player == null)
+        {
+            GameObject p = GameObject.FindWithTag("Player");
+            if (p != null) player = p.transform;
+        }
+        if (player == null) return;
+
+        int level = (LevelSystem.Instance != null) ? LevelSystem.Instance.Level : 1;
+        for (int i = 0; i < jumlah; i++) Spawn(level, int.MaxValue);
     }
 
     // Spawn satu BOSS: dipilih ACAK dari daftar bossPrefabs, kalau kosong pakai yang terkuat.
@@ -148,7 +181,7 @@ public class ZombieSpawner : MonoBehaviour
         EnemyChase ec = go.GetComponent<EnemyChase>();
         if (ec == null) ec = go.AddComponent<EnemyChase>();
         ec.moveSpeed = 1.3f;
-        ec.nyawa = 60 + level * 8 + (bossKe - 1) * 40;
+        ec.nyawa = Mathf.Max(1, Mathf.RoundToInt((60 + level * 8 + (bossKe - 1) * 40) * Pengali));
         ec.skor = 500;
         ec.xp = 25;
         ec.bos = true; // ditandai boss (diproses di EnemyChase.Start)
@@ -236,7 +269,8 @@ public class ZombieSpawner : MonoBehaviour
         EnemyChase ec = go.GetComponent<EnemyChase>();
         if (ec == null) ec = go.AddComponent<EnemyChase>();
         ec.moveSpeed = tier.kecepatan;
-        ec.nyawa = NyawaTier(index, tier);
+        // Nyawa dikalikan tingkat kesulitan stage.
+        ec.nyawa = Mathf.Max(1, Mathf.RoundToInt(NyawaTier(index, tier) * Pengali));
         ec.skor = tier.skor;
         ec.xp = tier.xp;
     }
