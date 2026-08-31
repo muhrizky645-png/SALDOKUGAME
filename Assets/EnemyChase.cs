@@ -18,6 +18,11 @@ public class EnemyChase : MonoBehaviour
     public static int JumlahBos = 0;         // berapa boss hidup sekarang
     public static EnemyChase BosSaatIni = null; // boss terakhir (untuk bar nyawa)
 
+    // Posisi musuh ini di dalam EnemyRegistry. -1 = belum terdaftar.
+    // Disimpan di sini supaya hapus dari registry bisa O(1) tanpa mencari.
+    // Jangan diubah manual; hanya EnemyRegistry yang boleh menulisnya.
+    [System.NonSerialized] public int IndexRegistry = -1;
+
     // ===== Buff PERLAMBAT (dari Toko): perlambat SEMUA musuh sementara =====
     public static float slowSampai = 0f;   // Time.time batas akhir efek
     public static float slowFaktor = 1f;   // pengali kecepatan saat aktif
@@ -56,6 +61,23 @@ public class EnemyChase : MonoBehaviour
 
     public int NyawaSisa { get { return nyawaSekarang; } }
     public int NyawaMaks { get { return nyawaMaks; } }
+
+    // Dibaca EnemyRegistry supaya senjata tidak menargetkan musuh yang sudah
+    // mati tapi objeknya masih ada (menunggu animasi hancur selesai).
+    public bool SudahMati { get { return sudahMati; } }
+
+    // Daftar ke registry SEBELUM Start, supaya musuh langsung bisa jadi target
+    // di frame pertama kemunculannya.
+    void OnEnable()
+    {
+        EnemyRegistry.Daftar(this);
+    }
+
+    // Jaring pengaman: dipanggil juga saat objek di-Destroy atau scene ditutup.
+    void OnDisable()
+    {
+        EnemyRegistry.Hapus(this);
+    }
 
     void Start()
     {
@@ -258,6 +280,11 @@ public class EnemyChase : MonoBehaviour
     {
         if (sudahMati) return;
         sudahMati = true;
+
+        // Keluar dari registry SEKARANG, bukan nanti saat objek dihancurkan.
+        // Objek ini masih hidup selama 'waktuHancur' detik untuk animasi mati;
+        // tanpa baris ini, aura dan roket akan terus membuang damage ke mayat.
+        EnemyRegistry.Hapus(this);
 
         SoundManager.MusuhMati();
         ComboMeter.Tambah();
