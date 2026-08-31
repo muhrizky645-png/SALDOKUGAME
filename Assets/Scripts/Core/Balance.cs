@@ -1,0 +1,132 @@
+using UnityEngine;
+
+// =====================================================================
+//  BALANCE - SATU SUMBER KEBENARAN UNTUK SEMUA ANGKA KESEIMBANGAN
+// =====================================================================
+//  Sebelum file ini ada, angka keseimbangan tersebar di belasan file:
+//  kurva XP di LevelSystem, jumlah musuh di ZombieSpawner, batas skill di
+//  SkillManager, damage senjata di SenjataManager. Menyetel kesulitan
+//  berarti berburu angka di seluruh project.
+//
+//  ATURAN MULAI SEKARANG: kalau sebuah angka mempengaruhi rasa main,
+//  tempatnya di sini. Bukan di dalam metode, bukan di dalam if.
+//
+//  Cara menyetel: ubah angka di file ini saja, lalu main. Tidak perlu
+//  menyentuh file lain.
+// =====================================================================
+public static class Balance
+{
+    // =================================================================
+    //  RUN
+    // =================================================================
+
+    // Target durasi satu run penuh (PRD: 15 menit).
+    // CATATAN: StageManager saat ini memakai 180/240/300/360 detik.
+    // Angka ini belum tersambung ke sana - itu pekerjaan Fase 1.
+    public const float DurasiRunDetik = 900f;
+
+    // =================================================================
+    //  XP & LEVEL
+    // =================================================================
+
+    // Kalau true  -> kurva PRD (kuadratik): floor(5 + 8n + 0.55n^2)
+    // Kalau false -> kurva lama (eksponensial x1.3), untuk perbandingan.
+    //
+    // Kenapa diganti: kurva lama tumbuh x1.3 tiap level, jadi menyenangkan
+    // di awal tapi mandek total di akhir. Di level 20 kurva lama menuntut
+    // sekitar 1500 XP untuk satu level, sedangkan PRD 385. Padahal justru
+    // di menit-menit akhir Survivor.io mempercepat, bukan memperlambat.
+    public static bool GunakanKurvaXpPrd = true;
+
+    public static int XpUntukLevel(int level)
+    {
+        if (level < 1) level = 1;
+
+        if (GunakanKurvaXpPrd)
+            return Mathf.FloorToInt(5f + 8f * level + 0.55f * level * level);
+
+        // Kurva lama, direkonstruksi supaya bisa dibandingkan adil.
+        float x = 5f;
+        for (int i = 1; i < level; i++) x = Mathf.Round(x * 1.3f) + 2f;
+        return Mathf.Max(1, Mathf.RoundToInt(x));
+    }
+
+    // =================================================================
+    //  JUMLAH MUSUH
+    // =================================================================
+
+    // PRD: MaxAliveEnemies = min(320, 40 + 18 * menit)
+    //
+    // PENTING - kenapa berbasis WAKTU, bukan level pemain:
+    // Versi lama memakai level pemain. Itu menciptakan umpan balik:
+    // makin banyak bunuh -> makin cepat naik level -> makin banyak musuh
+    // -> makin banyak XP -> naik level lagi. Pemain kuat menghadapi
+    // ledakan kesulitan, pemain lemah menghadapi layar kosong. Kurva
+    // kesulitannya jadi berbeda untuk tiap pemain sehingga mustahil
+    // diseimbangkan. Waktu memberi kurva yang sama untuk semua orang.
+    public const int   MusuhDasar     = 40;   // jumlah di detik ke-0
+    public const float MusuhPerMenit  = 18f;  // pertambahan tiap menit
+    public const int   MaxMusuhMutlak = 320;  // target PRD; WAJIB diuji beban dulu
+
+    public static int MaxMusuhHidup(float detik, float pengaliStage)
+    {
+        float menit = Mathf.Max(0f, detik) / 60f;
+        float n = (MusuhDasar + MusuhPerMenit * menit) * Mathf.Max(0.1f, pengaliStage);
+        return Mathf.Clamp(Mathf.RoundToInt(n), 1, MaxMusuhMutlak);
+    }
+
+    // =================================================================
+    //  SLOT & BATAS LEVEL  (PRD Bab 6)
+    // =================================================================
+
+    public const int SlotSenjata = 6;
+    public const int SlotPasif   = 6;
+
+    // Batas level tiap senjata / pasif.
+    //
+    // INI PERBAIKAN TERPENTING DI SELURUH FILE.
+    // Sebelumnya semua skill pasif punya maks = 0 yang berarti TAK TERBATAS.
+    // "Serang Lebih Cepat" mengalikan fireRate dengan 0.80 tiap diambil, jadi
+    // 10x ambil = fireRate 1.2 -> 0.129, 20x = 0.0138. Praktis tembakan tanpa
+    // henti. Hal yang sama berlaku untuk jangkauan, kecepatan lari, dan magnet.
+    public const int LevelMaksSenjata = 5;
+    public const int LevelMaksPasif   = 5;
+
+    // =================================================================
+    //  EVOLUSI  (PRD Bab 7)
+    // =================================================================
+
+    public const int   LevelSenjataUntukEvolusi = 5;
+    public const int   LevelPasifUntukEvolusi   = 3;
+    public const float MenitMinimalEvolusi      = 5f;
+
+    public static bool BolehEvolusi(int levelSenjata, int levelPasif, float detik)
+    {
+        return levelSenjata >= LevelSenjataUntukEvolusi
+            && levelPasif   >= LevelPasifUntukEvolusi
+            && detik        >= MenitMinimalEvolusi * 60f;
+    }
+
+    // =================================================================
+    //  BOS
+    // =================================================================
+
+    public const float JedaBosDetik = 45f;
+
+    // =================================================================
+    //  KESULITAN CHAPTER  (PRD Bab 9)
+    // =================================================================
+
+    // ChapterMultiplier = 1.35 ^ (chapter - 1)
+    public static float PengaliChapter(int chapter)
+    {
+        if (chapter < 1) chapter = 1;
+        return Mathf.Pow(1.35f, chapter - 1);
+    }
+
+    // =================================================================
+    //  KARTU LEVEL UP
+    // =================================================================
+
+    public const int JumlahKartuDitawarkan = 3;
+}
