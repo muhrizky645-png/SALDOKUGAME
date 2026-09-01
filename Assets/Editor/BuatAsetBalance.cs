@@ -18,6 +18,16 @@ using System.Collections.Generic;
 //  damage Pisau Berputar lalu menjalankan ini lagi, setelanmu tetap utuh -
 //  yang dibuat hanya aset yang benar-benar belum ada. Ini disengaja: menimpa
 //  diam-diam adalah cara tercepat menghapus kerja balancing berjam-jam.
+//
+//  DUA ATURAN YANG MEMBEDAKAN "MENGISI" DARI "MENIMPA":
+//
+//    - Mengisi field yang KOSONG itu aman, jadi dilakukan otomatis.
+//      Contohnya menyambungkan prefab musuh yang masih null.
+//
+//    - Mengubah field yang SUDAH BERISI itu tidak aman, karena bisa jadi itu
+//      hasil setelanmu sendiri. Jadi tidak pernah otomatis - harus lewat menu
+//      terpisah Zomburst > Selaraskan Stage dengan Balance, supaya kamu yang
+//      memutuskan.
 // ============================================================================
 public static class BuatAsetBalance
 {
@@ -38,6 +48,7 @@ public static class BuatAsetBalance
     {
         dibuat = 0;
         dilewati = 0;
+        prefabZombiCache = null;
 
         PastikanFolder(FSenjata);
         PastikanFolder(FPasif);
@@ -53,19 +64,55 @@ public static class BuatAsetBalance
         Dictionary<string, MusuhSO> musuh = BuatMusuh();
         BuatStage(musuh);
 
+        // Mengisi prefab yang masih kosong. Aman dijalankan otomatis karena
+        // hanya menyentuh field yang null - isian manualmu tidak pernah diganti.
+        int tersambung = SambungPrefabMusuh();
+
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
         string pesan =
             dibuat + " aset baru dibuat.\n" +
             dilewati + " aset dilewati karena sudah ada.\n\n" +
-            "Semua tersimpan di " + Akar + "\n\n" +
-            "LANGKAH BERIKUTNYA:\n" +
-            "Aset Musuh belum punya prefab. Jalankan\n" +
-            "Zomburst > Periksa Aset Balance untuk melihat\n" +
-            "apa saja yang masih perlu kamu isi.";
+            "Semua tersimpan di " + Akar + "\n\n";
 
-        Debug.Log("[BuatAsetBalance] " + dibuat + " dibuat, " + dilewati + " dilewati.");
+        if (tersambung < 0)
+        {
+            pesan +=
+                "PERINGATAN: prefab musuh TIDAK ditemukan.\n" +
+                "Aku mencari ZOMBIE.prefab dan prefab apa pun yang\n" +
+                "punya komponen EnemyChase, tapi tidak ada yang cocok.\n" +
+                "Isi field 'prefab' di aset Musuh secara manual.";
+        }
+        else if (tersambung == 0)
+        {
+            pesan += "Semua aset Musuh sudah punya prefab. Tidak ada yang diubah.";
+        }
+        else
+        {
+            GameObject z = CariPrefabZombi();
+            pesan +=
+                tersambung + " aset Musuh disambungkan otomatis ke prefab\n\"" +
+                (z != null ? z.name : "?") + "\".\n\n" +
+                "Ketujuh musuh memakai prefab yang sama untuk sekarang, dan itu\n" +
+                "memang cukup: EnemyChase.TerapkanVarian sudah mengubah warna\n" +
+                "dan ukuran tiap varian saat main, jadi Pelari tetap terlihat\n" +
+                "beda dari Perusak. Ganti satu per satu nanti kalau sprite\n" +
+                "aslinya sudah ada.";
+        }
+
+        int bedaStage = HitungStageTidakSelaras();
+        if (bedaStage > 0)
+        {
+            pesan +=
+                "\n\nCATATAN: " + bedaStage + " aset Stage masih memakai durasi lama.\n" +
+                "Tidak kuubah otomatis karena bisa jadi itu setelanmu.\n" +
+                "Jalankan Zomburst > Selaraskan Stage dengan Balance\n" +
+                "kalau memang mau diikutkan.";
+        }
+
+        Debug.Log("[BuatAsetBalance] " + dibuat + " dibuat, " + dilewati + " dilewati, "
+                  + tersambung + " prefab disambung.");
         EditorUtility.DisplayDialog("Aset Balance", pesan, "Mengerti");
     }
 
@@ -75,6 +122,7 @@ public static class BuatAsetBalance
     [MenuItem("Zomburst/Periksa Aset Balance", false, 1)]
     public static void Periksa()
     {
+        prefabZombiCache = null;
         List<string> masalah = new List<string>();
 
         foreach (MusuhSO m in SemuaAset<MusuhSO>(FMusuh))
@@ -99,6 +147,11 @@ public static class BuatAsetBalance
                 masalah.Add("STAGE " + st.KodeStage + " belum punya daftar musuh.");
             if (st.bosTersedia == null || st.bosTersedia.Length == 0)
                 masalah.Add("STAGE " + st.KodeStage + " belum punya daftar bos.");
+
+            if (!Mathf.Approximately(st.targetDetik, Balance.DurasiRunDetik))
+                masalah.Add("STAGE " + st.KodeStage + " durasinya " + st.targetDetik
+                            + "s, sedangkan Balance.DurasiRunDetik = "
+                            + Balance.DurasiRunDetik + "s.");
         }
 
         if (masalah.Count == 0)
@@ -117,6 +170,184 @@ public static class BuatAsetBalance
 
         foreach (string m in masalah) Debug.LogWarning("[Periksa Aset] " + m);
         EditorUtility.DisplayDialog("Periksa Aset Balance", teks, "Oke");
+    }
+
+    // =====================================================================
+    //  MENU SAMBUNG PREFAB
+    // =====================================================================
+    [MenuItem("Zomburst/Sambungkan Prefab Musuh", false, 2)]
+    public static void SambungPrefabMusuhMenu()
+    {
+        prefabZombiCache = null;
+        int n = SambungPrefabMusuh();
+
+        if (n < 0)
+        {
+            EditorUtility.DisplayDialog("Sambungkan Prefab Musuh",
+                "Prefab musuh tidak ditemukan.\n\n" +
+                "Yang kucari, berurutan:\n" +
+                "1. Assets/Prefabs/ZOMBIE.prefab\n" +
+                "2. Prefab bernama ZOMBIE di mana pun\n" +
+                "3. Prefab apa pun yang punya komponen EnemyChase\n\n" +
+                "Tidak ada yang cocok. Isi manual di Inspector.", "Oke");
+            return;
+        }
+
+        if (n == 0)
+        {
+            EditorUtility.DisplayDialog("Sambungkan Prefab Musuh",
+                "Semua aset Musuh sudah punya prefab.\n" +
+                "Tidak ada yang diubah.\n\n" +
+                "Field yang sudah berisi tidak pernah kutimpa.", "Oke");
+            return;
+        }
+
+        GameObject z = CariPrefabZombi();
+        EditorUtility.DisplayDialog("Sambungkan Prefab Musuh",
+            n + " aset Musuh disambungkan ke \"" + (z != null ? z.name : "?") + "\".", "Bagus");
+    }
+
+    // Mengembalikan jumlah aset yang terisi, atau -1 kalau prefabnya tidak ada.
+    public static int SambungPrefabMusuh()
+    {
+        GameObject zombi = CariPrefabZombi();
+        if (zombi == null) return -1;
+
+        int n = 0;
+        foreach (MusuhSO m in SemuaAset<MusuhSO>(FMusuh))
+        {
+            if (m.prefab != null) continue;   // isian manual dihormati
+            m.prefab = zombi;
+            EditorUtility.SetDirty(m);
+            n++;
+        }
+
+        if (n > 0)
+        {
+            AssetDatabase.SaveAssets();
+            Debug.Log("[BuatAsetBalance] " + n + " prefab musuh disambungkan ke " + zombi.name);
+        }
+        return n;
+    }
+
+    static GameObject prefabZombiCache;
+
+    // Mencari prefab musuh dengan tiga lapis cadangan, dari yang paling pasti
+    // ke yang paling longgar. Lapis ketiga penting: kalau nanti kamu memindah
+    // atau mengganti nama ZOMBIE.prefab, generator ini tetap bekerja selama
+    // prefabnya masih punya komponen EnemyChase.
+    static GameObject CariPrefabZombi()
+    {
+        if (prefabZombiCache != null) return prefabZombiCache;
+
+        // 1. Jalur yang paling mungkin, dicek lebih dulu supaya cepat.
+        GameObject langsung = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/ZOMBIE.prefab");
+        if (langsung != null)
+        {
+            prefabZombiCache = langsung;
+            return langsung;
+        }
+
+        // 2. Cari berdasarkan nama, di mana pun letaknya.
+        string[] guid = AssetDatabase.FindAssets("ZOMBIE t:GameObject");
+        for (int i = 0; i < guid.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid[i]);
+            if (!path.EndsWith(".prefab")) continue;
+
+            GameObject p = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (p == null) continue;
+            if (p.name.ToUpperInvariant() == "ZOMBIE")
+            {
+                prefabZombiCache = p;
+                return p;
+            }
+        }
+
+        // 3. Cadangan terakhir: prefab APA PUN yang sudah punya EnemyChase.
+        guid = AssetDatabase.FindAssets("t:GameObject");
+        for (int i = 0; i < guid.Length; i++)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid[i]);
+            if (!path.EndsWith(".prefab")) continue;
+
+            GameObject p = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (p == null) continue;
+            if (p.GetComponent<EnemyChase>() != null)
+            {
+                prefabZombiCache = p;
+                Debug.Log("[BuatAsetBalance] ZOMBIE.prefab tidak ada, memakai " + path + " sebagai gantinya.");
+                return p;
+            }
+        }
+
+        return null;
+    }
+
+    // =====================================================================
+    //  MENU SELARASKAN STAGE
+    // =====================================================================
+    //  Ini SATU-SATUNYA menu yang menimpa field yang sudah berisi, dan sengaja
+    //  dipisah supaya tidak pernah terjadi tanpa kamu minta. Yang disentuh
+    //  hanya tiga field yang seharusnya ikut Balance/JadwalRun: durasi,
+    //  tagline, dan jeda bos. Warna, daftar musuh, dan hadiah tidak disentuh.
+    // =====================================================================
+    [MenuItem("Zomburst/Selaraskan Stage dengan Balance", false, 3)]
+    public static void SelaraskanStageMenu()
+    {
+        int beda = HitungStageTidakSelaras();
+        if (beda == 0)
+        {
+            EditorUtility.DisplayDialog("Selaraskan Stage",
+                "Semua aset Stage sudah selaras dengan Balance.\n" +
+                "Tidak ada yang perlu diubah.", "Oke");
+            return;
+        }
+
+        bool lanjut = EditorUtility.DisplayDialog("Selaraskan Stage",
+            beda + " aset Stage akan diubah:\n\n" +
+            "- targetDetik -> " + Balance.DurasiRunDetik + "s\n" +
+            "- jedaBosDetik -> " + JadwalRun.SiklusDetik + "s\n" +
+            "- tagline -> menyesuaikan jumlah bos\n\n" +
+            "Field lain (warna, daftar musuh, hadiah) tidak disentuh.\n" +
+            "Kalau kamu sengaja menyetel durasi berbeda, batalkan.",
+            "Selaraskan", "Batal");
+
+        if (!lanjut) return;
+
+        int n = 0;
+        foreach (StageSO st in SemuaAset<StageSO>(FStage))
+        {
+            if (!PerluSelaras(st)) continue;
+
+            st.targetDetik = Balance.DurasiRunDetik;
+            st.jedaBosDetik = JadwalRun.SiklusDetik;
+            st.tagline = TaglineStage(st.nomorStage);
+            EditorUtility.SetDirty(st);
+            n++;
+        }
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
+        Debug.Log("[BuatAsetBalance] " + n + " aset Stage diselaraskan.");
+        EditorUtility.DisplayDialog("Selaraskan Stage", n + " aset Stage diperbarui.", "Bagus");
+    }
+
+    static bool PerluSelaras(StageSO st)
+    {
+        if (!Mathf.Approximately(st.targetDetik, Balance.DurasiRunDetik)) return true;
+        if (!Mathf.Approximately(st.jedaBosDetik, JadwalRun.SiklusDetik)) return true;
+        if (st.tagline != TaglineStage(st.nomorStage)) return true;
+        return false;
+    }
+
+    static int HitungStageTidakSelaras()
+    {
+        int n = 0;
+        foreach (StageSO st in SemuaAset<StageSO>(FStage))
+            if (PerluSelaras(st)) n++;
+        return n;
     }
 
     // =====================================================================
@@ -315,17 +546,16 @@ public static class BuatAsetBalance
     }
 
     // =====================================================================
-    //  MUSUH  (arketipe PRD; prefab sengaja dikosongkan)
+    //  MUSUH  (arketipe PRD)
     // =====================================================================
     static Dictionary<string, MusuhSO> BuatMusuh()
     {
         Dictionary<string, MusuhSO> hasil = new Dictionary<string, MusuhSO>();
 
-        // Prefab TIDAK diisi otomatis. Aku tidak tahu prefab mana di
-        // DungeonMonsters2D yang kamu maksud untuk tiap peran, dan menebak
-        // akan membuat Perayap jadi naga. Isi sendiri lewat Inspector, lalu
-        // jalankan Zomburst > Periksa Aset Balance untuk memastikan tidak ada
-        // yang terlewat.
+        // Prefab dibiarkan kosong di sini, lalu diisi oleh SambungPrefabMusuh
+        // setelah semua aset ada. Dipisah dua langkah karena pengisian itu juga
+        // harus berlaku untuk aset yang SUDAH kamu buat sebelumnya - kalau
+        // digabung di sini, aset lama akan dilewati dan prefabnya tetap null.
 
         hasil["E01"] = Musuh("E01_Perayap", "E01", "Perayap", ArketipeMusuh.Biasa,
             1, 2.0f, 10, 10, 1, 1.00f, 1, 1.0f, false);
@@ -362,7 +592,6 @@ public static class BuatAsetBalance
         m.id = id;
         m.namaTampil = nama;
         m.arketipe = arketipe;
-        m.prefab = null;
         m.nyawa = nyawa;
         m.kecepatan = kecepatan;
         m.damageSentuh = damageSentuh;
@@ -393,31 +622,37 @@ public static class BuatAsetBalance
         };
         MusuhSO[] bos = new MusuhSO[] { Cari(musuh, "B01") };
 
-        // Angka diambil PERSIS dari StageManager.Daftar supaya tidak ada
-        // perubahan rasa main yang tidak disengaja saat migrasi nanti.
+        // Durasi diambil dari Balance.DurasiRunDetik, BUKAN angka tetap.
+        //
+        // Versi sebelumnya menulis 180/240/300/360 detik di sini, meniru
+        // StageManager yang lama. Itu sekarang salah, dan salahnya serius:
+        // bos muncul tiap 300 detik, jadi stage 1 dan 2 tidak akan pernah
+        // kebagian bos sama sekali, dan bos stage 3 muncul tepat di frame
+        // pemain menang. Perbedaan antar stage sekarang murni dari pengali
+        // kekuatan musuh, bukan dari panjang run.
         Stage("Stage_1-1_HutanTerkontaminasi", 1, 1, "HUTAN TERKONTAMINASI",
-            "Bertahan 3 menit", 180f, 1.00f,
+            1.00f,
             new Color(0.10f, 0.13f, 0.11f), new Color(0.15f, 0.25f, 0.18f, 0.35f),
             biasa, bos);
 
         Stage("Stage_1-2_KotaRuntuh", 1, 2, "KOTA RUNTUH",
-            "Bertahan 4 menit", 240f, 1.15f,
+            1.15f,
             new Color(0.12f, 0.12f, 0.14f), new Color(0.30f, 0.30f, 0.34f, 0.35f),
             biasa, bos);
 
         Stage("Stage_1-3_GurunReruntuhan", 1, 3, "GURUN RERUNTUHAN",
-            "Bertahan 5 menit", 300f, 1.30f,
+            1.30f,
             new Color(0.20f, 0.16f, 0.10f), new Color(0.55f, 0.44f, 0.24f, 0.30f),
             biasa, bos);
 
         Stage("Stage_1-4_KutubBeku", 1, 4, "KUTUB BEKU",
-            "Bertahan 6 menit", 360f, 1.50f,
+            1.50f,
             new Color(0.12f, 0.16f, 0.22f), new Color(0.60f, 0.75f, 0.90f, 0.30f),
             biasa, bos);
     }
 
-    static void Stage(string file, int chapter, int nomor, string nama, string tagline,
-        float targetDetik, float pengali, Color latar, Color kabut,
+    static void Stage(string file, int chapter, int nomor, string nama,
+        float pengali, Color latar, Color kabut,
         MusuhSO[] musuhTersedia, MusuhSO[] bosTersedia)
     {
         bool baru;
@@ -427,8 +662,8 @@ public static class BuatAsetBalance
         s.chapter = chapter;
         s.nomorStage = nomor;
         s.namaTampil = nama;
-        s.tagline = tagline;
-        s.targetDetik = targetDetik;
+        s.tagline = TaglineStage(nomor);
+        s.targetDetik = Balance.DurasiRunDetik;
 
         // StageManager lama hanya punya SATU pengali untuk semuanya.
         // Di sini dipecah tiga supaya kamu bisa membuat stage yang musuhnya
@@ -440,7 +675,7 @@ public static class BuatAsetBalance
 
         s.musuhTersedia = musuhTersedia;
         s.bosTersedia = bosTersedia;
-        s.jedaBosDetik = Balance.JedaBosDetik;
+        s.jedaBosDetik = JadwalRun.SiklusDetik;
 
         s.warnaLatar = latar;
         s.warnaKabut = kabut;
@@ -449,6 +684,24 @@ public static class BuatAsetBalance
         s.permataMenangUlang = 10;
 
         EditorUtility.SetDirty(s);
+    }
+
+    // Tagline dihitung, tidak diketik, supaya tidak pernah berbohong soal
+    // jumlah bos kalau durasi run diubah.
+    static string TaglineStage(int nomor)
+    {
+        string romawi;
+        switch (nomor)
+        {
+            case 1:  romawi = "I";   break;
+            case 2:  romawi = "II";  break;
+            case 3:  romawi = "III"; break;
+            case 4:  romawi = "IV";  break;
+            default: romawi = nomor.ToString(); break;
+        }
+
+        int bos = Mathf.Max(1, Mathf.FloorToInt(Balance.DurasiRunDetik / JadwalRun.SiklusDetik));
+        return "Tingkat " + romawi + " - " + bos + " bos";
     }
 
     // =====================================================================
