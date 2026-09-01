@@ -93,6 +93,11 @@ public class ItemLapangan : MonoBehaviour
                 }
                 if (player != null)
                     Ledakan.Munculkan(player.position, 6f, 0, 0f, new Color(1f, 0.85f, 0.35f, 0.7f));
+                // Getar KUAT khusus bom. Dulu tidak terasa karena Ledakan hanya
+                // bergetar saat dmgMusuh > 0, sedangkan bom membunuh musuh lewat
+                // KenaSerangan (jadi dmgMusuh = 0). Bom membersihkan seluruh layar,
+                // ini momen paling "wah" - layak dapat getar paling kuat.
+                ScreenShake.Getar(0.9f, 0.45f);
                 break;
 
             case Jenis.Magnet:

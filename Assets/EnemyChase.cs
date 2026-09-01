@@ -59,6 +59,13 @@ public class EnemyChase : MonoBehaviour
     private float tTembak = 1.2f;     // timer untuk musuh Penembak
     private float jedaTembak = 2f;
 
+    // ===== Efek terpental (knockback) saat kena serangan =====
+    // Survivor.io memberi sentakan kecil tiap musuh kena pukul, apa pun senjatanya.
+    // Karena SEMUA damage lewat KenaSerangan(), cukup satu tempat ini untuk semua senjata.
+    private float dorongSisa = 0f;            // sisa durasi terpental (detik)
+    private Vector2 dorongArah = Vector2.zero;
+    private float dorongKecepatan = 0f;
+
     public int NyawaSisa { get { return nyawaSekarang; } }
     public int NyawaMaks { get { return nyawaMaks; } }
 
@@ -186,6 +193,16 @@ public class EnemyChase : MonoBehaviour
         if (sudahMati) return;
         if (target == null) return;
 
+        // Terpental: kalau baru kena serangan, geser mundur sebentar dan timpa
+        // gerak mengejar. Durasinya sangat pendek supaya musuh tetap agresif,
+        // hanya "kesentak" sesaat - persis rasa Survivor.io.
+        if (dorongSisa > 0f)
+        {
+            dorongSisa -= Time.fixedDeltaTime;
+            rb.MovePosition(rb.position + dorongArah * dorongKecepatan * Time.fixedDeltaTime);
+            return;
+        }
+
         Vector2 arah = ((Vector2)target.position - rb.position).normalized;
         float jarak = Vector2.Distance(target.position, rb.position);
 
@@ -267,6 +284,30 @@ public class EnemyChase : MonoBehaviour
         {
             SoundManager.MusuhKena();
             if (gameObject.activeInHierarchy) StartCoroutine(Kedip());
+            Terpental();
+        }
+    }
+
+    // Sentakan kecil menjauh dari pemain saat kena serangan (knockback).
+    // Boss nyaris tak tergeser biar tidak terlihat konyol didorong-dorong.
+    void Terpental()
+    {
+        if (target == null) return;
+        Vector2 pos = (rb != null) ? rb.position : (Vector2)transform.position;
+        Vector2 menjauh = pos - (Vector2)target.position;
+        if (menjauh.sqrMagnitude < 0.0001f) menjauh = Random.insideUnitCircle; // kalau menempel, arah acak
+        dorongArah = menjauh.normalized;
+
+        if (bos)
+        {
+            dorongKecepatan = 1.2f;   // boss cuma tersenggol tipis
+            dorongSisa = 0.05f;
+        }
+        else
+        {
+            float berat = (tipe == Tipe.Tank) ? 0.5f : 1f;  // tank lebih berat, terpental lebih sedikit
+            dorongKecepatan = 7f * berat;
+            dorongSisa = 0.08f;
         }
     }
 
