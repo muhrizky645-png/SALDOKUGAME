@@ -26,12 +26,18 @@ public class SoundManager : MonoBehaviour
     // throttle: batasi frekuensi bunyi 'player kena' biar tak menumpuk "brebet" saat dikepung musuh
     float tKenaTerakhir = -1f;
     const float JEDA_KENA = 0.12f;
-    // throttle bunyi 'musuh kena' biar tak brebet saat spam tembak ke kerumunan
+    // throttle bunyi 'musuh kena' biar tak brebet saat spam tembak/pisau ke kerumunan.
+    // Dikendurkan 0.05 -> 0.08 (maks ~12x/detik) karena pisau orbit + tembakan
+    // bersama-sama bikin ramai saat gerombolan padat.
     float tMusuhKenaTerakhir = -1f;
-    const float JEDA_MUSUH = 0.05f;
+    const float JEDA_MUSUH = 0.08f;
     // throttle bunyi 'aura setrum' (jaga-jaga kalau ada banyak sumber aura)
     float tAuraTerakhir = -1f;
     const float JEDA_AURA = 0.1f;
+    // throttle bunyi 'musuh mati': puluhan musuh bisa mati per detik saat ramai,
+    // tanpa rem ini bunyinya menumpuk jadi tembok derau yang brisik.
+    float tMatiTerakhir = -1f;
+    const float JEDA_MATI = 0.08f;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
@@ -106,7 +112,7 @@ public class SoundManager : MonoBehaviour
     public static void MusuhKena()
     {
         if (Instance == null || MuteEfek) return;
-        // Spam tembak ke kerumunan: jangan tumpuk suara (biar tidak "brebet").
+        // Spam tembak/pisau ke kerumunan: jangan tumpuk suara (biar tidak "brebet").
         if (Time.unscaledTime - Instance.tMusuhKenaTerakhir < JEDA_MUSUH) return;
         Instance.tMusuhKenaTerakhir = Time.unscaledTime;
         Play(Instance.cMusuhKena);
@@ -120,7 +126,15 @@ public class SoundManager : MonoBehaviour
         Instance.tAuraTerakhir = Time.unscaledTime;
         Play(Instance.cAuraZap);
     }
-    public static void MusuhMati()  { Play(Instance ? Instance.cMusuhMati : null); }
+    public static void MusuhMati()
+    {
+        if (Instance == null || MuteEfek) return;
+        // Saat kepadatan tinggi, puluhan musuh mati per detik. Tanpa rem, bunyi
+        // 'mati' menumpuk jadi tembok derau yang brisik. Batasi frekuensinya.
+        if (Time.unscaledTime - Instance.tMatiTerakhir < JEDA_MATI) return;
+        Instance.tMatiTerakhir = Time.unscaledTime;
+        Play(Instance.cMusuhMati);
+    }
     public static void AmbilXp()    { Play(Instance ? Instance.cAmbilXp : null); }
     public static void LevelUp()    { Play(Instance ? Instance.cLevelUp : null); }
     public static void PlayerKena()
@@ -148,8 +162,8 @@ public class SoundManager : MonoBehaviour
     void BuatSemuaSuara()
     {
         cTembak    = Sweep(900f, 1500f, 0.07f, 0, 0.30f);
-        cMusuhKena = Sweep(260f, 150f, 0.06f, 0, 0.28f);
-        cMusuhMati = Derau(0.20f, 0.40f);
+        cMusuhKena = Sweep(260f, 150f, 0.06f, 0, 0.22f);   // volume diturunkan biar tak cempreng saat ramai
+        cMusuhMati = Derau(0.16f, 0.26f);                  // lebih pendek & pelan (dulu 0.20f, 0.40f)
         cAmbilXp   = Sweep(700f, 1300f, 0.09f, 1, 0.30f);
         cKena      = Sweep(220f, 80f, 0.18f, 0, 0.40f);
         cGameOver  = Sweep(420f, 110f, 0.60f, 2, 0.40f);
