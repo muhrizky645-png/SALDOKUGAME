@@ -46,7 +46,7 @@ public class ZombieSpawner : MonoBehaviour
     public int maxAwal = 20;
     [Tooltip("TIDAK DIPAKAI LAGI. Jumlah musuh kini dihitung Balance.MaxMusuhHidup.")]
     public int tambahMaxTiapLevel = 5;
-    [Tooltip("Langit-langit keras. Naikkan bertahap SETELAH stress test membuktikan HP-mu sanggup. Target PRD: 320.")]
+    [Tooltip("Langit-langit keras. DIPAKSA di Start() lewat kode, jadi mengubahnya di sini TIDAK berpengaruh - ubah di ZombieSpawner.Start.")]
     public int maxMutlak = 90;
     public int spawnSekaligus = 2;
 
@@ -82,6 +82,20 @@ public class ZombieSpawner : MonoBehaviour
         GameObject p = GameObject.FindWithTag("Player");
         if (p != null) player = p.transform;
         bossKe = 0;
+
+        // ==== KODE JADI SUMBER KEBENARAN (menimpa nilai Inspector) ====
+        // Kepadatan & laju spawn dulu tersimpan di dalam komponen di scene,
+        // jadi menyetelnya lewat kode tidak pernah terasa - inilah kenapa
+        // fase normal tetap sepi walau angka Balance dinaikkan. Sekarang
+        // dipaksa dari sini supaya perubahan benar-benar berlaku saat main.
+        //
+        // KALAU FPS DI HP TURUN saat ramai: kecilkan maxMutlak di baris ini
+        // (mis. 120 atau 100), bukan di Inspector.
+        maxMutlak = 145;             // langit-langit musuh hidup (naik dari 90)
+        spawnSekaligus = 4;          // berapa musuh tiap gelombang spawn
+        spawnAwal = 0.55f;           // jeda spawn di detik ke-0 (lebih cepat mengisi layar)
+        spawnTercepat = 0.15f;       // jeda spawn tercepat di menit akhir
+        penguranganTiapLevel = 0.08f;
     }
 
     void Update()
@@ -102,6 +116,10 @@ public class ZombieSpawner : MonoBehaviour
             SpawnBos(detik);
 
         FaseRun fase = JadwalRun.Fase(detik);
+
+        // Saat GELOMBANG, musuh biasa berjalan lebih cepat biar terasa "diserbu".
+        // Boss tidak terpengaruh (diproses terpisah di EnemyChase).
+        EnemyChase.PengaliLajuFase = (fase == FaseRun.Wave) ? 1.35f : 1f;
 
         // HENING: spawn berhenti total. Inilah jeda mencekam sebelum bos.
         if (fase == FaseRun.Hening)

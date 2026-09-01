@@ -91,11 +91,12 @@ public static class Balance
     // kesulitannya jadi berbeda untuk tiap pemain sehingga mustahil
     // diseimbangkan. Waktu memberi kurva yang sama untuk semua orang.
     //
-    // MusuhDasar dinaikkan dari 40 (angka PRD) ke 80 setelah playtest: fase
-    // normal terasa terlalu sepi dibanding Survivor yang langsung ramai.
-    // Ingat: hasilnya masih dipotong maxMutlak (90) di Inspector ZombieSpawner
-    // sampai stress test membuktikan HP sanggup lebih.
-    public const int   MusuhDasar     = 80;   // jumlah di detik ke-0
+    // MusuhDasar dinaikkan bertahap dari 40 (angka PRD) -> 80 -> 95 setelah
+    // beberapa playtest: fase normal masih terasa sepi dibanding Survivor yang
+    // langsung penuh. Langit-langit musuh hidup sekarang DIPAKSA 145 lewat kode
+    // di ZombieSpawner.Start (bukan lagi 90 di Inspector), jadi angka ini
+    // benar-benar terpakai saat main.
+    public const int   MusuhDasar     = 95;   // jumlah di detik ke-0
     public const float MusuhPerMenit  = 18f;  // pertambahan tiap menit
     public const int   MaxMusuhMutlak = 320;  // target PRD; WAJIB diuji beban dulu
 

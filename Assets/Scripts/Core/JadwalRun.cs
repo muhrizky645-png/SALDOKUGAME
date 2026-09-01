@@ -122,23 +122,21 @@ public static class JadwalRun
     //
     // Normal dinaikkan (0.65 -> 0.85) setelah playtest: fase normal dulu
     // terasa terlalu sepi dibanding Survivor yang langsung ramai. Sekarang
-    // fase normal pun padat, dan Wave (1.15) tetap sedikit di atasnya supaya
-    // serbuan pra-bos masih terbaca sebagai lonjakan.
+    // fase normal pun padat, dan Wave (1.45) MELONJAK jelas di atasnya supaya
+    // serbuan pra-bos benar-benar terbaca sebagai gelombang.
     //
-    // CATATAN PENTING: jumlah musuh masih dikunci maxMutlak (90) di Inspector
-    // ZombieSpawner sampai stress test selesai. Dengan MusuhDasar 80, baik
-    // Normal maupun Wave akan cepat menyentuh langit-langit itu - itulah batas
-    // "ramai" yang bisa dicapai dari KODE saja. Untuk swarm ratusan ala
-    // Survivor, naikkan maxMutlak SETELAH mengukur FPS di HP asli.
+    // CATATAN: langit-langit musuh hidup kini 145 (DIPAKSA lewat kode di
+    // ZombieSpawner.Start, bukan 90 di Inspector). Wave akan mendekati langit-
+    // langit itu; kalau FPS di HP asli turun, kecilkan maxMutlak di sana.
 
     public static float PengaliJumlah(FaseRun fase)
     {
         switch (fase)
         {
-            case FaseRun.Wave:   return 1.15f;
+            case FaseRun.Wave:   return 1.45f;  // GELOMBANG: lonjakan jelas
             case FaseRun.Hening: return 0.40f;
             case FaseRun.Bos:    return 0.55f;  // lapangan dilapangkan untuk bos
-            default:             return 0.85f;  // Normal: sekarang jauh lebih ramai
+            default:             return 0.85f;  // Normal: sekarang sudah padat
         }
     }
 
