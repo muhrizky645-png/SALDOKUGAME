@@ -30,6 +30,12 @@ public class EnemyChase : MonoBehaviour
     public static void ResetPerlambat() { slowSampai = 0f; slowFaktor = 1f; }
     static float SlowMult() { return Time.time < slowSampai ? slowFaktor : 1f; }
 
+    // ===== Pengali laju per-FASE (diatur ZombieSpawner tiap frame) =====
+    // Saat GELOMBANG, semua musuh BIASA berjalan lebih cepat biar terasa
+    // "diserbu" seperti Survivor. Boss TIDAK terpengaruh (lihat FixedUpdate).
+    // Nilai 1 = normal; ZombieSpawner menaikkannya jadi 1.35 saat fase Wave.
+    public static float PengaliLajuFase = 1f;
+
     [Header("Gambar musuh (biar bisa balik badan)")]
     public Transform visual;   // gambar monster (objek anak). Kalau kosong, dicari otomatis.
 
@@ -220,7 +226,9 @@ public class EnemyChase : MonoBehaviour
         }
         else
         {
-            rb.MovePosition(rb.position + arah * moveSpeed * SlowMult() * Time.fixedDeltaTime);
+            // Boss memakai lajunya sendiri; musuh biasa dipercepat saat GELOMBANG.
+            float laju = moveSpeed * SlowMult() * (bos ? 1f : PengaliLajuFase);
+            rb.MovePosition(rb.position + arah * laju * Time.fixedDeltaTime);
             if (!lagiGerak) MulaiGerak();
         }
     }

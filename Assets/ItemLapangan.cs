@@ -93,11 +93,14 @@ public class ItemLapangan : MonoBehaviour
                 }
                 if (player != null)
                     Ledakan.Munculkan(player.position, 6f, 0, 0f, new Color(1f, 0.85f, 0.35f, 0.7f));
-                // Getar KUAT khusus bom. Dulu tidak terasa karena Ledakan hanya
-                // bergetar saat dmgMusuh > 0, sedangkan bom membunuh musuh lewat
-                // KenaSerangan (jadi dmgMusuh = 0). Bom membersihkan seluruh layar,
-                // ini momen paling "wah" - layak dapat getar paling kuat.
-                ScreenShake.Getar(0.9f, 0.45f);
+                // Getar bom DIKECILKAN setengah (0.9 -> 0.45): versi sebelumnya
+                // terlalu ekstrem. Ledakan hanya bergetar saat dmgMusuh > 0,
+                // sedangkan bom membunuh lewat KenaSerangan (dmgMusuh = 0), jadi
+                // getarnya tetap harus dipicu manual di sini.
+                ScreenShake.Getar(0.45f, 0.35f);
+                // Dentuman berat: dulu bom praktis tak bersuara (cuma "tass" dari
+                // musuh kena). Sekarang ada suara ledakan khusus yang menggelegar.
+                SoundManager.Bom();
                 break;
 
             case Jenis.Magnet:

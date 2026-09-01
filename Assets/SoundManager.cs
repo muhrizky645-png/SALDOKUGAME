@@ -21,7 +21,7 @@ public class SoundManager : MonoBehaviour
     private AudioSource efek;
 
     private AudioClip cTembak, cMusuhKena, cMusuhMati, cAmbilXp, cLevelUp, cKena, cGameOver, cKlik;
-    private AudioClip cBossMuncul, cMenang;
+    private AudioClip cBossMuncul, cMenang, cLedak;
 
     // throttle: batasi frekuensi bunyi 'player kena' biar tak menumpuk "brebet" saat dikepung musuh
     float tKenaTerakhir = -1f;
@@ -123,6 +123,8 @@ public class SoundManager : MonoBehaviour
     public static void Klik()       { Play(Instance ? Instance.cKlik : null); }
     public static void BossMuncul() { Play(Instance ? Instance.cBossMuncul : null); }
     public static void Menang()     { Play(Instance ? Instance.cMenang : null); }
+    // Ledakan bom: dentuman berat, dipanggil ItemLapangan saat bom dipungut.
+    public static void Bom()        { Play(Instance ? Instance.cLedak : null); }
 
     static void Play(AudioClip c)
     {
@@ -140,6 +142,7 @@ public class SoundManager : MonoBehaviour
         cKena      = Sweep(220f, 80f, 0.18f, 0, 0.40f);
         cGameOver  = Sweep(420f, 110f, 0.60f, 2, 0.40f);
         cKlik      = Sweep(680f, 680f, 0.035f, 0, 0.22f);
+        cLedak     = SuaraLedak();
 
         // level up = arpeggio naik (C5 E5 G5 C6)
         float[] b = new float[(int)(0.40f * SR)];
@@ -167,6 +170,29 @@ public class SoundManager : MonoBehaviour
         TulisNada(mb, akhir, 783.99f, 0.55f, 0.18f, 1);
         TulisNada(mb, akhir, 1046.5f, 0.55f, 0.16f, 1);
         cMenang = BuatClip(mb);
+    }
+
+    // ledakan bom = dentuman rendah (frekuensi meluncur turun) + derau, meluruh
+    // cepat dan berat. Sengaja beda jauh dari "tass" tembakan: panjang, penuh
+    // bass, dengan hentakan tajam di awal biar terasa "BOOM".
+    AudioClip SuaraLedak()
+    {
+        int n = (int)(0.55f * SR);
+        float[] b = new float[n];
+        float fase = 0f;
+        for (int i = 0; i < n; i++)
+        {
+            float prog = (float)i / n;
+            float f = Mathf.Lerp(115f, 35f, prog);       // rumble turun 115 -> 35 Hz
+            fase += 2f * Mathf.PI * f / SR;
+            float sine = Mathf.Sin(fase);
+            float noise = Random.value * 2f - 1f;
+            float attack = Mathf.Min(1f, i / (0.005f * SR)); // hentakan tajam di awal
+            float decay = (1f - prog) * (1f - prog);         // meluruh kuadratik
+            float env = attack * decay;
+            b[i] = (sine * 0.8f + noise * 0.45f) * env;
+        }
+        return BuatClip(b);
     }
 
     // tulis satu nada ke buffer (additif). tipe: 0=kotak, 1=sinus, 2=segitiga
