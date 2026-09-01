@@ -374,9 +374,13 @@ public class ZombieSpawner : MonoBehaviour
 
         EnemyChase ec = go.GetComponent<EnemyChase>();
         if (ec == null) ec = go.AddComponent<EnemyChase>();
-        ec.moveSpeed = tier.kecepatan;
-        // Nyawa dikalikan tingkat kesulitan stage.
-        ec.nyawa = Mathf.Max(1, Mathf.RoundToInt(NyawaTier(index, tier) * Pengali));
+        // Paket "seimbang": semua musuh biasa sedikit lebih cepat (base) supaya
+        // cincin menekan lebih dekat ke pemain. Setel di Balance.LajuMusuhDasar.
+        ec.moveSpeed = tier.kecepatan * Balance.LajuMusuhDasar;
+        // Nyawa dikalikan tingkat kesulitan stage DAN pengali WAKTU, supaya musuh
+        // menit akhir cukup tebal untuk menembus cincin dan menekan pemain -
+        // bukan langsung tersapu di tepi jangkauan. Setel di Balance.PengaliNyawaMusuh.
+        ec.nyawa = Mathf.Max(1, Mathf.RoundToInt(NyawaTier(index, tier) * Pengali * Balance.PengaliNyawaMusuh(GameTimer.Detik)));
         ec.skor = tier.skor;
         ec.xp = tier.xp;
     }
