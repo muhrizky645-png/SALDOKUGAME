@@ -154,8 +154,13 @@ public class SenjataManager : MonoBehaviour
                 {
                     EnemyChase ec = EnemyRegistry.Buffer[i];
                     if (ec == null) continue;
-                    ec.KenaSerangan(dmg);
+                    // bunyi=false: aura JANGAN membunyikan "kena" per musuh, karena
+                    // memukul puluhan musuh tiap denyut -> jadi dengungan brisik.
+                    ec.KenaSerangan(dmg, false);
                 }
+                // Sebagai gantinya, satu bunyi setrum "zzap" per denyut aura:
+                // berirama & garang, bukan brisik. Hanya jika ada yang kena.
+                if (n > 0) SoundManager.AuraZap();
             }
         }
 

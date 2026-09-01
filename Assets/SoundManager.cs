@@ -21,7 +21,7 @@ public class SoundManager : MonoBehaviour
     private AudioSource efek;
 
     private AudioClip cTembak, cMusuhKena, cMusuhMati, cAmbilXp, cLevelUp, cKena, cGameOver, cKlik;
-    private AudioClip cBossMuncul, cMenang, cLedak;
+    private AudioClip cBossMuncul, cMenang, cLedak, cAuraZap;
 
     // throttle: batasi frekuensi bunyi 'player kena' biar tak menumpuk "brebet" saat dikepung musuh
     float tKenaTerakhir = -1f;
@@ -29,6 +29,9 @@ public class SoundManager : MonoBehaviour
     // throttle bunyi 'musuh kena' biar tak brebet saat spam tembak ke kerumunan
     float tMusuhKenaTerakhir = -1f;
     const float JEDA_MUSUH = 0.05f;
+    // throttle bunyi 'aura setrum' (jaga-jaga kalau ada banyak sumber aura)
+    float tAuraTerakhir = -1f;
+    const float JEDA_AURA = 0.1f;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
@@ -108,6 +111,15 @@ public class SoundManager : MonoBehaviour
         Instance.tMusuhKenaTerakhir = Time.unscaledTime;
         Play(Instance.cMusuhKena);
     }
+    // Bunyi setrum aura: dipanggil SEKALI tiap denyut aura (bukan per musuh),
+    // jadi terdengar sebagai "zzap" berirama, bukan dengungan brisik.
+    public static void AuraZap()
+    {
+        if (Instance == null || MuteEfek) return;
+        if (Time.unscaledTime - Instance.tAuraTerakhir < JEDA_AURA) return;
+        Instance.tAuraTerakhir = Time.unscaledTime;
+        Play(Instance.cAuraZap);
+    }
     public static void MusuhMati()  { Play(Instance ? Instance.cMusuhMati : null); }
     public static void AmbilXp()    { Play(Instance ? Instance.cAmbilXp : null); }
     public static void LevelUp()    { Play(Instance ? Instance.cLevelUp : null); }
@@ -143,6 +155,7 @@ public class SoundManager : MonoBehaviour
         cGameOver  = Sweep(420f, 110f, 0.60f, 2, 0.40f);
         cKlik      = Sweep(680f, 680f, 0.035f, 0, 0.22f);
         cLedak     = SuaraLedak();
+        cAuraZap   = SuaraZap();
 
         // level up = arpeggio naik (C5 E5 G5 C6)
         float[] b = new float[(int)(0.40f * SR)];
@@ -191,6 +204,27 @@ public class SoundManager : MonoBehaviour
             float decay = (1f - prog) * (1f - prog);         // meluruh kuadratik
             float env = attack * decay;
             b[i] = (sine * 0.8f + noise * 0.45f) * env;
+        }
+        return BuatClip(b);
+    }
+
+    // setrum listrik aura: luncuran nada turun cepat + sedikit desis, meluruh
+    // tajam. Terasa "zzap!" yang renyah dan garang tanpa cempreng. Dibunyikan
+    // sekali tiap denyut aura, jadi jadi identitas suara senjata setrum.
+    AudioClip SuaraZap()
+    {
+        int n = (int)(0.12f * SR);
+        float[] b = new float[n];
+        float fase = 0f;
+        for (int i = 0; i < n; i++)
+        {
+            float prog = (float)i / n;
+            float f = Mathf.Lerp(1400f, 320f, prog);         // luncur turun = "zzeeuu"
+            fase += 2f * Mathf.PI * f / SR;
+            float sine = Mathf.Sin(fase);
+            float noise = (Random.value * 2f - 1f) * 0.35f;  // desis listrik
+            float env = Mathf.Min(1f, i / (0.003f * SR)) * (1f - prog) * (1f - prog);
+            b[i] = (sine * 0.7f + noise) * env * 0.5f;
         }
         return BuatClip(b);
     }

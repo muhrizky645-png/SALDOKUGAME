@@ -279,7 +279,13 @@ public class EnemyChase : MonoBehaviour
         }
     }
 
-    public void KenaSerangan(int damage)
+    // damage : besar kerusakan.
+    // bunyi  : true = bunyikan "kena" (tembakan/pisau). false = senjata beruntun
+    //          seperti aura yang memukul banyak musuh tiap denyut; aura punya
+    //          suara "zzap" sendiri sekali per denyut, jadi per-musuh dibisukan
+    //          biar tidak jadi dengungan brisik. Visual (kedip, angka, terpental)
+    //          TETAP jalan.
+    public void KenaSerangan(int damage, bool bunyi = true)
     {
         if (sudahMati) return;
         nyawaSekarang -= Mathf.Max(1, damage);
@@ -290,7 +296,7 @@ public class EnemyChase : MonoBehaviour
         }
         else
         {
-            SoundManager.MusuhKena();
+            if (bunyi) SoundManager.MusuhKena();
             if (gameObject.activeInHierarchy) StartCoroutine(Kedip());
             Terpental();
         }
