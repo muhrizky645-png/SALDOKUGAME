@@ -1,89 +1,350 @@
 # HANDOFF — ZOMBURST: Auto Shooter (SALDOKUGAME)
-_Update: 29 Aug 2026, 16:49 WIB. Untuk melanjutkan di sesi chat baru._
+
+_Update: 1 Sep 2026, 11:20 WIB. Ditulis untuk dibaca AI di sesi chat berikutnya._
 
 ---
 
 ## 0. CARA PAKAI HANDOFF INI
-Kamu (AI sesi berikutnya) melanjutkan pekerjaan membangun fitur game Unity 2D (C#) milik user (SK Music, Bahasa Indonesia, Asia/Jakarta). User TIDAK bisa aku push langsung ke repo (MCP GitHub diblokir) — alur kerjanya: **aku tulis/edit file di sandbox `/data` → verifikasi → download → user timpa file lokal & push → user tes di Unity.** Aku tidak bisa compile.
+
+Kamu melanjutkan pekerjaan membangun game Unity 2D auto-shooter milik user. User berbahasa
+Indonesia, zona waktu Asia/Jakarta, bekerja SENDIRI, dan sering hanya punya HP.
+
+**BACA BAGIAN 2 SEBELUM MENULIS KODE APA PUN.** Isinya kesalahan yang sudah pernah
+terjadi dan tidak perlu terulang.
+
+### Yang berubah drastis dari handoff versi lama
+
+Handoff sebelumnya menyatakan `mcpServer_github` DIBLOKIR dan alur kerjanya lewat sandbox
+`/data` lalu user download-timpa-push manual. **Itu sudah tidak benar.** MCP GitHub bekerja
+penuh: baca file, buat branch, push, buat PR, merge, hapus file — semua sudah terbukti
+berhasil puluhan kali.
+
+**Alur kerja sekarang:** tulis file langsung ke repo lewat `push_files` ke branch `main`.
+User sudah minta JANGAN pakai branch terpisah lagi — dia bingung harus buka PR dan merge
+sendiri. Push langsung ke `main`.
+
+Yang TIDAK bisa dilakukan: menjalankan Unity, mengompilasi, menjalankan game, melihat
+hasilnya. **Setiap baris C# yang kamu kirim belum pernah dikompilasi.** Selalu katakan ini
+terus terang, jangan pernah bilang "sudah beres" untuk sesuatu yang belum pernah dijalankan.
 
 ---
 
-## 1. IDENTITAS GAME
-- Brand: **Zomburst**. Judul store: **"Zomburst: Auto Shooter"**. Genre: auto-shooter / Survivor.io-clone 2D.
-- Repo: `muhrizky645-png/SALDOKUGAME` (public, branch `main`). Script ada di `Assets/<Nama>.cs`.
-- Raw read (HANYA via `web.loadPage`, sandbox tanpa internet): `https://raw.githubusercontent.com/muhrizky645-png/SALDOKUGAME/main/Assets/<file>.cs`
-- Doc konsep (Notion, privat, 🎮): "Zomburst — Konsep & Alur Game", page id `cb56bd578ec341d39e469cf4e0d3ec14`.
-- User: SK Music, id `397d872b-594c-81f1-838e-000248a9838f`, workspace "nastaresdim's Space", Owner.
+## 1. IDENTITAS & STATUS
+
+- Brand: **Zomburst**. Judul store: "Zomburst: Auto Shooter". Genre: auto-shooter 2D,
+  kiblatnya **Survivor.io**.
+- Repo: `muhrizky645-png/SALDOKUGAME`, publik, branch tunggal `main`.
+- **Unity `6000.5.8f1`** (Unity 6). BUKAN Unity 2022 seperti yang tertulis di PRD.
+  Artinya: Build Profiles, bukan Build Settings lama; `FindFirstObjectByType` bukan
+  `FindObjectOfType`.
+- Lisensi: **Unity Personal**. Ini lisensi penuh dan gratis, sah untuk rilis komersial
+  sampai pendapatan 200 ribu USD. User sempat mengira "gratisan = tidak ada lisensi" —
+  itu salah, jangan ikut salah.
+- Semua UI masih `OnGUI`. Ini utang teknis terbesar, tapi JANGAN dimigrasi sebelum ada
+  angka FPS nyata (lihat Bagian 6).
+- 45 script lama di `Assets/*.cs` (flat). Kode baru diletakkan di `Assets/Scripts/Core/`
+  dan `Assets/Scripts/Data/`.
+
+### PRD
+
+PRD lengkap 31 bab ada di **Notion**, judul "PRD — Project Nightfall: Survival Roguelite
+Mobile Game (Survivor.io-like)", milik user pribadi.
+
+Aku pernah mendorong PRD itu ke `docs/PRD.md` dan `docs/PRD-bagian-2.md`, tapi file
+pertama **terpotong di tengah tabel Bab 23** karena satu string `push_files` ada batas
+ukuran praktisnya. Kedua file itu SUDAH DIHAPUS atas permintaan user, dan user push
+sendiri hasil export Notion dari komputer.
+
+**Pelajaran: kalau harus mengirim dokumen panjang, pecah jadi beberapa file SEBELUM
+menulis, jangan sesudah. Dan periksa ujung file setelah push.**
+
+Realitas versus PRD: PRD menargetkan 20 senjata, 22 pasif, 10 chapter x 10 stage.
+Repo punya 3 senjata, 6 pasif, 4 stage. Rekomendasi yang sudah disampaikan ke user dan
+masih berlaku: **rescope "Zomburst Edition"** — 10 senjata, 5 chapter. PRD itu peta,
+bukan daftar tugas.
 
 ---
 
-## 2. ATURAN PENTING (JANGAN DILANGGAR)
-1. **`web.loadPage` MERUSAK generic C#**: `GetComponent<T>()` → `GetComponent ()`, `System.Action<float>` → `System.Action`, dan indentasi jadi 1 spasi. → **Hasil baca file repo = HANYA untuk analisa, JANGAN pernah disimpan/di-download ulang.** File baru yang AKU tulis sendiri aman (aku ketik generic yang benar).
-2. **Untuk mengedit file repo yang sudah ada** (mis. `Bullet.cs`), MINTA user upload file ASLI, lalu edit surgical (`editFile`, sisip seminimal mungkin). Ini yang bikin GameMenu.cs kemarin akhirnya benar.
-3. **Mata uang upgrade = PERMATA** (`MataUang` API `TambahPermata`/`PakaiPermata(int)->bool`, PlayerPrefs `"permata"`). **KOIN (SALDOKU) READ-ONLY / server-only** — jangan dipakai buat spend in-game.
-4. Selalu verifikasi brace/paren balance di terminal sebelum download.
-5. MCP GitHub `mcpServer_github` DIBLOKIR (butuh re-approve admin). Jangan andalkan itu.
-6. **Filosofi user (penting):** utamakan KUALITAS GAMEPLAY & ALUR dulu. Asset boleh belakangan — semua dibuat via KODE (nol file gambar), nanti tinggal swap art asli. Semua fitur so far 100% code-generated (nol PNG).
+## 2. ATURAN PENTING (PELAJARAN MAHAL)
+
+1. **JANGAN menulis kode dari ingatan atau dari ringkasan.** Baca file aslinya dulu tiap
+   kali. Tiga kali hampir terjadi error karena nama field ditebak. Yang menyelamatkan:
+   membaca `*SO.cs` sebelum menulis generator, membaca `StageManager.cs` sebelum mengubah
+   durasi, membaca `HasilMain.cs` sebelum menyentuh kondisi menang.
+
+2. **`push_files` dan `create_or_update_file` itu PENGGANTI FILE UTUH.** Tidak ada operasi
+   append. Kalau hanya mengubah satu fungsi, kamu tetap harus mengirim seluruh file — jadi
+   baca file itu lebih dulu, jangan menyusun ulang dari ingatan.
+
+3. **Mata uang upgrade = PERMATA**, bukan Koin. `MataUang.TambahPermata` /
+   `PakaiPermata(int)->bool`, PlayerPrefs `"permata"`.
+   **KOIN (Saldoku) READ-ONLY** — nilainya hanya masuk dari server lewat
+   `SetKoinDariServer()`. Koin SUDAH server-authoritative; jangan pernah bilang ke user
+   bahwa itu tidak aman (aku pernah salah bilang begitu dan harus meralat).
+
+4. **Sebelum menilai balance apa pun, PlayerPrefs harus dibersihkan.** `UpgradePermanen`
+   menyimpan level upgrade permanen dan tidak pernah direset. User pernah mengeluh
+   "tembakan level awal terlalu cepat" padahal yang dia mainkan adalah save yang sudah
+   ter-upgrade. Selalu ingatkan: **Edit > Clear All PlayerPrefs**.
+
+5. **Satu tugas per sesi kerja.** User pernah menyatakan terus terang: "Aku tidak paham
+   harus mulai dari mana." Jangan sodorkan daftar 20 item. Beri satu langkah, tunggu
+   hasilnya.
+
+6. **Asset boleh menyusul, dan user setuju.** Gameplay dan keseimbangan dulu. Gaya seninya
+   **chibi kartun** bergaris tebal seperti Survivor.io, **bukan pixel art**. Untuk animasi
+   tidak perlu aplikasi baru: `KarakterManager` sudah memisah Body/Head/Left_Foot/
+   Right_Foot/Weapon, jadi itu rig cut-out — pakai package 2D Animation bawaan Unity.
+
+7. **Jangan menimpa nilai yang sudah diisi user.** Mengisi field yang null itu aman dan
+   boleh otomatis. Mengubah field yang sudah berisi harus lewat menu terpisah dengan
+   konfirmasi. Pola ini dipakai di `BuatAsetBalance.cs`, ikuti.
 
 ---
 
-## 3. SUDAH SELESAI & TERKIRIM
-### PAKET 1 — Stage select + Win condition + Result screen (SHIPPED)
-- **`StageManager.cs`** (BARU → `Assets/`): static, 4 stage [HUTAN TERKONTAMINASI 180s / KOTA RUNTUH 240s ×1.15 / GURUN RERUNTUHAN 300s ×1.3 / KUTUB BEKU 360s ×1.5]. PlayerPrefs `"stage_dipilih"`,`"stage_terbuka"`. API: `Jumlah, Dipilih(get/set), TerbukaSampai, Terbuka(i), BukaSampai(i), Sekarang, TargetSekarang, PengaliMusuhSekarang, AdaBerikutnya`, nested `Stage{nama,tagline,targetDetik,pengaliMusuh}`.
-- **`HasilMain.cs`** (BARU → `Assets/`): MonoBehaviour bootstrap. `static bool Menang`. Deteksi menang saat `GameTimer.Detik >= StageManager.TargetSekarang` → `Time.timeScale=0`, hadiah Permata `50+Dipilih*40+skor/20`, `BukaSampai(Dipilih+1)`, `SoundManager.LevelUp()`. OnGUI (GUI.depth=-1000 + bg opaque nutup HUD): layar MENANG (waktu bertahan, hadiah, tombol STAGE BERIKUTNYA / ULANGI / KE HOME). Kalah tetap ditangani PlayerHealth GAME OVER lama.
-- **`GameMenu.cs`** (EDIT — DISUPERSEDE oleh Paket 2, lihat bawah).
-- Target durasi 3/4/5/6 menit sudah DISETUJUI user.
+## 3. ARSITEKTUR BARU (SUDAH DI `main`)
 
-### PAKET 2 — Upgrade Permanen pakai Permata (SHIPPED)
-- **`UpgradePermanen.cs`** (BARU → `Assets/`): MonoBehaviour singleton (bootstrap + sceneLoaded), `[DefaultExecutionOrder ...]`, panel GUI.depth=-1000 + full-screen click swallower (pola dari Toko). Simpan 4 level di PlayerPrefs `"upg_perm"` = "l0,l1,l2,l3". Deteksi run-start via rising-edge `GameMenu.SedangMain`, apply bonus ADITIF ~3 frame kemudian (biar Start/karakter settle) dengan cari komponen di object tag `"Player"`. 4 upgrade:
-  - MAX HP +20/lvl (maks 8, harga 60+40*lvl) → `PlayerHealth.maxHealth`(+`health`)
-  - KECEPATAN GERAK +0.4/lvl (maks 6, 60+45*lvl) → `PlayerMovement.moveSpeed`
-  - KECEPATAN TEMBAK fireRate*=(1-0.08*lvl) clamp min 0.3 (maks 6, 80+60*lvl) → `PlayerShooting.fireRate`
-  - PELURU EKSTRA +1/lvl (maks 3, 150+120*lvl) → `PlayerShooting.jumlahPeluru`
-  - (Damage per-peluru SENGAJA di-skip: butuh edit prefab/PlayerShooting, fragile.)
-- **`GameMenu.cs`** (EDIT, dari `/data/user_GameMenu.cs`, 627 baris, brace 67/67, `System.Action<float>` utuh): semua fitur Paket 1 + tombol **UPGRADE** di baris bawah layar Peta (`UpgradePermanen.Instance.Buka()`) di samping KEMBALI. **INI menggantikan GameMenu.cs Paket 1 — pakai yang terbaru.**
+### `Assets/Scripts/Core/EnemyRegistry.cs`
+Registry statis + spatial grid (`UkuranSel = 4f`). Menggantikan
+`FindGameObjectsWithTag("Enemy")` yang dulu dipanggil di **empat** tempat panas, termasuk
+`PlayerShooting.Shoot()` setiap tembakan. API: `Semua`, `Jumlah`, `Daftar`, `Hapus`,
+`DalamRadius`, `Terdekat(pusat, radiusMaks[, kecuali])`, `NTerdekat`. `EnemyChase`
+mendaftar di `OnEnable` dan keluar di `OnDisable` + awal `Mati()`.
 
-### PAKET 3 (bag. 1) — Screen shake (SHIPPED)
-- **`ScreenShake.cs`** (BARU → `Assets/`, 99 baris, brace 14/14): `[DefaultExecutionOrder(10000)]` → LateUpdate jalan SETELAH CameraFollow, tambah offset getar (tanpa edit CameraFollow). Auto-getar saat HP pemain turun (cooldown 0.22s biar tak gemetar terus). API publik `ScreenShake.Getar(kuat, durasi)`.
+### `Assets/Scripts/Core/Balance.cs` — SATU SUMBER KEBENARAN untuk "seberapa kuat"
+- Stat dasar pemain: `JedaTembakAwal = 1.0f` (dulu 1.2 lalu terasa terlalu cepat karena
+  upgrade permanen), `JumlahPeluruAwal = 1`, `JangkauanTembakAwal = 8f`.
+  **`JangkauanTembakAwal` naik dari 1f ke 8f adalah tebakan paling berisiko yang pernah
+  kubuat — wajib dinilai user.**
+- `DurasiRunDetik = 900f` — **satu-satunya tuas untuk memendekkan run.** Ubah ke `600f`
+  kalau paruh kedua terasa kosong.
+- `GunakanKurvaXpPrd = true`, `XpUntukLevel(int)`. Kurva lama mencapai level 5 dalam ~30
+  detik; itu penyebab gerbang variasi musuh tidak pernah terasa.
+- `MusuhDasar = 40`, `MusuhPerMenit = 18f`, `MaxMusuhMutlak = 320`, `MaxMusuhHidup(...)`.
+- Slot: 6 senjata + 6 pasif, level maks 5. Evolusi: senjata Lv5 + pasif Lv3 + menit >= 5.
+- `JedaBosDetik = 45f` **SUDAH TIDAK DIPAKAI** — digantikan `JadwalRun.SiklusDetik`.
+  Hapus atau sambungkan, jangan dibiarkan membingungkan.
 
-### PAKET 3 (bag. 2) — Floating damage number (SHIPPED, 29 Aug 15:31)
-- **`DamageNumber.cs`** (BARU → `Assets/`): singleton auto-bootstrap (`DontDestroyOnLoad`), `[DefaultExecutionOrder(9000)]`, gambar via OnGUI + `WorldToScreenPoint` (nol asset/prefab/font). API `DamageNumber.Munculkan(Vector3 posisiDunia, int jumlah)`. Angka mengapung naik + fade pakai `Time.unscaledTime` (tetap jalan saat pause). 3 tingkat: 1=putih kecil(0.72×), 2–4=kuning muda(0.9×), ≥5=emas(1.05×). Basis font `Screen.height*0.02`. Batas 80 angka. brace 12/12.
-- **`EnemyChase.cs`** (EDIT surgical): sisip 1 baris di `KenaSerangan(int damage)` tepat setelah `nyawaSekarang -= Mathf.Max(1, damage);` → `DamageNumber.Munculkan(transform.position, Mathf.Max(1, damage));`. INI titik terpusat (semua peluru lewat sini, termasuk hit yang membunuh). brace 40/40.
-- **`Bullet.cs`** (EDIT surgical): (a) jalur cadangan (musuh tanpa EnemyChase) sisip `DamageNumber.Munculkan(...)`; (b) tambah **CRIT** sebelum `KenaSerangan`: `int dmg = damage; if (Random.value < 0.22f) dmg = damage * Random.Range(2,4);` lalu `KenaSerangan(dmg)` → biar angka bervariasi (bukan cuma "1" karena base damage prefab = 1). brace 8/8.
-- **Catatan balance:** CRIT menaikkan damage efektif sedikit (musuh mati lebih cepat). Kalau user mau variasi angka TANPA ubah balance, buat crit MURNI VISUAL — jangan kalikan dmg yang dikirim ke `KenaSerangan`, cukup kirim angka besar ke `DamageNumber.Munculkan` saja.
-- Tuning cepat: ukuran font = `0.02f` di DamageNumber.cs; peluang/lipatan crit = `0.22f` & `Random.Range(2,4)` di Bullet.cs.
+### `Assets/Scripts/Core/JadwalRun.cs` — SATU SUMBER KEBENARAN untuk "kapan"
+Irama satu siklus: `...tenang... -> GELOMBANG 45s -> HENING 20s -> BOS`.
+- `SiklusDetik = 300f` (bos tiap 5 menit), `DetikWave = 65f`, `DetikHening = 20f`,
+  `MajuBosAkhir = 60f`.
+- `DurasiRun` dibaca dari `StageManager.TargetSekarang`, jadi jadwal menyesuaikan sendiri.
+- `WaktuBos(n)`, `JumlahBosSeharusnya(detik)`, `DetikKeBosBerikut(detik)`, `Fase(detik)`.
+- Variasi musuh bertahap: `JenisAwal = 2`, satu tier baru tiap 55 detik.
+  Perilaku khusus dibuka bertahap: Cepat 1:00, Tank 2:30, Penembak 4:00, Peledak 6:00.
+- `NyawaBos(nomor, detik, pengaliStage)` = `90 + 45/menit + 90/nomor`.
+  **Angka ini TEBAKAN.** Target waktu bunuh 20-35 detik. Minta user melaporkan.
 
-### PAKET 4 — Extra SFX: boss muncul + jingle menang (SHIPPED, 29 Aug 16:49)
-- SFX **boss muncul** dan **jingle menang** sudah ditambahkan & terkirim (edit `SoundManager.cs` + pemanggilnya). Menang tidak lagi hanya bunyi `LevelUp()`.
-- CATATAN sesi berikut: konfirmasi nama method SFX baru di `SoundManager.cs` (mis. `BosMuncul()` / `Menang()`) dari file asli terbaru sebelum dipakai ulang, karena detail implementasi belum tercatat di handoff ini.
+### `Assets/Scripts/Core/BosPola.cs`
+Ditambahkan otomatis oleh spawner ke prefab bos, dengan `tingkat = nomor bos`. Tiga pola
+bergilir tiap 4,5 detik: `TembakMelingkar` (celah bergeser tiap salvo),
+`Terjangan` (memakai `moveSpeed` milik `EnemyChase` sendiri, bukan gerak terpisah),
+`PanggilBawahan` (`spawner.SpawnDiSekitar`). Setiap pola punya **aba-aba berkedip** lebih
+dulu. Aba-aba itulah yang membedakan "sulit" dari "tidak adil" — jangan dihapus.
+
+### `Assets/Scripts/Core/PengumumanRun.cs`
+Spanduk "GELOMBANG!", "SESUATU MENDEKAT...", "BOS MUNCUL", plus hitung mundur "BOS <n>s".
+Sengaja memakai `GUI`/`GUIStyle` biasa, BUKAN helper `Tema`, supaya tidak bergantung pada
+tanda tangan API yang belum diverifikasi.
+
+### `Assets/Scripts/Data/` — `SenjataSO`, `PasifSO`, `MusuhSO`, `StageSO`
+Lapisan data ScriptableObject. **Belum dikonsumsi runtime.** `SenjataManager` masih
+memakai `int dmg = 3 + lvOrbit * 2 + (evo ? 5 : 0);` yang tertanam di kode.
+Nama field memakai bahasa Indonesia (`namaTampil`, `jedaSerang`, `jumlahProyektil`,
+`hasilEvolusi`) — jangan tebak, baca filenya.
+
+### `Assets/Editor/BuatAsetBalance.cs`
+Tiga menu:
+- **Zomburst > Buat Semua Aset Balance** — membuat semua aset SO, idempoten, tidak pernah
+  menimpa aset yang sudah ada. Di akhir menyambungkan prefab musuh otomatis.
+- **Zomburst > Sambungkan Prefab Musuh** — mengisi `MusuhSO.prefab` yang masih null.
+  Mencari 3 lapis: `Assets/Prefabs/ZOMBIE.prefab`, lalu prefab bernama ZOMBIE, lalu prefab
+  apa pun yang punya komponen `EnemyChase`.
+- **Zomburst > Selaraskan Stage dengan Balance** — satu-satunya menu yang menimpa nilai
+  terisi, dan selalu konfirmasi dulu.
+
+**PENTING:** di repo hanya ada SATU prefab musuh, `Assets/Prefabs/ZOMBIE.prefab`.
+Ketujuh `MusuhSO` memakai prefab yang sama, dan itu memang cukup untuk sekarang karena
+`EnemyChase.TerapkanVarian()` sudah mengubah warna dan ukuran tiap varian saat runtime.
+Jangan pernah menyuruh user "isi 7 prefab" — prefabnya tidak ada. Aku pernah salah begitu.
 
 ---
 
-## 4. YANG BELUM (LANJUTKAN DI SINI)
+## 4. JADWAL RUN SEKARANG (`DurasiRun = 900`)
 
-### Lain-lain / deferred
-- Tema per-stage (background/tint musuh) pakai `StageManager.PengaliMusuhSekarang` — ZombieSpawner belum diwire ke pengali; stage sekarang beda hanya di durasi bertahan.
-- Asset asli (nanti swap): diorama_stage1.png (hutan), ikon nav, logo wordmark "ZOMBURST" (army green + amber + red, glossy 3D). Style base: "mobile game icon, Survivor.io art style, cute chibi, vibrant, thick dark outline, glossy, transparent bg, no text". HUD icon = Texture2D Default di `Assets/Resources/Icons/`; world drop = Sprite; bg 1080x2400.
+| Peristiwa | Waktu |
+|---|---|
+| Bos 1 | 5:00 |
+| Bos 2 | 10:00 |
+| Bos 3 (terakhir) | 14:00 |
+| Gelombang | 3:55-4:40, 8:55-9:40, 12:55-13:40 |
+| Hening | 4:40-5:00, 9:40-10:00, 13:40-14:00 |
+
+Keempat stage sekarang berdurasi SAMA (900 detik). Bedanya hanya pengali kekuatan musuh:
+1.0 / 1.15 / 1.3 / 1.5.
+
+**Kenapa bos terakhir di 14:00, bukan 15:00:** `HasilMain.Update()` memicu layar MENANG
+begitu `GameTimer.Detik >= StageManager.TargetSekarang`. Bos di detik 900 akan terhapus di
+frame yang sama. Selain itu kondisi menang sekarang punya penjaga
+`&& EnemyChase.JumlahBos == 0` — tanpa itu pemain cukup berputar-putar sampai waktu habis
+dan bos terakhir jadi tidak ada artinya.
+
+**Peringatan jujur yang sudah disampaikan ke user:** dengan hanya 3 senjata + 6 pasif,
+build sudah mentok sekitar menit 6-7, jadi paruh kedua run 15 menit akan terasa kosong
+sampai kontennya bertambah. Kalau user mengeluh soal ini, ubah `Balance.DurasiRunDetik`
+ke `600f` — satu angka, satu baris, jadwal menyesuaikan sendiri.
 
 ---
 
-## 5. REFERENSI API (dari repo, sudah dikonfirmasi)
-- **Player (semua public, di root tag `"Player"`):** `PlayerHealth.maxHealth/health/damagePerSecond`, `.Instance`, `.Kurangi(dmg)`, `.Pulih(amt)`, `.HidupLagi()`, `static bool GameOver`; `PlayerMovement.moveSpeed`(5f); `PlayerShooting.fireRate`(1.2f, kecil=cepat)/`range`/`jumlahPeluru`(1)/`sudutSebar`/`bulletPrefab`; `Bullet.damage`(int, di PREFAB)/`speed`/`direction`.
-- **MataUang:** `Instance`, `Permata`(int), `Koin`(long RO), `Terhubung`, `TambahPermata(int)`, `PakaiPermata(int)->bool`, static `Ringkas(long)`, `GambarChip(...)`.
-- **Toko:** `Instance`, `Buka()/Tutup()`, `Terbuka`; buff 0=BOM/1=PULIH HP/2=PERLAMBAT.
-- **Runtime:** `GameMenu.SedangMain/SedangJeda`, `.UlangiDanMain()`, `.KeHome()`, `.langsungMainSetelahLoad`; `SkillManager.AktifMemilih`; `ModeDewa.Aktif`; `GameTimer.Detik`(static float, reset tiap load); `LevelSystem.Instance.Level`; `KarakterManager.Dipilih/Nama[]/Kepala(i)/Terbuka(i)`; `EnemyChase.KenaSerangan(dmg)/.Perlambat(t,f)/.JumlahBos/.BosSaatIni`; `ScoreManager.Instance.SkorSekarang/RekorTertinggi/AddScore(n)`; `SoundManager.Klik()/Tembak()/LevelUp()/GameOver()/PlayerKena()/AmbilXp()`; `Ledakan.Munculkan(...)`, `HitEffect.Munculkan(pos,ukuran=1f)`, `XpGem.Munculkan(...)`. Tag: `"Player"`, `"Enemy"`, kamera `"MainCamera"`.
-- **CameraFollow:** LateUpdate, `transform.position = Lerp(current, target+offset, smooth*dt)`, `offset.z=-10`, orthographicSize=`zoom`(10).
-- **Tema helper:** `Unit,Pad,AmanAtas/Kiri/Kanan/Bawah,Panel,Plate,Garis,Army,Amber,Darah,Tulang,Redup`, `LatarGelap(),Vignette(),Kotak(Rect,Color),Panel9(...),Teks(...),GayaTombol(f),GayaTombolAksen(f),Font(frac)`; `Ikon.Gambar(Rect,tex,Color)`, `Ikon.Berlian/Piala/Bintang`.
-- **PlayerPrefs baru:** `"stage_dipilih"`,`"stage_terbuka"` (StageManager); `"upg_perm"` (UpgradePermanen).
+## 5. SUDAH BERES DAN TERVERIFIKASI ADA DI `main`
+
+- `EnemyRegistry` + spatial grid; keempat `FindGameObjectsWithTag` dihapus.
+- `Bullet` tidak lagi habis di mayat (`if (musuh.SudahMati) return;`); crit pindah ke
+  field Inspector, tidak lagi hardcode.
+- `Balance.cs`, `JadwalRun.cs`, `BosPola.cs`, `PengumumanRun.cs`.
+- Lapisan data SO + generator editor.
+- `LevelSystem` memakai kurva XP PRD.
+- `ZombieSpawner`: jumlah musuh berbasis WAKTU, bukan level pemain (dulu ada umpan balik
+  yang membuat kurvanya berbeda untuk tiap pemain). `SpawnDiSekitar` baru. `bossKe` naik
+  SEBELUM early-return prefab null, supaya tidak retry tiap frame.
+- `EnemyChase.RollTipe` mendelegasikan ke `JadwalRun.RollTipe(detik)`. Dulu memilih bebas
+  di antara keempat tipe khusus **sejak detik ke-0 tanpa gerbang apa pun** — ini penyebab
+  utama keluhan "musuh langsung muncul semua".
+- `StageManager` 4 stage x 900 detik; `HasilMain` dengan penjaga bos.
+- **`SkillManager` (SUDAH DIVERIFIKASI 1 Sep):** sistem slot 6+6, batas Lv5 dari `Balance`,
+  `BolehDitawarkan()` menyaring skill yang sudah mentok, penjagaan kedua di `Pilih()`.
+  Memperbaiki eksploit lama: semua pasif dulu `maks = 0` alias TAK TERBATAS, dan kartu
+  bertuliskan "MAX!" tetap menjalankan efeknya (`fireRate 1.2 x 0.80^20 = 0.0138`).
 
 ---
 
-## 6. FILE DI SANDBOX `/data` (siap download)
-- `user_GameMenu.cs` ← GameMenu.cs TERBARU (Paket 2, timpa yg lama, buang prefix `user_`)
-- `UpgradePermanen.cs`, `ScreenShake.cs`, `StageManager.cs`, `HasilMain.cs` ← file BARU ke `Assets/`
-- `DamageNumber.cs` (BARU → `Assets/`) + `EnemyChase.cs` & `Bullet.cs` (EDIT, timpa lama) ← Paket 3 bag.2, sudah SHIPPED
-- `orig.cs` = versi rusak, JANGAN dipakai. `GameMenu.cs`/`GameMenu_src.cs` lama = abaikan.
-- `HANDOFF_AI.md` (file ini), `ASSET_LIST.md`, `SkillManager.cs`.
+## 6. BELUM BERES — URUT PRIORITAS
 
-## 7. TOOLS SANDBOX
-`writeFile({path,content,overwrite?,append?})`, `editFile({file_path,edits:[{old_string,new_string,replace_all?}]})`, `downloadFile({path})`, `uploadFile(...)`, `terminal({command,taskDescription})`, `readFile`. Semua di bawah `/data`, tanpa internet.
+### Menunggu user membuka komputer (memblokir yang lain)
+1. **Kompilasi.** Belum ada satu file pun yang terbukti bisa di-build.
+2. **Angka 1% low FPS** dari stress test 300 musuh. Angka ini yang menentukan apakah
+   pooling, batas 320 musuh, dan migrasi dari `OnGUI` layak dikerjakan. **Jangan
+   mengerjakan optimasi itu sebelum angkanya ada** — mengoptimalkan tanpa mengukur itu
+   menebak.
+3. **Penilaian rasa main:** jeda tembak 1 detik terasa pas? `range = 8f` kejauhan?
+   Bos mati dalam 20-35 detik? Irama gelombang-hening-bos terbaca?
+
+### Bug nyata yang belum ditambal
+4. **`Assets/SaldokuKoin.cs` — cabang `#else` memberi hadiah TANPA iklan:**
+   ```csharp
+   public void TampilkanHadiah(System.Action onReward, System.Action<string> onFail)
+   {
+       if (onReward != null) onReward();
+   }
+   ```
+   Kalau `SALDOKU_ADMOB` tidak terdefinisi, siapa pun dapat hadiah gratis. Usulan: bungkus
+   `#if UNITY_EDITOR || DEVELOPMENT_BUILD`, selain itu panggil
+   `onFail("Fitur iklan belum aktif di build ini.")`. **User belum menjawab soal ini,
+   tawarkan lagi.**
+   Juga di file yang sama: `AD_UNIT_PROD` masih placeholder nol semua,
+   `USE_TEST_ADS = true`, token disimpan plaintext di PlayerPrefs.
+5. **Folder artefak build ikut ter-commit**, perlu `git rm -r --cached`:
+   `SALDOKUGAME_BurstDebugInformation_DoNotShip/`,
+   `Saldokugame_BackUpThisFolder_ButDontShipItWithYourGame/`,
+   `debug_BackUpThisFolder_ButDontShipItWithYourGame/`.
+
+### Pembersihan kecil
+6. Hapus atau sambungkan `Balance.JedaBosDetik` yang sudah mati.
+7. Pindahkan damage `SenjataManager` ke `SenjataSO`; ganti evolusi otomatis dengan
+   `Balance.BolehEvolusi`.
+
+### Konten (penawar rasa kosong di paruh kedua)
+8. Tambah senjata dan pasif menuju target rescope: 10 senjata, bukan 20.
+9. Pooling **peluru** lebih dulu, bukan pooling musuh. `BosPola.TembakMelingkar` bisa
+   memuntahkan sampai 64 `PeluruMusuh` sekali pola.
+
+### Dokumen
+10. `docs/BALANCE.md` menjelaskan tiap angka di `Balance.cs` dan `JadwalRun.cs`.
+11. Gap analysis lengkap ada sebagai subhalaman PRD di Notion, judul
+    "GAP Analysis & Rencana Eksekusi". Belum pernah masuk repo.
+
+---
+
+## 7. RISIKO YANG BELUM TERVERIFIKASI (JANGAN DIKLAIM BERES)
+
+- Seluruh `BosPola` ditulis tanpa pernah dilihat hasilnya. Pola serangan, durasi aba-aba,
+  dan kecepatan terjangan semuanya perkiraan.
+- Nyawa bos 315 di menit ke-5 (bos 1, stage x1.0) adalah tebakan.
+- `JangkauanTembakAwal = 8f` naik dari `1f`. Kalau terasa "pemain menembak dari luar layar",
+  ini penyebabnya.
+- `PengumumanRun` belum pernah dilihat di layar HP; ukuran font bisa salah.
+
+---
+
+## 8. REFERENSI API (TERKONFIRMASI DARI FILE ASLI)
+
+- **Player (tag `"Player"`):** `PlayerHealth.maxHealth/health/damagePerSecond`, `.Instance`,
+  `.Kurangi(dmg)`, `.Pulih(amt)`, `.HidupLagi()`, `static bool GameOver`;
+  `PlayerMovement.moveSpeed` (5f);
+  `PlayerShooting.fireRate/range/jumlahPeluru/sudutSebar/bulletPrefab` + `pakaiBalance`
+  dan `Awake()` yang menerapkan `Balance` (sengaja `Awake`, bukan `Start`, supaya
+  `UpgradePermanen` menumpuk di atasnya); `Bullet.damage` (int, di PREFAB).
+- **MataUang:** `Instance`, `Permata`, `Koin` (long, read-only), `Terhubung`,
+  `TambahPermata(int)`, `PakaiPermata(int)->bool`, `static Ringkas(long)`.
+- **Runtime:** `GameMenu.SedangMain/SedangJeda/UlangiDanMain()/KeHome()`;
+  `HasilMain.Menang`; `SkillManager.AktifMemilih`; `ModeDewa.Aktif`;
+  `GameTimer.Detik` (static float); `LevelSystem.Instance.Level`;
+  `EnemyChase.JumlahBos/BosSaatIni/KenaSerangan(int)/Perlambat(durasi,faktor)`;
+  `ScoreManager.Instance.SkorSekarang/RekorTertinggi/AddScore(n)`;
+  `SoundManager.Klik()/Tembak()/LevelUp()/GameOver()/PlayerKena()/AmbilXp()/MusuhKena()/`
+  `MusuhMati()/BossMuncul()/Menang()`;
+  `Ledakan.Munculkan(pos,radius,a,b,warna)`; `HitEffect.Munculkan(pos,ukuran=1f)`;
+  `XpGem.Munculkan(...)` + `XpGem.MagnetMult`; `PermataGem.Munculkan(pos,n)`;
+  `ItemLapangan.Jatuhkan(pos, Jenis.Peti|Bom|Magnet)`; `DamageNumber.Munculkan(Vector3,int)`;
+  `ScreenShake.Getar(kuat,durasi)`; `HitStop.Beku(durasi,skalaWaktu)`; `ComboMeter.Tambah()`;
+  `Roket.Tembak(pos,Transform,speed,dmg,radius)`;
+  `SenjataManager.Instance.TambahOrbit()/TambahAura()/TambahRoket()`, `SenjataManager.MAX = 6`
+  (**itu jumlah SLOT, bukan batas level** — kesalahan ini pernah membuat kartu berbohong);
+  `UpgradePermanen.Instance.Buka()`.
+- **`PeluruMusuh.Tembak(Vector3 pos, Vector3 arah, float speed, float dmg)`** — `dmg` itu
+  **float**, terverifikasi dari situs pemanggilnya.
+- **Tema:** `Unit, Pad, AmanAtas/Kiri/Kanan/Bawah, Panel, PanelTerang, Plate, Garis,`
+  `GarisRedup, Army, Amber, Darah, Tulang, Redup`, `LatarGelap()`, `Vignette()`,
+  `Kotak(Rect,Color)`, `Panel9(Rect,Color,Color,float)`,
+  `Teks(Rect,string,int,Color,TextAnchor,bool)`, `BarIsi(Rect,Color)`, `GayaTombol(f)`,
+  `GayaTombolAksen(f)`, `Font(frac)`; `Ikon.Gambar/Dari/UntukSkill/Berlian/Piala/Bintang/Hati`.
+- **PlayerPrefs:** `"permata"`, `"stage_dipilih"`, `"stage_terbuka"`, `"upg_perm"`,
+  `"karakter_dipilih"`, `"karakter_buka_<idx>"`, `"saldoku_game_token"`.
+- **Pola bootstrap:** `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]`
+  + `SceneManager.sceneLoaded`. Ikuti pola ini untuk komponen baru yang harus selalu ada.
+
+---
+
+## 9. LANGKAH PERTAMA SAAT USER MEMBUKA UNITY
+
+Urutannya penting, jangan diacak:
+
+1. `git pull` di `main`.
+2. Tunggu import selesai, **lihat Console**. Ada error merah? Berhenti, minta teks
+   error-nya, perbaiki. Jangan lanjut.
+3. **Zomburst > Buat Semua Aset Balance**.
+4. Kalau dialognya menyebut stage belum selaras: **Zomburst > Selaraskan Stage dengan
+   Balance**.
+5. **Zomburst > Periksa Aset Balance**. Keluhan soal ikon boleh diabaikan —
+   `Ikon.UntukSkill` masih menggambar ikon prosedural.
+6. **Edit > Clear All PlayerPrefs.** JANGAN dilewati.
+7. Main satu run penuh 15 menit dan laporkan poin-poin di Bagian 6 nomor 3.
+8. Untuk build Android tanpa PC: Unity Build Automation, hubungkan repo di
+   `cloud.unity.com`. Wajib **Development Build** kalau mau `StressTest` jalan
+   (butuh `DEVELOPMENT_BUILD`). Free tier kira-kira 8-15 build Android per bulan.
+   **Jangan pasang kartu kredit.** GameCI tidak bisa dipakai: aktivasi manual lisensi
+   Personal sudah dihentikan Unity, jadi GameCI justru MEMBUTUHKAN PC.
+
+---
+
+## 10. GAYA KERJA USER
+
+- Bahasa Indonesia, santai. Balas dengan bahasa Indonesia.
+- Bukan programmer ahli. Jelaskan **kenapa**, bukan hanya **apa**.
+- Sering hanya punya HP. Solusi yang butuh PC harus disebut jelas butuh PC.
+- **Menghargai kejujuran lebih dari kesan cepat beres.** Setiap kali aku mengaku salah,
+   percakapan justru maju. Kalau sesuatu belum terbukti, katakan belum terbukti.
+- Kalau dia menyerahkan keputusan ("bagusnya bagaimana, sesuai saranmu saja"), dia benar
+  benar minta PENDAPAT, bukan sekadar persetujuan. Beri rekomendasi tegas plus alasannya.
+- Jangan pakai branch. Push langsung ke `main`.
