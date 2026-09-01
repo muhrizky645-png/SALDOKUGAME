@@ -131,12 +131,16 @@ public class SenjataManager : MonoBehaviour
         if (lvAura > 0 && auraVisual != null)
         {
             bool evo = lvAura >= 5;
-            float radius = (evo ? 2.6f : 1.8f) + lvAura * 0.18f;
-            int dmg = 2 + lvAura * 2 + (evo ? 5 : 0); // damage dinaikkan
+            // Aura DIPERKUAT setelah playtest: dulu terasa kurang ngefek.
+            // Radius lebih lebar + tick lebih sering + damage hampir dua kali
+            // lipat, supaya cincin di sekeliling pemain benar-benar membersihkan
+            // gerombolan lemah yang mendekat - ini identitas senjata aura.
+            float radius = (evo ? 2.9f : 2.1f) + lvAura * 0.22f;
+            int dmg = 5 + lvAura * 4 + (evo ? 10 : 0); // damage dinaikkan
             auraVisual.transform.position = pl.position;
             auraVisual.transform.localScale = Vector3.one * radius * 2f;
             auraTimer += Time.deltaTime;
-            if (auraTimer >= 0.4f) // sedikit lebih sering
+            if (auraTimer >= 0.28f) // ngetik lebih sering = DPS aura naik
             {
                 auraTimer = 0f;
 

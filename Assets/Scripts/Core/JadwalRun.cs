@@ -120,21 +120,25 @@ public static class JadwalRun
     //  TEKANAN TIAP FASE
     // =================================================================
     //
-    // PENTING - kenapa Normal justru DI BAWAH 1.0:
-    // Jumlah musuh masih dikunci maxMutlak (90) sampai stress test selesai.
-    // Kalau Normal bernilai 1.0, kurva Balance.MaxMusuhHidup sudah menabrak
-    // langit-langit itu sekitar menit ke-2,8 - sehingga gelombang tidak punya
-    // ruang untuk terasa lebih padat. Yang menciptakan irama adalah SELISIHNYA,
-    // bukan angka mutlaknya.
+    // Normal dinaikkan (0.65 -> 0.85) setelah playtest: fase normal dulu
+    // terasa terlalu sepi dibanding Survivor yang langsung ramai. Sekarang
+    // fase normal pun padat, dan Wave (1.15) tetap sedikit di atasnya supaya
+    // serbuan pra-bos masih terbaca sebagai lonjakan.
+    //
+    // CATATAN PENTING: jumlah musuh masih dikunci maxMutlak (90) di Inspector
+    // ZombieSpawner sampai stress test selesai. Dengan MusuhDasar 80, baik
+    // Normal maupun Wave akan cepat menyentuh langit-langit itu - itulah batas
+    // "ramai" yang bisa dicapai dari KODE saja. Untuk swarm ratusan ala
+    // Survivor, naikkan maxMutlak SETELAH mengukur FPS di HP asli.
 
     public static float PengaliJumlah(FaseRun fase)
     {
         switch (fase)
         {
-            case FaseRun.Wave:   return 1.00f;
-            case FaseRun.Hening: return 0.45f;
+            case FaseRun.Wave:   return 1.15f;
+            case FaseRun.Hening: return 0.40f;
             case FaseRun.Bos:    return 0.55f;  // lapangan dilapangkan untuk bos
-            default:             return 0.65f;
+            default:             return 0.85f;  // Normal: sekarang jauh lebih ramai
         }
     }
 
@@ -143,10 +147,10 @@ public static class JadwalRun
     {
         switch (fase)
         {
-            case FaseRun.Wave:   return 0.35f;
+            case FaseRun.Wave:   return 0.30f;
             case FaseRun.Hening: return 999f;   // praktis berhenti
             case FaseRun.Bos:    return 1.60f;
-            default:             return 1.00f;
+            default:             return 0.55f;  // Normal: layar terisi cepat sejak awal
         }
     }
 

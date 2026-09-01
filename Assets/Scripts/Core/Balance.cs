@@ -90,7 +90,12 @@ public static class Balance
     // ledakan kesulitan, pemain lemah menghadapi layar kosong. Kurva
     // kesulitannya jadi berbeda untuk tiap pemain sehingga mustahil
     // diseimbangkan. Waktu memberi kurva yang sama untuk semua orang.
-    public const int   MusuhDasar     = 40;   // jumlah di detik ke-0
+    //
+    // MusuhDasar dinaikkan dari 40 (angka PRD) ke 80 setelah playtest: fase
+    // normal terasa terlalu sepi dibanding Survivor yang langsung ramai.
+    // Ingat: hasilnya masih dipotong maxMutlak (90) di Inspector ZombieSpawner
+    // sampai stress test membuktikan HP sanggup lebih.
+    public const int   MusuhDasar     = 80;   // jumlah di detik ke-0
     public const float MusuhPerMenit  = 18f;  // pertambahan tiap menit
     public const int   MaxMusuhMutlak = 320;  // target PRD; WAJIB diuji beban dulu
 
