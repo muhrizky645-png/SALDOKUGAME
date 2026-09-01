@@ -7,7 +7,7 @@ using System.Collections.Generic;
 public class PisauOrbit : MonoBehaviour
 {
     public int dmg = 2;
-    public float jarakKena = 0.5f;
+    public float jarakKena = 0.85f;
     public float jedaPerMusuh = 0.4f;
 
     private SpriteRenderer sr;
@@ -38,7 +38,8 @@ public class PisauOrbit : MonoBehaviour
         sr.sprite = spr;
         sr.color = Color.white;
         float worldH = spr.rect.height / spr.pixelsPerUnit;
-        float sc = worldH > 0.001f ? 0.425f / worldH : 0.425f;
+        // ukuran 2x lipat dari sebelumnya (0.425 -> 0.85)
+        float sc = worldH > 0.001f ? 0.85f / worldH : 0.85f;
         transform.localScale = Vector3.one * sc;
     }
 
