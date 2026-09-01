@@ -371,9 +371,16 @@ public class EnemyChase : MonoBehaviour
         }
         else
         {
+            // DROP ITEM (bom/magnet) - peluang per musuh mati.
+            // Karena kepadatan sekarang tinggi (sampai ~145 musuh) dan puluhan
+            // musuh mati TIAP DETIK, peluang lama (2% bom / 3% magnet) membuat
+            // lapangan BANJIR item. Diturunkan drastis biar item terasa spesial:
+            //   Bom    0.15% (~1 tiap ~30 dtk saat ramai)
+            //   Magnet 0.25% (~1 tiap ~18 dtk saat ramai)
+            // Kalau nanti terasa terlalu langka, naikkan sedikit dua angka ini.
             float roll = Random.value;
-            if (roll < 0.02f) ItemLapangan.Jatuhkan(pos, ItemLapangan.Jenis.Bom);
-            else if (roll < 0.05f) ItemLapangan.Jatuhkan(pos, ItemLapangan.Jenis.Magnet);
+            if (roll < 0.0015f) ItemLapangan.Jatuhkan(pos, ItemLapangan.Jenis.Bom);
+            else if (roll < 0.0040f) ItemLapangan.Jatuhkan(pos, ItemLapangan.Jenis.Magnet);
 
             // PERMATA (mata uang): drop lebih jarang dari XP (~setengahnya)
             if (Random.value < 0.5f)
