@@ -18,7 +18,7 @@ public class Bumerang : MonoBehaviour
     bool evo = false;
     float jarakTempuh = 0f;
     bool balik = false;
-    float radiusKena = 0.55f;
+    float radiusKena = 0.6f;
     readonly Dictionary<EnemyChase, float> kenaTerakhir = new Dictionary<EnemyChase, float>();
     SpriteRenderer sr;
 
@@ -39,9 +39,10 @@ public class Bumerang : MonoBehaviour
     void Start()
     {
         sr = gameObject.AddComponent<SpriteRenderer>();
-        sr.sprite = BuatBilah(48, evo ? new Color(0.8f, 0.5f, 1f) : new Color(0.85f, 0.95f, 1f));
+        sr.sprite = BuatBilah(48, evo ? new Color(0.85f, 0.55f, 1f) : new Color(0.85f, 0.95f, 1f));
         sr.sortingOrder = 47;
-        transform.localScale = Vector3.one * skala;
+        // ~2x lebih besar dari sebelumnya biar lebih kentara.
+        transform.localScale = Vector3.one * skala * 2f;
     }
 
     void Update()
@@ -73,10 +74,11 @@ public class Bumerang : MonoBehaviour
             if (kenaTerakhir.TryGetValue(ec, out last) && Time.time - last < 0.35f) continue;
             kenaTerakhir[ec] = Time.time;
             ec.KenaSerangan(dmg, false);
-            if (evo) PetirEfek.Sambar(transform.position, ec.transform.position, new Color(0.8f, 0.5f, 1f, 1f), 0.08f);
+            if (evo) PetirEfek.Sambar(transform.position, ec.transform.position, new Color(0.85f, 0.55f, 1f, 1f), 0.08f);
         }
     }
 
+    // Cincin gergaji lebih tebal + gerigi di tepi luar biar terlihat seperti bilah.
     static Sprite BuatBilah(int S, Color c)
     {
         Texture2D t = new Texture2D(S, S, TextureFormat.RGBA32, false);
@@ -87,7 +89,10 @@ public class Bumerang : MonoBehaviour
             {
                 float nx = (x - r + 0.5f) / r, ny = (y - r + 0.5f) / r;
                 float d = Mathf.Sqrt(nx * nx + ny * ny);
-                float a = (d >= 0.55f && d <= 1f) ? 1f : 0f; // cincin gergaji
+                float ang = Mathf.Atan2(ny, nx);
+                // gerigi: tepi luar bergelombang (12 gigi)
+                float tepiLuar = 1f - 0.12f * (0.5f + 0.5f * Mathf.Cos(ang * 12f));
+                float a = (d >= 0.42f && d <= tepiLuar) ? 1f : 0f; // cincin lebih tebal
                 t.SetPixel(x, y, new Color(c.r, c.g, c.b, a));
             }
         t.Apply();
