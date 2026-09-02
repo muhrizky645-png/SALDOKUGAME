@@ -129,10 +129,10 @@ public static class Balance
     // HP pemain (100) di PlayerHealth.maxHealth kalau perlu disetel juga.
 
     // Pengali kecepatan SEMUA musuh biasa (base). 1.0 = kecepatan asli tier.
-    // CATATAN: sempat dinaikkan ke 1.15 (+15%) di paket seimbang biar cincin
-    // merapat, TAPI terasa kelewat cepat saat main, jadi dikembalikan ke 1.0.
-    // Kalau nanti mau musuh sedikit lebih cepat, naikkan pelan (mis. 1.05).
-    public const float LajuMusuhDasar        = 1.0f;
+    // Riwayat setelan: 1.15 (+15%, kelewat cepat) -> 1.0 (normal, masih cepat)
+    // -> 0.5 (separuh, sesuai permintaan playtest: musuh terasa terlalu ngebut).
+    // Kalau nanti mau lebih cepat sedikit, naikkan pelan (mis. 0.6 / 0.7).
+    public const float LajuMusuhDasar        = 0.5f;
     public const float NyawaMusuhPerMenit    = 0.14f;  // +14% nyawa musuh tiap menit bertahan
     public const float NyawaMusuhMaksPengali = 3.0f;   // batas atas pengali nyawa (menit ~14)
 
