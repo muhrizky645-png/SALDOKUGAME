@@ -98,6 +98,9 @@ public class SkillManager : MonoBehaviour
             new Skill("Ranjau", "Ranjau meledak saat musuh dekat. Lv5: evolusi!", "ranjau", mS, true, () => {
                 if (SenjataManager.Instance != null) SenjataManager.Instance.TambahRanjau();
             }),
+            new Skill("Meteor", "Hantaman dari langit, AoE besar. Lv5: evolusi!", "meteor", mS, true, () => {
+                if (SenjataManager.Instance != null) SenjataManager.Instance.TambahMeteor();
+            }),
         };
     }
 
