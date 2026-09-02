@@ -24,8 +24,6 @@ public class SkillManager : MonoBehaviour
     static void Bootstrap()
     {
         Buat();
-        // PENTING: RuntimeInitialize cuma jalan sekali. Supaya SkillManager tetap ada
-        // setiap kali scene di-reload (restart / main lagi), buat ulang lewat sceneLoaded.
         SceneManager.sceneLoaded += (scene, mode) => Buat();
     }
 
@@ -50,13 +48,6 @@ public class SkillManager : MonoBehaviour
 
     void BuatDaftarSkill()
     {
-        // Batas level diambil dari Balance, bukan ditulis di sini.
-        //
-        // PERUBAHAN PENTING: dulu semua skill PASIF memakai maks = 0 yang artinya
-        // TAK TERBATAS. Karena efeknya perkalian, mengambil \"Serang Lebih Cepat\"
-        // sepuluh kali membuat fireRate 1.2 -> 0.129, dua puluh kali -> 0.0138.
-        // Praktis tembakan tanpa jeda, dan kartu itu tetap ditawarkan selamanya.
-        // Sekarang semuanya dibatasi Lv5 sesuai PRD.
         int mP = Balance.LevelMaksPasif;
         int mS = Balance.LevelMaksSenjata;
 
@@ -102,6 +93,9 @@ public class SkillManager : MonoBehaviour
             new Skill("Bola Api", "Ledakan + genangan api membakar. Lv5: evolusi!", "bolaapi", mS, true, () => {
                 if (SenjataManager.Instance != null) SenjataManager.Instance.TambahBolaApi();
             }),
+            new Skill("Nova Beku", "Ledakan es + perlambat musuh. Lv5: evolusi!", "es", mS, true, () => {
+                if (SenjataManager.Instance != null) SenjataManager.Instance.TambahNova();
+            }),
         };
     }
 
@@ -120,9 +114,6 @@ public class SkillManager : MonoBehaviour
         }
     }
 
-    // Berapa slot yang sudah terisi. Sebuah skill dianggap memakai slot
-    // begitu diambil minimal satu kali. PRD Bab 6: 6 slot senjata + 6 slot pasif,
-    // dan slot itulah yang memaksa pemain memilih membangun apa.
     int SlotTerpakai(bool senjata)
     {
         int n = 0;
@@ -139,10 +130,8 @@ public class SkillManager : MonoBehaviour
     {
         int cur = LevelSaatIni(s);
 
-        // sudah mentok -> jangan ditawarkan lagi
         if (s.maks > 0 && cur >= s.maks) return false;
 
-        // skill yang belum pernah diambil butuh slot kosong
         if (cur == 0)
         {
             int batas = s.senjata ? Balance.SlotSenjata : Balance.SlotPasif;
@@ -159,7 +148,6 @@ public class SkillManager : MonoBehaviour
         for (int i = 0; i < semuaSkill.Count; i++)
             if (BolehDitawarkan(semuaSkill[i])) kolam.Add(semuaSkill[i]);
 
-        // Semua skill sudah maksimal / slot penuh.
         if (kolam.Count == 0) return;
 
         int jumlah = Mathf.Min(Balance.JumlahKartuDitawarkan, kolam.Count);
@@ -191,8 +179,6 @@ public class SkillManager : MonoBehaviour
     {
         int cur = LevelSaatIni(s);
 
-        // Penjagaan terakhir: jangan pernah menerapkan efek melewati batas level,
-        // walau entah bagaimana kartunya sempat tampil.
         if (s.maks > 0 && cur >= s.maks) { TutupPilihan(); return; }
 
         if (s.efek != null) s.efek.Invoke();
@@ -200,7 +186,6 @@ public class SkillManager : MonoBehaviour
 
         SoundManager.LevelUp(); // suara konfirmasi ambil skill
         TutupPilihan();
-        // kalau naik beberapa level sekaligus, Update akan menawarkan lagi otomatis
     }
 
     void OnGUI()
@@ -210,10 +195,8 @@ public class SkillManager : MonoBehaviour
         float h = Screen.height;
         float w = Screen.width;
 
-        // latar gelap survival
         Tema.LatarGelap();
 
-        // ==== KARTU VERTIKAL SEJAJAR (gaya Survivor.io) ====
         float margin = w * 0.035f;
         float gap = w * 0.022f;
         int jumlah = pilihanSekarang.Count;
@@ -223,7 +206,6 @@ public class SkillManager : MonoBehaviour
         float cardH = Mathf.Min(cardW * 2.35f, h * 0.55f);
         float y = (h - cardH) / 2f + h * 0.045f;
 
-        // ---- HEADER + banner ----
         int fBig = Mathf.RoundToInt(h * 0.050f);
         int fSub = Mathf.RoundToInt(h * 0.028f);
         Tema.Teks(new Rect(0, y - h * 0.165f, w, fBig * 1.3f), "LEVEL UP!", fBig, Tema.Darah, TextAnchor.MiddleCenter, true);
@@ -231,12 +213,10 @@ public class SkillManager : MonoBehaviour
         Tema.Panel9(new Rect(banX, banY, banW, banH), Tema.Amber, Tema.Garis, 2f);
         Tema.Teks(new Rect(banX, banY, banW, banH), "PILIH SKILL", fSub, new Color(0.15f, 0.09f, 0.02f, 1f), TextAnchor.MiddleCenter, true);
 
-        // font relatif LEBAR kartu
         int fNama = Mathf.RoundToInt(cardW * 0.120f);
         int fDesk = Mathf.RoundToInt(cardW * 0.090f);
         int fBaru = Mathf.RoundToInt(cardW * 0.100f);
 
-        // warna kartu slate + tab kuning (mirip referensi)
         Color bodi = new Color(0.24f, 0.28f, 0.34f, 0.98f);
         Color bodiHover = new Color(0.31f, 0.37f, 0.45f, 1f);
         Color inset = new Color(0.14f, 0.17f, 0.22f, 1f);
@@ -251,16 +231,13 @@ public class SkillManager : MonoBehaviour
             Skill s = pilihanSekarang[i];
             bool hover = cr.Contains(Event.current.mousePosition);
 
-            // ===== BODY KARTU =====
             Tema.Panel9(cr, hover ? bodiHover : bodi, Tema.Garis, Mathf.Max(2f, cardW * 0.02f));
 
-            // ===== TAB NAMA (header kuning di atas) =====
             float tabH = cardH * 0.17f;
             Rect tab = new Rect(cr.x + cardW * 0.05f, cr.y + cardH * 0.02f, cardW * 0.90f, tabH);
             Tema.Panel9(tab, hover ? Tema.PanelTerang : Tema.Amber, Tema.Garis, 1.5f);
             Tema.Teks(new Rect(tab.x + 3, tab.y, tab.width - 6, tab.height), s.nama, fNama, txtGelap, TextAnchor.MiddleCenter, true);
 
-            // ===== LABEL \"Baru!\" / \"Lv x\" di POJOK KANAN ATAS =====
             int cur = LevelSaatIni(s);
             string lbl; Color lblCol;
             if (cur == 0) { lbl = "Baru!"; lblCol = Tema.Army; }
@@ -271,7 +248,6 @@ public class SkillManager : MonoBehaviour
             Tema.Panel9(lblR, lblCol, Tema.Garis, 1.5f);
             Tema.Teks(lblR, lbl, fBaru, txtGelap, TextAnchor.MiddleCenter, true);
 
-            // ===== IKON dalam INSET gelap =====
             float insz = cardW * 0.72f;
             float insx = cr.x + (cardW - insz) / 2f;
             float insy = cr.y + tabH + cardH * 0.045f;
@@ -281,12 +257,10 @@ public class SkillManager : MonoBehaviour
             Ikon.Gambar(new Rect(insx + (insz - ik) / 2f, insy + (insz - ik) / 2f, ik, ik),
                 ikTex, hover ? Tema.Amber : Tema.Army);
 
-            // ===== DESKRIPSI =====
             float dy = insy + insz + cardH * 0.03f;
             Tema.Teks(new Rect(cr.x + cardW * 0.07f, dy, cardW * 0.86f, cardH * 0.26f),
                 s.deskripsi, fDesk, Tema.Tulang, TextAnchor.UpperCenter, false);
 
-            // ===== BINTANG RATING (bawah) =====
             int totalStar = Mathf.Clamp((s.maks > 0) ? s.maks : 5, 1, 5);
             int filled = Mathf.Clamp(cur + 1, 1, totalStar);
 
@@ -304,7 +278,6 @@ public class SkillManager : MonoBehaviour
             }
             GUI.color = gc;
 
-            // ===== KLIK / SENTUH untuk pilih =====
             if (GUI.Button(cr, "", GUIStyle.none))
             {
                 Pilih(s);

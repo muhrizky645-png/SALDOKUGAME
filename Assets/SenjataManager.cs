@@ -3,25 +3,22 @@ using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
 // Mengelola senjata otomatis ala Survivor.io: Pisau Berputar (orbit), Aura Setrum,
-// Roket Pelacak, Kilat Rantai, Bola Api. Tiap senjata bisa naik sampai level MAX.
-// Di level 5+ senjata OTOMATIS berevolusi (lebih kuat, berubah UNGU + petir).
+// Roket Pelacak, Kilat Rantai, Bola Api, Nova Beku. Tiap senjata bisa naik sampai
+// level MAX. Di level 5+ senjata OTOMATIS berevolusi (lebih kuat, UNGU + petir).
 //
 // KURVA KEKUATAN (disetel ulang setelah playtest):
 // Level 1 sengaja KECIL & LEMAH (tapi tetap membunuh gerombolan terlemah), lalu
 // UKURAN dan DAMAGE naik jelas tiap level. Evolusi (lvl 5+) bukan sekadar
 // membesar: berubah UNGU dan menyambar PETIR (lihat PetirEfek.cs).
 //
-// CATATAN FASE 0:
-// Semua pencarian musuh sekarang lewat EnemyRegistry, bukan
-// GameObject.FindGameObjectsWithTag("Enemy").
-// Angka balancing di file ini masih hardcoded; pemindahannya ke SenjataSO
-// adalah pekerjaan Fase 1.
+// CATATAN FASE 0: pencarian musuh lewat EnemyRegistry. Angka balancing masih
+// hardcoded; pemindahannya ke SenjataSO adalah pekerjaan Fase 1.
 public class SenjataManager : MonoBehaviour
 {
     public static SenjataManager Instance;
     public const int MAX = 6;
 
-    // Sejauh apa roket mau mencari sasaran (satuan dunia).
+    // Sejauh apa senjata mau mencari sasaran (satuan dunia).
     const float JangkauanCariTarget = 30f;
 
     public int lvOrbit = 0;
@@ -29,6 +26,7 @@ public class SenjataManager : MonoBehaviour
     public int lvRoket = 0;
     public int lvRantai = 0;
     public int lvBolaApi = 0;
+    public int lvNova = 0;
 
     private Transform player;
 
@@ -50,6 +48,9 @@ public class SenjataManager : MonoBehaviour
     // bola api
     private float bolaApiTimer = 0f;
 
+    // nova beku
+    private float novaTimer = 0f;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
     {
@@ -67,9 +68,9 @@ public class SenjataManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         // reset semua senjata tiap game baru / restart
-        lvOrbit = 0; lvAura = 0; lvRoket = 0; lvRantai = 0; lvBolaApi = 0;
+        lvOrbit = 0; lvAura = 0; lvRoket = 0; lvRantai = 0; lvBolaApi = 0; lvNova = 0;
         bilah.Clear();
-        sudutOrbit = 0f; auraTimer = 0f; roketTimer = 0f; rantaiTimer = 0f; bolaApiTimer = 0f;
+        sudutOrbit = 0f; auraTimer = 0f; roketTimer = 0f; rantaiTimer = 0f; bolaApiTimer = 0f; novaTimer = 0f;
     }
 
     Transform Player()
@@ -88,6 +89,7 @@ public class SenjataManager : MonoBehaviour
     public void TambahRoket() { lvRoket = Mathf.Min(MAX, lvRoket + 1); }
     public void TambahRantai() { lvRantai = Mathf.Min(MAX, lvRantai + 1); }
     public void TambahBolaApi() { lvBolaApi = Mathf.Min(MAX, lvBolaApi + 1); }
+    public void TambahNova() { lvNova = Mathf.Min(MAX, lvNova + 1); }
 
     // ====== ORBIT ======
     void BangunOrbit()
@@ -98,10 +100,6 @@ public class SenjataManager : MonoBehaviour
         bool evo = lvOrbit >= 5;
         int jumlah = lvOrbit + 1 + (evo ? 2 : 0); // evolusi: +2 bilah
 
-        // Level 1 sengaja lemah & pisau kecil, naik jelas tiap level. Evolusi
-        // melonjak besar, berubah ungu, dan memercikkan petir (di PisauOrbit).
-        //  dmg   : L1=3, L2=5, L3=7, L4=9, L5(evo)=17, L6=19
-        //  skala : L1=0.53, L2=0.61, ... L5(evo)=1.10 (2x lipat lebih dari L1)
         int dmg = 1 + lvOrbit * 2 + (evo ? 6 : 0);
         float skala = 0.45f + lvOrbit * 0.08f + (evo ? 0.25f : 0f);
         Color warna = evo ? new Color(0.78f, 0.45f, 1f, 1f) : Color.white;
@@ -158,8 +156,6 @@ public class SenjataManager : MonoBehaviour
         if (lvAura > 0 && auraVisual != null)
         {
             bool evo = lvAura >= 5;
-            //  radius : L1=1.35, L2=1.70, L3=2.05, L4=2.40, L5(evo)=3.55, L6=3.90
-            //  dmg    : L1=5,   L2=8,   L3=11,  L4=14,  L5(evo)=29,   L6=32
             float radius = 1.0f + lvAura * 0.35f + (evo ? 0.8f : 0f);
             int dmg = 2 + lvAura * 3 + (evo ? 12 : 0);
 
@@ -183,7 +179,6 @@ public class SenjataManager : MonoBehaviour
                 }
                 if (n > 0) SoundManager.AuraZap();
 
-                // EVOLUSI: sambar petir ungu ke beberapa musuh terdekat yang kena.
                 if (evo && n > 0)
                 {
                     int petir = Mathf.Min(n, 3);
@@ -199,9 +194,6 @@ public class SenjataManager : MonoBehaviour
         }
 
         // ---- ROKET ----
-        //  jumlah : L1=1, L2=2, L3=3, L4=4, L5(evo)=7 roket per gelombang
-        //  dmg    : L1=5, L2=8, L3=11, L4=14, L5(evo)=27
-        //  ukuran : L1=0.53 -> L5(evo)=1.10 ; radius ledak L1=1.32 -> L5(evo)=2.90
         if (lvRoket > 0)
         {
             bool evo = lvRoket >= 5;
@@ -228,8 +220,6 @@ public class SenjataManager : MonoBehaviour
         }
 
         // ---- KILAT RANTAI ----
-        //  dmg      : L1=6, L2=9, L3=12, L4=15, L5(evo)=28
-        //  lompatan : L1=3, L2=4, L3=5, L4=6, L5(evo)=10 musuh
         if (lvRantai > 0)
         {
             bool evo = lvRantai >= 5;
@@ -247,11 +237,6 @@ public class SenjataManager : MonoBehaviour
         }
 
         // ---- BOLA API ----
-        // Dilempar ke musuh terdekat, meledak (area) + meninggalkan genangan api
-        // yang terus membakar (lihat BolaApi.cs). L1 lemah & kecil; naik tiap
-        // level; evolusi (lvl 5+): ungu + ledakannya menyambar petir.
-        //  dmg ledak : L1=8, L2=12, L3=16, L4=20, L5(evo)=36
-        //  genangan  : L1=2/tick ~2.3s -> makin lama & sakit tiap level
         if (lvBolaApi > 0)
         {
             bool evo = lvBolaApi >= 5;
@@ -268,6 +253,28 @@ public class SenjataManager : MonoBehaviour
                 EnemyChase t = EnemyRegistry.Terdekat(pl.position, JangkauanCariTarget, null);
                 if (t != null)
                     BolaApi.Tembak(pl.position, t.transform, dmg, radius, skala, evo, durasiGenangan, dmgGenangan);
+            }
+        }
+
+        // ---- NOVA BEKU ----
+        // Ledakan cincin es: damage area + memperlambat SEMUA musuh sebentar.
+        // L1 kecil & slow ringan; naik tiap level; evolusi (lvl 5+): ungu, damage
+        // & slow melonjak + petir.
+        //  dmg  : L1=6, L2=9, L3=12, L4=15, L5(evo)=28
+        //  slow : L1 ~15% ->  L4 ~30% -> L5(evo) 50% (faktor 0.5)
+        if (lvNova > 0)
+        {
+            bool evo = lvNova >= 5;
+            float jeda = Mathf.Max(1.2f, 3.0f - lvNova * 0.3f);
+            int dmg = 3 + lvNova * 3 + (evo ? 10 : 0);
+            float radius = 1.6f + lvNova * 0.3f + (evo ? 0.8f : 0f);
+            float slowFaktor = evo ? 0.5f : Mathf.Clamp01(0.9f - lvNova * 0.05f);
+            float slowDurasi = 1.0f + lvNova * 0.2f + (evo ? 0.8f : 0f);
+            novaTimer += Time.deltaTime;
+            if (novaTimer >= jeda)
+            {
+                novaTimer = 0f;
+                NovaBeku.Ledak(pl.position, radius, dmg, slowDurasi, slowFaktor, evo);
             }
         }
     }
