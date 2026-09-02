@@ -2,19 +2,18 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
-// Mengelola senjata otomatis ala Survivor.io: Pisau Berputar (orbit), Aura Setrum, Roket Pelacak.
-// Tiap senjata bisa naik sampai level MAX. Di level 5+ senjata OTOMATIS berevolusi (lebih kuat).
+// Mengelola senjata otomatis ala Survivor.io: Pisau Berputar (orbit), Aura Setrum,
+// Roket Pelacak, Kilat Rantai. Tiap senjata bisa naik sampai level MAX. Di level
+// 5+ senjata OTOMATIS berevolusi (lebih kuat, berubah UNGU + petir).
 //
 // KURVA KEKUATAN (disetel ulang setelah playtest):
-// Dulu level 1 sudah kuat dan ukuran nyaris tak berubah antar level, jadi
-// naik level terasa hambar sampai evolusi. Sekarang level 1 sengaja KECIL &
-// LEMAH (tapi tetap membunuh gerombolan terlemah), lalu UKURAN dan DAMAGE
-// naik jelas tiap level. Evolusi (lvl 5+) bukan sekadar membesar: berubah
-// UNGU dan menyambar PETIR (lihat PetirEfek.cs).
+// Level 1 sengaja KECIL & LEMAH (tapi tetap membunuh gerombolan terlemah), lalu
+// UKURAN dan DAMAGE naik jelas tiap level. Evolusi (lvl 5+) bukan sekadar
+// membesar: berubah UNGU dan menyambar PETIR (lihat PetirEfek.cs).
 //
 // CATATAN FASE 0:
 // Semua pencarian musuh sekarang lewat EnemyRegistry, bukan
-// GameObject.FindGameObjectsWithTag("Enemy"). Lihat komentar di tiap blok.
+// GameObject.FindGameObjectsWithTag("Enemy").
 // Angka balancing di file ini masih hardcoded; pemindahannya ke SenjataSO
 // adalah pekerjaan Fase 1.
 public class SenjataManager : MonoBehaviour
@@ -28,6 +27,7 @@ public class SenjataManager : MonoBehaviour
     public int lvOrbit = 0;
     public int lvAura = 0;
     public int lvRoket = 0;
+    public int lvRantai = 0;
 
     private Transform player;
 
@@ -42,6 +42,9 @@ public class SenjataManager : MonoBehaviour
 
     // roket
     private float roketTimer = 0f;
+
+    // kilat rantai
+    private float rantaiTimer = 0f;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
@@ -60,9 +63,9 @@ public class SenjataManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         // reset semua senjata tiap game baru / restart
-        lvOrbit = 0; lvAura = 0; lvRoket = 0;
+        lvOrbit = 0; lvAura = 0; lvRoket = 0; lvRantai = 0;
         bilah.Clear();
-        sudutOrbit = 0f; auraTimer = 0f; roketTimer = 0f;
+        sudutOrbit = 0f; auraTimer = 0f; roketTimer = 0f; rantaiTimer = 0f;
     }
 
     Transform Player()
@@ -79,6 +82,7 @@ public class SenjataManager : MonoBehaviour
     public void TambahOrbit() { lvOrbit = Mathf.Min(MAX, lvOrbit + 1); BangunOrbit(); }
     public void TambahAura() { lvAura = Mathf.Min(MAX, lvAura + 1); BangunAura(); }
     public void TambahRoket() { lvRoket = Mathf.Min(MAX, lvRoket + 1); }
+    public void TambahRantai() { lvRantai = Mathf.Min(MAX, lvRantai + 1); }
 
     // ====== ORBIT ======
     void BangunOrbit()
@@ -149,16 +153,11 @@ public class SenjataManager : MonoBehaviour
         if (lvAura > 0 && auraVisual != null)
         {
             bool evo = lvAura >= 5;
-            // Kurva dibuat lebih terasa: level 1 KECIL & LEMAH (tapi tetap
-            // membunuh gerombolan paling lemah), lalu radius & damage naik
-            // jelas tiap level. Saat evolusi (lvl 5+) aura melonjak, berubah
-            // UNGU, dan menyambar PETIR ke beberapa musuh yang kena.
             //  radius : L1=1.35, L2=1.70, L3=2.05, L4=2.40, L5(evo)=3.55, L6=3.90
             //  dmg    : L1=5,   L2=8,   L3=11,  L4=14,  L5(evo)=29,   L6=32
             float radius = 1.0f + lvAura * 0.35f + (evo ? 0.8f : 0f);
             int dmg = 2 + lvAura * 3 + (evo ? 12 : 0);
 
-            // Warna aura: biru setrum biasa, berubah UNGU menyala saat evolusi.
             if (auraSR != null)
                 auraSR.color = evo
                     ? new Color(0.62f, 0.28f, 1f, 0.24f)
@@ -167,31 +166,19 @@ public class SenjataManager : MonoBehaviour
             auraVisual.transform.position = pl.position;
             auraVisual.transform.localScale = Vector3.one * radius * 2f;
             auraTimer += Time.deltaTime;
-            if (auraTimer >= 0.28f) // ngetik lebih sering = DPS aura naik
+            if (auraTimer >= 0.28f)
             {
                 auraTimer = 0f;
-
-                // DULU: FindGameObjectsWithTag menyisir seluruh scene lalu
-                // menghitung Vector3.Distance (pakai akar kuadrat) ke SETIAP
-                // musuh, 2.5x per detik.
-                // SEKARANG: registry hanya memeriksa sel grid yang bersinggungan
-                // dengan radius aura, dan membandingkan kuadrat jarak.
                 int n = EnemyRegistry.DalamRadius(pl.position, radius, EnemyRegistry.Buffer);
                 for (int i = 0; i < n; i++)
                 {
                     EnemyChase ec = EnemyRegistry.Buffer[i];
                     if (ec == null) continue;
-                    // bunyi=false: aura JANGAN membunyikan "kena" per musuh, karena
-                    // memukul puluhan musuh tiap denyut -> jadi dengungan brisik.
                     ec.KenaSerangan(dmg, false);
                 }
-                // Sebagai gantinya, satu bunyi setrum "zzap" per denyut aura:
-                // berirama & garang, bukan brisik. Hanya jika ada yang kena.
                 if (n > 0) SoundManager.AuraZap();
 
-                // EVOLUSI: sambar petir ungu ke beberapa musuh terdekat yang
-                // kena, biar aura terlihat seperti medan listrik yang hidup -
-                // bukan sekadar lingkaran ungu yang membesar.
+                // EVOLUSI: sambar petir ungu ke beberapa musuh terdekat yang kena.
                 if (evo && n > 0)
                 {
                     int petir = Mathf.Min(n, 3);
@@ -207,10 +194,6 @@ public class SenjataManager : MonoBehaviour
         }
 
         // ---- ROKET ----
-        // Sama polanya dengan aura & pisau: level 1 sengaja LEMAH & roketnya
-        // kecil, lalu jumlah, damage, ukuran, & radius ledakan naik jelas tiap
-        // level. Evolusi (lvl 5+): roket berubah UNGU dan ledakannya menyambar
-        // PETIR (lihat Roket.cs).
         //  jumlah : L1=1, L2=2, L3=3, L4=4, L5(evo)=7 roket per gelombang
         //  dmg    : L1=5, L2=8, L3=11, L4=14, L5(evo)=27
         //  ukuran : L1=0.53 -> L5(evo)=1.10 ; radius ledak L1=1.32 -> L5(evo)=2.90
@@ -226,22 +209,38 @@ public class SenjataManager : MonoBehaviour
             if (roketTimer >= jeda)
             {
                 roketTimer = 0f;
-
-                // DULU: alokasi List<Transform> baru + Sort penuh atas SEMUA
-                // musuh di scene, setiap gelombang roket.
-                // SEKARANG: NTerdekat menyaring lewat grid dulu, lalu hanya
-                // mengurutkan kandidat yang benar-benar dekat, ke buffer
-                // bersama. Nol alokasi per gelombang.
                 int n = EnemyRegistry.NTerdekat(pl.position, JangkauanCariTarget, jumlahRoket, EnemyRegistry.Buffer);
                 if (n > 0)
                 {
                     for (int i = 0; i < jumlahRoket; i++)
                     {
-                        EnemyChase ec = EnemyRegistry.Buffer[i % n]; // kalau musuh sedikit, target dipakai ulang
+                        EnemyChase ec = EnemyRegistry.Buffer[i % n];
                         if (ec == null) continue;
                         Roket.Tembak(pl.position, ec.transform, 8f, dmg, radius, skala, evo);
                     }
                 }
+            }
+        }
+
+        // ---- KILAT RANTAI ----
+        // Menyambar musuh terdekat lalu meloncat ke musuh terdekat berikutnya
+        // (lihat KilatRantai.cs). L1 lemah & sedikit loncatan; naik tiap level;
+        // evolusi (lvl 5+): ungu, damage & jumlah loncatan melonjak.
+        //  dmg      : L1=6, L2=9, L3=12, L4=15, L5(evo)=28
+        //  lompatan : L1=3, L2=4, L3=5, L4=6, L5(evo)=10 musuh
+        if (lvRantai > 0)
+        {
+            bool evo = lvRantai >= 5;
+            float jeda = Mathf.Max(0.5f, 1.6f - lvRantai * 0.18f);
+            int dmg = 3 + lvRantai * 3 + (evo ? 10 : 0);
+            int lompatan = 2 + lvRantai + (evo ? 3 : 0);
+            float radiusLompat = 3.6f;
+            rantaiTimer += Time.deltaTime;
+            if (rantaiTimer >= jeda)
+            {
+                rantaiTimer = 0f;
+                Color warna = evo ? new Color(0.8f, 0.5f, 1f, 1f) : new Color(0.5f, 0.85f, 1f, 1f);
+                KilatRantai.Sambar(pl.position, dmg, lompatan, radiusLompat, warna);
             }
         }
     }
@@ -251,7 +250,6 @@ public class SenjataManager : MonoBehaviour
         EnemyChase e = EnemyRegistry.Terdekat(pos, JangkauanCariTarget, null);
         if (e == null) return null;
 
-        // Kalau yang terdekat justru yang mau dihindari, cari lagi tanpa dia.
         if (kecuali != null && e.transform == kecuali)
             e = EnemyRegistry.Terdekat(pos, JangkauanCariTarget, e);
 
@@ -268,8 +266,8 @@ public class SenjataManager : MonoBehaviour
             {
                 float dx = x - r + 0.5f, dy = y - r + 0.5f;
                 float d = Mathf.Sqrt(dx * dx + dy * dy) / r;
-                float a = d <= 1f ? Mathf.Lerp(0.45f, 0f, d) : 0f; // isi lembut
-                if (d > 0.9f && d <= 1f) a = 0.8f;                 // cincin tepi
+                float a = d <= 1f ? Mathf.Lerp(0.45f, 0f, d) : 0f;
+                if (d > 0.9f && d <= 1f) a = 0.8f;
                 tex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
             }
         tex.Apply();

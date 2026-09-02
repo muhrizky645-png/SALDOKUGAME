@@ -53,7 +53,7 @@ public class SkillManager : MonoBehaviour
         // Batas level diambil dari Balance, bukan ditulis di sini.
         //
         // PERUBAHAN PENTING: dulu semua skill PASIF memakai maks = 0 yang artinya
-        // TAK TERBATAS. Karena efeknya perkalian, mengambil "Serang Lebih Cepat"
+        // TAK TERBATAS. Karena efeknya perkalian, mengambil \"Serang Lebih Cepat\"
         // sepuluh kali membuat fireRate 1.2 -> 0.129, dua puluh kali -> 0.0138.
         // Praktis tembakan tanpa jeda, dan kartu itu tetap ditawarkan selamanya.
         // Sekarang semuanya dibatasi Lv5 sesuai PRD.
@@ -89,7 +89,7 @@ public class SkillManager : MonoBehaviour
             // ===== SENJATA OTOMATIS (ala Survivor.io) - evolusi otomatis di level 5+ =====
             // Dulu batasnya SenjataManager.MAX (= 6). Itu keliru: MAX adalah jumlah
             // SLOT senjata, bukan batas LEVEL. Akibatnya kartu bertuliskan
-            // "Lv5: evolusi!" tapi sebenarnya bisa naik sampai Lv6.
+            // \"Lv5: evolusi!\" tapi sebenarnya bisa naik sampai Lv6.
             new Skill("Pisau Berputar", "Bilah berputar melukai musuh. Lv5: evolusi!", "pisau", mS, true, () => {
                 if (SenjataManager.Instance != null) SenjataManager.Instance.TambahOrbit();
             }),
@@ -98,6 +98,9 @@ public class SkillManager : MonoBehaviour
             }),
             new Skill("Roket Pelacak", "Jumlah roket = levelnya! Lv5: evolusi", "roket", mS, true, () => {
                 if (SenjataManager.Instance != null) SenjataManager.Instance.TambahRoket();
+            }),
+            new Skill("Kilat Rantai", "Petir meloncat antar musuh. Lv5: evolusi!", "petir", mS, true, () => {
+                if (SenjataManager.Instance != null) SenjataManager.Instance.TambahRantai();
             }),
         };
     }
@@ -158,10 +161,10 @@ public class SkillManager : MonoBehaviour
 
         // Semua skill sudah maksimal / slot penuh.
         //
-        // BUG LAMA: kartu tetap muncul dengan label "MAX!", dan menekannya TETAP
+        // BUG LAMA: kartu tetap muncul dengan label \"MAX!\", dan menekannya TETAP
         // menjalankan efeknya. Labelnya berhenti di MAX karena tingkat[] di-clamp,
         // tapi efek aslinya terus menumpuk tanpa batas. Pemain yang tahu ini bisa
-        // menaikkan kecepatan tembak selamanya sambil layar menulis "MAX!".
+        // menaikkan kecepatan tembak selamanya sambil layar menulis \"MAX!\".
         if (kolam.Count == 0) return;
 
         int jumlah = Mathf.Min(Balance.JumlahKartuDitawarkan, kolam.Count);
@@ -216,7 +219,7 @@ public class SkillManager : MonoBehaviour
         Tema.LatarGelap();
 
         // ==== 3 KARTU VERTIKAL SEJAJAR (gaya Survivor.io) ====
-        // Tiap kartu: TAB NAMA kuning di atas, label "Baru!" di pojok,
+        // Tiap kartu: TAB NAMA kuning di atas, label \"Baru!\" di pojok,
         // IKON besar dalam kotak inset, deskripsi, lalu BINTANG rating.
         float margin = w * 0.035f;
         float gap = w * 0.022f;
@@ -264,8 +267,8 @@ public class SkillManager : MonoBehaviour
             Tema.Panel9(tab, hover ? Tema.PanelTerang : Tema.Amber, Tema.Garis, 1.5f);
             Tema.Teks(new Rect(tab.x + 3, tab.y, tab.width - 6, tab.height), s.nama, fNama, txtGelap, TextAnchor.MiddleCenter, true);
 
-            // ===== LABEL "Baru!" / "Lv x" di POJOK KANAN ATAS =====
-            // "MAX!" tidak lagi mungkin muncul di sini karena skill yang sudah
+            // ===== LABEL \"Baru!\" / \"Lv x\" di POJOK KANAN ATAS =====
+            // \"MAX!\" tidak lagi mungkin muncul di sini karena skill yang sudah
             // mentok tidak pernah ikut ditawarkan.
             int cur = LevelSaatIni(s);
             string lbl; Color lblCol;
