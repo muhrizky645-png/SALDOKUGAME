@@ -120,8 +120,7 @@ public static class Balance
     //
     // SOLUSI: nyawa musuh tumbuh pelan mengikuti WAKTU (bukan level pemain,
     // alasan sama seperti jumlah musuh). Musuh menit akhir jadi cukup tebal
-    // untuk bertahan menembus cincin dan menekan pemain. Kecepatan dasar juga
-    // dinaikkan sedikit supaya cincin merapat.
+    // untuk bertahan menembus cincin dan menekan pemain.
     //
     // MENYETEL:
     //   Terlalu SUSAH  -> kecilkan NyawaMusuhPerMenit dan/atau LajuMusuhDasar.
@@ -129,7 +128,11 @@ public static class Balance
     // Damage kontak musuh (20/detik) ada di PlayerHealth.damagePerSecond, dan
     // HP pemain (100) di PlayerHealth.maxHealth kalau perlu disetel juga.
 
-    public const float LajuMusuhDasar        = 1.15f;  // pengali kecepatan SEMUA musuh biasa (base)
+    // Pengali kecepatan SEMUA musuh biasa (base). 1.0 = kecepatan asli tier.
+    // CATATAN: sempat dinaikkan ke 1.15 (+15%) di paket seimbang biar cincin
+    // merapat, TAPI terasa kelewat cepat saat main, jadi dikembalikan ke 1.0.
+    // Kalau nanti mau musuh sedikit lebih cepat, naikkan pelan (mis. 1.05).
+    public const float LajuMusuhDasar        = 1.0f;
     public const float NyawaMusuhPerMenit    = 0.14f;  // +14% nyawa musuh tiap menit bertahan
     public const float NyawaMusuhMaksPengali = 3.0f;   // batas atas pengali nyawa (menit ~14)
 
