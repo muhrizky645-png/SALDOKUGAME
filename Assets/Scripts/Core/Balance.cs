@@ -111,26 +111,26 @@ public static class Balance
     //  PEMANASAN AWAL RUN
     // =================================================================
     //
-    // Begitu pemain klik Mulai, jangan langsung sesak. Tahan kepadatan sangat
-    // rendah di beberapa detik pertama supaya pemain sempat kenalan dengan
-    // kendali, lalu naikkan bertahap sampai penuh.
+    // Begitu pemain klik Mulai, jangan langsung sesak. Mulai dari kepadatan
+    // sangat rendah lalu naik bertahap sampai penuh, supaya pemain sempat
+    // kenalan dengan kendali sebelum lapangan ramai.
     //
-    //   0  - 5  dtk : ~20%  (sangat lega, kenalan sebentar - ditahan)
-    //   5  - 60 dtk : naik bertahap 20% -> 100%
-    //   > 60 dtk    : 100%  (kepadatan normal seperti biasa)
+    //   0 dtk       : 10%   (sangat lega di awal)
+    //   0 - 90 dtk  : naik bertahap 10% -> 100% (naik terus tiap detik)
+    //   > 90 dtk    : 100%  (kepadatan normal seperti biasa)
     //
     // Pengali ini dikalikan ke langit-langit musuh hidup DAN jumlah musuh per
     // gelombang spawn di ZombieSpawner, jadi awal run benar-benar merangkak,
-    // bukan langsung nyembur. Gelombang pra-bos (jauh setelah menit ke-1)
+    // bukan langsung nyembur. Gelombang pra-bos (jauh setelah menit ke-1,5)
     // tidak terpengaruh - tetap ramai seperti yang diinginkan.
     //
     // MENYETEL:
-    //   Mau awal lebih sepi         -> kecilkan PemanasanAwal (mis. 0.15).
-    //   Mau masa lega lebih lama    -> besarkan PemanasanDetikTahan.
-    //   Mau naik penuh lebih cepat  -> kecilkan PemanasanDetikPenuh (mis. 45).
-    public const float PemanasanAwal       = 0.2f;  // kepadatan di detik ke-0
-    public const float PemanasanDetikTahan = 5f;    // ditahan di kepadatan awal selama ini
-    public const float PemanasanDetikPenuh = 60f;   // kapan mencapai kepadatan penuh
+    //   Mau awal lebih sepi         -> kecilkan PemanasanAwal (mis. 0.05).
+    //   Mau ada jeda tahan di awal  -> besarkan PemanasanDetikTahan (mis. 5).
+    //   Mau naik penuh lebih cepat  -> kecilkan PemanasanDetikPenuh (mis. 60).
+    public const float PemanasanAwal       = 0.1f;  // kepadatan di detik ke-0 (10%)
+    public const float PemanasanDetikTahan = 0f;    // lama ditahan di kepadatan awal (0 = langsung naik)
+    public const float PemanasanDetikPenuh = 90f;   // kapan mencapai kepadatan penuh (1,5 menit)
 
     public static float PengaliPemanasan(float detik)
     {
