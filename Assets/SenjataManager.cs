@@ -3,8 +3,8 @@ using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
 // Mengelola senjata otomatis ala Survivor.io: Pisau Berputar (orbit), Aura Setrum,
-// Roket Pelacak, Kilat Rantai. Tiap senjata bisa naik sampai level MAX. Di level
-// 5+ senjata OTOMATIS berevolusi (lebih kuat, berubah UNGU + petir).
+// Roket Pelacak, Kilat Rantai, Bola Api. Tiap senjata bisa naik sampai level MAX.
+// Di level 5+ senjata OTOMATIS berevolusi (lebih kuat, berubah UNGU + petir).
 //
 // KURVA KEKUATAN (disetel ulang setelah playtest):
 // Level 1 sengaja KECIL & LEMAH (tapi tetap membunuh gerombolan terlemah), lalu
@@ -28,6 +28,7 @@ public class SenjataManager : MonoBehaviour
     public int lvAura = 0;
     public int lvRoket = 0;
     public int lvRantai = 0;
+    public int lvBolaApi = 0;
 
     private Transform player;
 
@@ -46,6 +47,9 @@ public class SenjataManager : MonoBehaviour
     // kilat rantai
     private float rantaiTimer = 0f;
 
+    // bola api
+    private float bolaApiTimer = 0f;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
     {
@@ -63,9 +67,9 @@ public class SenjataManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         // reset semua senjata tiap game baru / restart
-        lvOrbit = 0; lvAura = 0; lvRoket = 0; lvRantai = 0;
+        lvOrbit = 0; lvAura = 0; lvRoket = 0; lvRantai = 0; lvBolaApi = 0;
         bilah.Clear();
-        sudutOrbit = 0f; auraTimer = 0f; roketTimer = 0f; rantaiTimer = 0f;
+        sudutOrbit = 0f; auraTimer = 0f; roketTimer = 0f; rantaiTimer = 0f; bolaApiTimer = 0f;
     }
 
     Transform Player()
@@ -83,6 +87,7 @@ public class SenjataManager : MonoBehaviour
     public void TambahAura() { lvAura = Mathf.Min(MAX, lvAura + 1); BangunAura(); }
     public void TambahRoket() { lvRoket = Mathf.Min(MAX, lvRoket + 1); }
     public void TambahRantai() { lvRantai = Mathf.Min(MAX, lvRantai + 1); }
+    public void TambahBolaApi() { lvBolaApi = Mathf.Min(MAX, lvBolaApi + 1); }
 
     // ====== ORBIT ======
     void BangunOrbit()
@@ -223,9 +228,6 @@ public class SenjataManager : MonoBehaviour
         }
 
         // ---- KILAT RANTAI ----
-        // Menyambar musuh terdekat lalu meloncat ke musuh terdekat berikutnya
-        // (lihat KilatRantai.cs). L1 lemah & sedikit loncatan; naik tiap level;
-        // evolusi (lvl 5+): ungu, damage & jumlah loncatan melonjak.
         //  dmg      : L1=6, L2=9, L3=12, L4=15, L5(evo)=28
         //  lompatan : L1=3, L2=4, L3=5, L4=6, L5(evo)=10 musuh
         if (lvRantai > 0)
@@ -241,6 +243,31 @@ public class SenjataManager : MonoBehaviour
                 rantaiTimer = 0f;
                 Color warna = evo ? new Color(0.8f, 0.5f, 1f, 1f) : new Color(0.5f, 0.85f, 1f, 1f);
                 KilatRantai.Sambar(pl.position, dmg, lompatan, radiusLompat, warna);
+            }
+        }
+
+        // ---- BOLA API ----
+        // Dilempar ke musuh terdekat, meledak (area) + meninggalkan genangan api
+        // yang terus membakar (lihat BolaApi.cs). L1 lemah & kecil; naik tiap
+        // level; evolusi (lvl 5+): ungu + ledakannya menyambar petir.
+        //  dmg ledak : L1=8, L2=12, L3=16, L4=20, L5(evo)=36
+        //  genangan  : L1=2/tick ~2.3s -> makin lama & sakit tiap level
+        if (lvBolaApi > 0)
+        {
+            bool evo = lvBolaApi >= 5;
+            float jeda = Mathf.Max(0.8f, 2.2f - lvBolaApi * 0.2f);
+            int dmg = 4 + lvBolaApi * 4 + (evo ? 12 : 0);
+            float radius = 1.1f + lvBolaApi * 0.18f + (evo ? 0.6f : 0f);
+            float skala = 0.4f + lvBolaApi * 0.07f + (evo ? 0.2f : 0f);
+            int dmgGenangan = 1 + lvBolaApi + (evo ? 4 : 0);
+            float durasiGenangan = 2.0f + lvBolaApi * 0.3f;
+            bolaApiTimer += Time.deltaTime;
+            if (bolaApiTimer >= jeda)
+            {
+                bolaApiTimer = 0f;
+                EnemyChase t = EnemyRegistry.Terdekat(pl.position, JangkauanCariTarget, null);
+                if (t != null)
+                    BolaApi.Tembak(pl.position, t.transform, dmg, radius, skala, evo, durasiGenangan, dmgGenangan);
             }
         }
     }

@@ -87,9 +87,6 @@ public class SkillManager : MonoBehaviour
             }),
 
             // ===== SENJATA OTOMATIS (ala Survivor.io) - evolusi otomatis di level 5+ =====
-            // Dulu batasnya SenjataManager.MAX (= 6). Itu keliru: MAX adalah jumlah
-            // SLOT senjata, bukan batas LEVEL. Akibatnya kartu bertuliskan
-            // \"Lv5: evolusi!\" tapi sebenarnya bisa naik sampai Lv6.
             new Skill("Pisau Berputar", "Bilah berputar melukai musuh. Lv5: evolusi!", "pisau", mS, true, () => {
                 if (SenjataManager.Instance != null) SenjataManager.Instance.TambahOrbit();
             }),
@@ -101,6 +98,9 @@ public class SkillManager : MonoBehaviour
             }),
             new Skill("Kilat Rantai", "Petir meloncat antar musuh. Lv5: evolusi!", "petir", mS, true, () => {
                 if (SenjataManager.Instance != null) SenjataManager.Instance.TambahRantai();
+            }),
+            new Skill("Bola Api", "Ledakan + genangan api membakar. Lv5: evolusi!", "bolaapi", mS, true, () => {
+                if (SenjataManager.Instance != null) SenjataManager.Instance.TambahBolaApi();
             }),
         };
     }
@@ -160,11 +160,6 @@ public class SkillManager : MonoBehaviour
             if (BolehDitawarkan(semuaSkill[i])) kolam.Add(semuaSkill[i]);
 
         // Semua skill sudah maksimal / slot penuh.
-        //
-        // BUG LAMA: kartu tetap muncul dengan label \"MAX!\", dan menekannya TETAP
-        // menjalankan efeknya. Labelnya berhenti di MAX karena tingkat[] di-clamp,
-        // tapi efek aslinya terus menumpuk tanpa batas. Pemain yang tahu ini bisa
-        // menaikkan kecepatan tembak selamanya sambil layar menulis \"MAX!\".
         if (kolam.Count == 0) return;
 
         int jumlah = Mathf.Min(Balance.JumlahKartuDitawarkan, kolam.Count);
@@ -218,9 +213,7 @@ public class SkillManager : MonoBehaviour
         // latar gelap survival
         Tema.LatarGelap();
 
-        // ==== 3 KARTU VERTIKAL SEJAJAR (gaya Survivor.io) ====
-        // Tiap kartu: TAB NAMA kuning di atas, label \"Baru!\" di pojok,
-        // IKON besar dalam kotak inset, deskripsi, lalu BINTANG rating.
+        // ==== KARTU VERTIKAL SEJAJAR (gaya Survivor.io) ====
         float margin = w * 0.035f;
         float gap = w * 0.022f;
         int jumlah = pilihanSekarang.Count;
@@ -268,8 +261,6 @@ public class SkillManager : MonoBehaviour
             Tema.Teks(new Rect(tab.x + 3, tab.y, tab.width - 6, tab.height), s.nama, fNama, txtGelap, TextAnchor.MiddleCenter, true);
 
             // ===== LABEL \"Baru!\" / \"Lv x\" di POJOK KANAN ATAS =====
-            // \"MAX!\" tidak lagi mungkin muncul di sini karena skill yang sudah
-            // mentok tidak pernah ikut ditawarkan.
             int cur = LevelSaatIni(s);
             string lbl; Color lblCol;
             if (cur == 0) { lbl = "Baru!"; lblCol = Tema.Army; }
@@ -296,9 +287,6 @@ public class SkillManager : MonoBehaviour
                 s.deskripsi, fDesk, Tema.Tulang, TextAnchor.UpperCenter, false);
 
             // ===== BINTANG RATING (bawah) =====
-            // Kini semua skill punya batas nyata, jadi bintang benar-benar
-            // menggambarkan kemajuan. Dulu skill pasif menampilkan 5 bintang
-            // padahal sebetulnya tak terbatas - pemain dibohongi.
             int totalStar = Mathf.Clamp((s.maks > 0) ? s.maks : 5, 1, 5);
             int filled = Mathf.Clamp(cur + 1, 1, totalStar);
 
