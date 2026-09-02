@@ -901,6 +901,15 @@ UnityEngine.Light::get_ShadowResolution_Injected
 UnityEngine.LightProbesQuery::Create
 UnityEngine.LightProbesQuery::CalculateInterpolatedLightAndOcclusionProbes
 UnityEngine.LightProbesQuery::Destroy
+UnityEngine.LineRenderer::SetPosition_Injected
+UnityEngine.LineRenderer::get_startColor_Injected
+UnityEngine.LineRenderer::set_endColor_Injected
+UnityEngine.LineRenderer::set_endWidth_Injected
+UnityEngine.LineRenderer::set_numCapVertices_Injected
+UnityEngine.LineRenderer::set_positionCount_Injected
+UnityEngine.LineRenderer::set_startColor_Injected
+UnityEngine.LineRenderer::set_startWidth_Injected
+UnityEngine.LineRenderer::set_useWorldSpace_Injected
 UnityEngine.LODGroup::get_size_Injected
 UnityEngine.LODGroup::get_localReferencePoint_Injected
 UnityEngine.LODGroup::GetLODs_Injected

@@ -283,6 +283,12 @@
             "icon": null
           },
           {
+            "name": "LineRenderer",
+            "scenes": [],
+            "dependencyType": 0,
+            "icon": null
+          },
+          {
             "name": "LowerResBlitTexture",
             "scenes": [],
             "dependencyType": 0,
