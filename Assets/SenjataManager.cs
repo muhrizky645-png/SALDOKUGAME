@@ -2,10 +2,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
-// Mengelola senjata otomatis ala Survivor.io: Pisau Berputar (orbit), Aura Setrum,
-// Roket Pelacak, Kilat Rantai, Bola Api, Nova Beku, Bumerang, Ranjau, Meteor. Tiap
-// senjata bisa naik sampai level MAX. Di level 5+ senjata OTOMATIS berevolusi
-// (lebih kuat, berubah UNGU + petir).
+// Mengelola 10 senjata otomatis ala Survivor.io: Pisau Berputar (orbit), Aura
+// Setrum, Roket Pelacak, Kilat Rantai, Bola Api, Nova Beku, Bumerang, Ranjau,
+// Meteor, Pendamping. Tiap senjata bisa naik sampai level MAX. Di level 5+
+// senjata OTOMATIS berevolusi (lebih kuat, berubah UNGU + petir).
 //
 // KURVA KEKUATAN: Level 1 sengaja KECIL & LEMAH lalu UKURAN & DAMAGE naik jelas
 // tiap level. Evolusi (lvl 5+) berubah UNGU dan menyambar PETIR (PetirEfek.cs).
@@ -29,6 +29,7 @@ public class SenjataManager : MonoBehaviour
     public int lvBumerang = 0;
     public int lvRanjau = 0;
     public int lvMeteor = 0;
+    public int lvPendamping = 0;
 
     private Transform player;
 
@@ -55,6 +56,8 @@ public class SenjataManager : MonoBehaviour
     private float ranjauTimer = 0f;
     // meteor
     private float meteorTimer = 0f;
+    // pendamping (tiap bola punya timer sendiri)
+    private List<Pendamping> pendamping = new List<Pendamping>();
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
@@ -74,8 +77,9 @@ public class SenjataManager : MonoBehaviour
         Instance = this;
         // reset semua senjata tiap game baru / restart
         lvOrbit = 0; lvAura = 0; lvRoket = 0; lvRantai = 0; lvBolaApi = 0;
-        lvNova = 0; lvBumerang = 0; lvRanjau = 0; lvMeteor = 0;
+        lvNova = 0; lvBumerang = 0; lvRanjau = 0; lvMeteor = 0; lvPendamping = 0;
         bilah.Clear();
+        pendamping.Clear();
         sudutOrbit = 0f; auraTimer = 0f; roketTimer = 0f; rantaiTimer = 0f;
         bolaApiTimer = 0f; novaTimer = 0f; bumerangTimer = 0f; ranjauTimer = 0f; meteorTimer = 0f;
     }
@@ -100,6 +104,7 @@ public class SenjataManager : MonoBehaviour
     public void TambahBumerang() { lvBumerang = Mathf.Min(MAX, lvBumerang + 1); }
     public void TambahRanjau() { lvRanjau = Mathf.Min(MAX, lvRanjau + 1); }
     public void TambahMeteor() { lvMeteor = Mathf.Min(MAX, lvMeteor + 1); }
+    public void TambahPendamping() { lvPendamping = Mathf.Min(MAX, lvPendamping + 1); BangunPendamping(); }
 
     // ====== ORBIT ======
     void BangunOrbit()
@@ -138,6 +143,27 @@ public class SenjataManager : MonoBehaviour
             auraSR.color = new Color(0.4f, 0.8f, 1f, 0.16f);
             auraSR.sortingOrder = 5;
         }
+    }
+
+    // ====== PENDAMPING ======
+    void BangunPendamping()
+    {
+        foreach (var p in pendamping) if (p != null) Destroy(p.gameObject);
+        pendamping.Clear();
+
+        Transform pl = Player();
+        if (pl == null) return;
+
+        bool evo = lvPendamping >= 5;
+        int jumlah = 1 + (evo ? 1 : 0);
+        int dmg = 3 + lvPendamping * 3 + (evo ? 10 : 0);
+        float jeda = Mathf.Max(0.5f, 1.4f - lvPendamping * 0.15f);
+        float jangkauan = 6f + lvPendamping * 0.5f;
+        float skala = 0.4f + lvPendamping * 0.06f + (evo ? 0.2f : 0f);
+        Color warna = evo ? new Color(0.8f, 0.5f, 1f, 1f) : new Color(0.5f, 0.9f, 1f, 1f);
+
+        for (int i = 0; i < jumlah; i++)
+            pendamping.Add(Pendamping.Buat(pl, i, jumlah, dmg, jeda, jangkauan, skala, warna, evo));
     }
 
     void Update()
@@ -328,11 +354,6 @@ public class SenjataManager : MonoBehaviour
         }
 
         // ---- METEOR ----
-        // Menghantam musuh terjauh/kerumunan dari langit dengan AoE besar + getar
-        // (lihat Meteor.cs). L1 kecil & 1 meteor; naik tiap level; evolusi (lvl
-        // 5+): ungu, lebih besar + petir.
-        //  dmg    : L1=9, L2=13, L3=17, L4=21, L5(evo)=39
-        //  jumlah : L1=1, L2=2, L4=3, L5(evo)=4 meteor per gelombang
         if (lvMeteor > 0)
         {
             bool evo = lvMeteor >= 5;
@@ -356,6 +377,10 @@ public class SenjataManager : MonoBehaviour
                 }
             }
         }
+
+        // ---- PENDAMPING ----
+        // Tiap bola pendamping menembak sendiri di Pendamping.cs (Update-nya).
+        // Tidak ada logika tambahan di sini.
     }
 
     Transform MusuhTerdekat(Vector3 pos, Transform kecuali)
