@@ -207,13 +207,20 @@ public class SenjataManager : MonoBehaviour
         }
 
         // ---- ROKET ----
-        // JUMLAH roket per gelombang = level roket (evolusi +2). Tiap roket mengejar musuh berbeda.
+        // Sama polanya dengan aura & pisau: level 1 sengaja LEMAH & roketnya
+        // kecil, lalu jumlah, damage, ukuran, & radius ledakan naik jelas tiap
+        // level. Evolusi (lvl 5+): roket berubah UNGU dan ledakannya menyambar
+        // PETIR (lihat Roket.cs).
+        //  jumlah : L1=1, L2=2, L3=3, L4=4, L5(evo)=7 roket per gelombang
+        //  dmg    : L1=5, L2=8, L3=11, L4=14, L5(evo)=27
+        //  ukuran : L1=0.53 -> L5(evo)=1.10 ; radius ledak L1=1.32 -> L5(evo)=2.90
         if (lvRoket > 0)
         {
             bool evo = lvRoket >= 5;
             float jeda = Mathf.Max(0.7f, 2.0f - lvRoket * 0.2f);
-            int dmg = 8 + lvRoket * 3 + (evo ? 8 : 0); // damage dinaikkan
-            float radius = evo ? 2.4f : 1.8f;
+            int dmg = 2 + lvRoket * 3 + (evo ? 10 : 0);
+            float radius = 1.1f + lvRoket * 0.22f + (evo ? 0.7f : 0f);
+            float skala = 0.45f + lvRoket * 0.08f + (evo ? 0.25f : 0f);
             int jumlahRoket = lvRoket + (evo ? 2 : 0);
             roketTimer += Time.deltaTime;
             if (roketTimer >= jeda)
@@ -232,7 +239,7 @@ public class SenjataManager : MonoBehaviour
                     {
                         EnemyChase ec = EnemyRegistry.Buffer[i % n]; // kalau musuh sedikit, target dipakai ulang
                         if (ec == null) continue;
-                        Roket.Tembak(pl.position, ec.transform, 8f, dmg, radius);
+                        Roket.Tembak(pl.position, ec.transform, 8f, dmg, radius, skala, evo);
                     }
                 }
             }

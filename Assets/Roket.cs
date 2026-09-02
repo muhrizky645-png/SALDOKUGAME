@@ -1,18 +1,23 @@
 using UnityEngine;
 
 // Roket pelacak: terbang menuju target, saat dekat musuh -> meledak (area damage).
-// Panggil: Roket.Tembak(posisi, targetTransform, speed, dmg, radius);
+// Panggil: Roket.Tembak(posisi, targetTransform, speed, dmg, radius, skala, evo);
+//
+// skala & evo diisi SenjataManager per level: makin tinggi level makin besar;
+// saat evolusi roket berubah ungu dan ledakannya menyambar petir.
 public class Roket : MonoBehaviour
 {
     private Transform target;
     private float speed = 6f;
     private int dmg = 8;
     private float radius = 1.6f;
+    private float skala = 0.85f;
+    private bool evo = false;
     private float umur = 4f;
     private Vector3 arah = Vector3.right;
     private SpriteRenderer sr;
 
-    public static void Tembak(Vector3 pos, Transform target, float speed, int dmg, float radius)
+    public static void Tembak(Vector3 pos, Transform target, float speed, int dmg, float radius, float skala = 0.85f, bool evo = false)
     {
         GameObject go = new GameObject("Roket");
         go.transform.position = pos;
@@ -21,6 +26,8 @@ public class Roket : MonoBehaviour
         r.speed = speed;
         r.dmg = dmg;
         r.radius = radius;
+        r.skala = skala;
+        r.evo = evo;
         if (target != null) r.arah = (target.position - pos).normalized;
     }
 
@@ -28,9 +35,10 @@ public class Roket : MonoBehaviour
     {
         sr = gameObject.AddComponent<SpriteRenderer>();
         sr.sprite = BuatSprite(64);
-        sr.color = Color.white;          // warna sudah dipanggang di tekstur
+        // warna dipanggang di tekstur; saat evolusi diberi semburat ungu.
+        sr.color = evo ? new Color(0.82f, 0.55f, 1f, 1f) : Color.white;
         sr.sortingOrder = 45;
-        transform.localScale = Vector3.one * 0.85f; // sedikit lebih besar dari sebelumnya
+        transform.localScale = Vector3.one * skala; // ukuran diatur per level
     }
 
     void Update()
@@ -65,7 +73,27 @@ public class Roket : MonoBehaviour
 
     void Meledak()
     {
-        Ledakan.Munculkan(transform.position, radius, dmg, 0f, new Color(1f, 0.6f, 0.2f, 0.7f), false);
+        Color warnaLedak = evo
+            ? new Color(0.72f, 0.40f, 1f, 0.75f)   // ungu saat evolusi
+            : new Color(1f, 0.6f, 0.2f, 0.7f);     // oranye biasa
+        Ledakan.Munculkan(transform.position, radius, dmg, 0f, warnaLedak, false);
+
+        // EVOLUSI: ledakan menyambar petir ungu ke beberapa musuh di sekitar
+        // titik ledak, biar terasa seperti hulu ledak listrik.
+        if (evo)
+        {
+            GameObject[] musuh = GameObject.FindGameObjectsWithTag("Enemy");
+            Color ungu = new Color(0.8f, 0.5f, 1f, 1f);
+            int dibuat = 0;
+            foreach (var m in musuh)
+            {
+                if (m == null) continue;
+                if (Vector3.Distance(transform.position, m.transform.position) > radius * 1.6f) continue;
+                PetirEfek.Sambar(transform.position, m.transform.position, ungu, 0.12f);
+                if (++dibuat >= 4) break;
+            }
+        }
+
         Destroy(gameObject);
     }
 
