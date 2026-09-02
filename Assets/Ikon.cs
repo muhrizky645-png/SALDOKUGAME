@@ -98,6 +98,7 @@ public static class Ikon
     // ====== IKON (lazy + cache) ======
     static Texture2D _bintang, _petir, _peluru, _target, _chevron, _hati, _berlian, _tengkorak;
     static Texture2D _bom, _magnet, _peti, _aura, _roket, _pisau, _piala;
+    static Texture2D _bolaApi, _es, _bumerang, _ranjau, _meteor, _pendamping;
 
     // ====== IKON DARI FILE (Assets/Resources/Icons), fallback ke ikon KODE ======
     static readonly System.Collections.Generic.Dictionary<string, Texture2D> _fileCache
@@ -130,6 +131,14 @@ public static class Ikon
     public static Texture2D Roket { get { if (_roket == null) _roket = Buat(FRoket, 72); return Dari("roket", _roket); } }
     public static Texture2D Pisau { get { if (_pisau == null) _pisau = Buat(FPisau, 72); return Dari("pisau", _pisau); } }
     public static Texture2D Piala { get { if (_piala == null) _piala = Buat(FPiala, 72); return Dari("piala", _piala); } }
+
+    // Ikon senjata BARU (mono, diwarnai saat digambar).
+    public static Texture2D TexBolaApi { get { if (_bolaApi == null) _bolaApi = Buat(FBolaApi, 72); return Dari("bolaapi", _bolaApi); } }
+    public static Texture2D TexEs { get { if (_es == null) _es = Buat(FEs, 72); return Dari("es", _es); } }
+    public static Texture2D TexBumerang { get { if (_bumerang == null) _bumerang = Buat(FBumerang, 72); return Dari("bumerang", _bumerang); } }
+    public static Texture2D TexRanjau { get { if (_ranjau == null) _ranjau = Buat(FRanjau, 72); return Dari("ranjau", _ranjau); } }
+    public static Texture2D TexMeteor { get { if (_meteor == null) _meteor = Buat(FMeteor, 72); return Dari("meteor", _meteor); } }
+    public static Texture2D TexPendamping { get { if (_pendamping == null) _pendamping = Buat(FPendamping, 72); return Dari("pendamping", _pendamping); } }
 
     // ====== ITEM LAPANGAN: ikon KODE BERWARNA & TRANSPARAN (tanpa background) ======
     static readonly Color[] _paletBom = new Color[] {
@@ -288,6 +297,77 @@ public static class Ikon
         return false;
     }
 
+    // ====== IKON SENJATA BARU (mono) ======
+
+    // Bola api: badan bulat + lidah api meliuk ke atas.
+    static bool FBolaApi(float x, float y)
+    {
+        if (Disc(x, y, 0f, -0.28f, 0.58f)) return true;
+        if (y >= -0.28f && y <= 0.88f)
+        {
+            float t = (y + 0.28f) / 1.16f;
+            float half = Mathf.Lerp(0.58f, 0f, t);
+            if (Mathf.Abs(x - 0.12f * Mathf.Sin(y * 6f)) <= half) return true;
+        }
+        return false;
+    }
+
+    // Es / nova beku: kepingan salju 6 lengan + inti.
+    static bool FEs(float x, float y)
+    {
+        float w = 0.10f;
+        for (int i = 0; i < 3; i++)
+        {
+            float ang = i * Mathf.PI / 3f;
+            float cx = Mathf.Cos(ang), cy = Mathf.Sin(ang);
+            if (Garis(x, y, -cx * 0.95f, -cy * 0.95f, cx * 0.95f, cy * 0.95f, w)) return true;
+            // cabang kecil di ujung
+            if (Disc(x, y, cx * 0.7f, cy * 0.7f, 0.14f)) return true;
+            if (Disc(x, y, -cx * 0.7f, -cy * 0.7f, 0.14f)) return true;
+        }
+        return Disc(x, y, 0f, 0f, 0.16f);
+    }
+
+    // Bumerang: bilah bengkok bentuk V lebar.
+    static bool FBumerang(float x, float y)
+    {
+        float w = 0.22f;
+        return Garis(x, y, -0.7f, 0.6f, 0.0f, -0.5f, w)
+            || Garis(x, y, 0.0f, -0.5f, 0.7f, 0.6f, w);
+    }
+
+    // Ranjau laut: bola berpaku 8 arah.
+    static bool FRanjau(float x, float y)
+    {
+        float w = 0.10f;
+        for (int i = 0; i < 8; i++)
+        {
+            float ang = i * Mathf.PI / 4f;
+            float cx = Mathf.Cos(ang), cy = Mathf.Sin(ang);
+            if (Garis(x, y, 0f, 0f, cx * 0.95f, cy * 0.95f, w)) return true;
+        }
+        return Disc(x, y, 0f, 0f, 0.45f);
+    }
+
+    // Meteor: kepala bulat + ekor api ke kiri-atas.
+    static bool FMeteor(float x, float y)
+    {
+        if (Disc(x, y, 0.35f, -0.35f, 0.42f)) return true;
+        if (Garis(x, y, 0.35f, -0.35f, -0.75f, 0.75f, 0.20f)) return true;
+        if (Garis(x, y, 0.10f, -0.02f, -0.72f, 0.55f, 0.08f)) return true;
+        if (Garis(x, y, 0.58f, -0.58f, -0.42f, 0.48f, 0.08f)) return true;
+        return false;
+    }
+
+    // Pendamping: orb inti + cincin orbit + satelit kecil.
+    static bool FPendamping(float x, float y)
+    {
+        if (Disc(x, y, 0f, 0f, 0.40f)) return true;
+        if (Cincin(x, y, 0.62f, 0.78f)) return true;
+        if (Disc(x, y, 0.70f, 0.36f, 0.16f)) return true;
+        return false;
+    }
+
     // ====== BOM BERWARNA ====== (1 badan, 2 kilau, 3 sumbu, 4 percik)
     static int BomKelas(float x, float y)
     {
@@ -416,6 +496,12 @@ public static class Ikon
             case "pisau": return Dari("pisau", Pisau);
             case "aura": return Dari("aura", Aura);
             case "roket": return Dari("roket", Roket);
+            case "bolaapi": return Dari("bolaapi", TexBolaApi);
+            case "es": return Dari("es", TexEs);
+            case "bumerang": return Dari("bumerang", TexBumerang);
+            case "ranjau": return Dari("ranjau", TexRanjau);
+            case "meteor": return Dari("meteor", TexMeteor);
+            case "pendamping": return Dari("pendamping", TexPendamping);
             default: return Dari("bintang", Bintang);
         }
     }
