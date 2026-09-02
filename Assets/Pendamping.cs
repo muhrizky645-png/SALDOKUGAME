@@ -14,6 +14,7 @@ public class Pendamping : MonoBehaviour
     Color warna;
     bool evo;
     float timer;
+    float skalaBasis;
     SpriteRenderer sr;
 
     public static Pendamping Buat(Transform pemain, int indeks, int total, int dmg, float jeda, float jangkauan, float skala, Color warna, bool evo)
@@ -30,10 +31,12 @@ public class Pendamping : MonoBehaviour
     void Init(float skala)
     {
         sr = gameObject.AddComponent<SpriteRenderer>();
-        sr.sprite = BuatOrb(32);
+        sr.sprite = BuatOrb(48);
         sr.color = warna;
         sr.sortingOrder = 6;
-        transform.localScale = Vector3.one * skala;
+        // JAUH lebih besar dari sebelumnya biar terlihat jelas (bukan titik).
+        skalaBasis = skala * 2.4f;
+        transform.localScale = Vector3.one * skalaBasis;
         if (pemain != null) transform.position = pemain.position;
     }
 
@@ -43,9 +46,13 @@ public class Pendamping : MonoBehaviour
 
         // melayang mengelilingi pemain
         float sudut = (Time.time * 40f + indeks * (360f / Mathf.Max(1, total))) * Mathf.Deg2Rad;
-        float r = 1.3f;
+        float r = 1.4f;
         Vector3 target = pemain.position + new Vector3(Mathf.Cos(sudut), Mathf.Sin(sudut), 0f) * r;
         transform.position = Vector3.Lerp(transform.position, target, 10f * Time.deltaTime);
+
+        // denyut halus biar terasa "hidup"
+        float denyut = 1f + 0.14f * Mathf.Sin(Time.time * 6f + indeks);
+        transform.localScale = Vector3.one * skalaBasis * denyut;
 
         if (!GameMenu.SedangMain) return;
 
@@ -57,14 +64,14 @@ public class Pendamping : MonoBehaviour
             {
                 timer = 0f;
                 e.KenaSerangan(dmg, false);
-                PetirEfek.Sambar(transform.position, e.transform.position, warna, 0.1f);
+                PetirEfek.Sambar(transform.position, e.transform.position, warna, 0.14f);
                 if (evo)
                 {
                     EnemyChase e2 = EnemyRegistry.Terdekat(e.transform.position, 3f, e);
                     if (e2 != null)
                     {
                         e2.KenaSerangan(dmg, false);
-                        PetirEfek.Sambar(e.transform.position, e2.transform.position, warna, 0.1f);
+                        PetirEfek.Sambar(e.transform.position, e2.transform.position, warna, 0.14f);
                     }
                 }
             }
@@ -75,6 +82,7 @@ public class Pendamping : MonoBehaviour
         }
     }
 
+    // Orb bercahaya: inti terang penuh + halo memudar ke luar.
     static Sprite BuatOrb(int S)
     {
         Texture2D t = new Texture2D(S, S, TextureFormat.RGBA32, false);
@@ -85,7 +93,8 @@ public class Pendamping : MonoBehaviour
             {
                 float dx = x - r + 0.5f, dy = y - r + 0.5f;
                 float d = Mathf.Sqrt(dx * dx + dy * dy) / r;
-                float a = d <= 0.5f ? 1f : (d <= 1f ? Mathf.Lerp(1f, 0f, (d - 0.5f) / 0.5f) : 0f);
+                // inti penuh sampai 0.45, lalu halo memudar sampai tepi
+                float a = d <= 0.45f ? 1f : (d <= 1f ? Mathf.Lerp(1f, 0f, (d - 0.45f) / 0.55f) : 0f);
                 t.SetPixel(x, y, new Color(1f, 1f, 1f, a));
             }
         t.Apply();
