@@ -140,11 +140,19 @@ public class ZombieSpawner : MonoBehaviour
         jedaSpawn *= JadwalRun.PengaliJedaSpawn(fase);
 
         float pengaliFase = JadwalRun.PengaliJumlah(fase);
+
+        // PEMANASAN AWAL RUN: di ~1 menit pertama, tahan kepadatan di sekitar
+        // separuh biar pemain sempat belajar, lalu naik perlahan sampai penuh.
+        // Setelah menit ke-1 nilainya 1 (tidak berpengaruh lagi). Dikalikan ke
+        // langit-langit musuh hidup DAN jumlah per gelombang spawn, jadi awal
+        // run benar-benar merangkak - bukan langsung sesak. Lihat Balance.
+        float pemanasan = Balance.PengaliPemanasan(detik);
+
         int maxSekarang = Mathf.Min(maxMutlak,
-            Mathf.RoundToInt(Balance.MaxMusuhHidup(detik, Pengali) * pengaliFase));
+            Mathf.RoundToInt(Balance.MaxMusuhHidup(detik, Pengali) * pengaliFase * pemanasan));
         maxSekarang = Mathf.Max(1, maxSekarang);
 
-        int sekaligus = Mathf.Max(1, Mathf.RoundToInt(spawnSekaligus * pengaliFase));
+        int sekaligus = Mathf.Max(1, Mathf.RoundToInt(spawnSekaligus * pengaliFase * pemanasan));
 
         timer += Time.deltaTime;
         if (timer >= jedaSpawn)

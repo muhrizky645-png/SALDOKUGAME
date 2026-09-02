@@ -108,6 +108,39 @@ public static class Balance
     }
 
     // =================================================================
+    //  PEMANASAN AWAL RUN
+    // =================================================================
+    //
+    // Begitu pemain klik Mulai, jangan langsung sesak. Tahan kepadatan di
+    // sekitar separuh selama detik-detik pertama supaya pemain sempat belajar
+    // gerak & menembak, lalu naikkan perlahan sampai penuh.
+    //
+    //   0  - 20 dtk : ~50%  (masa belajar, ditahan)
+    //   20 - 60 dtk : naik perlahan 50% -> 100%
+    //   > 60 dtk    : 100%  (kepadatan normal seperti biasa)
+    //
+    // Pengali ini dikalikan ke langit-langit musuh hidup DAN jumlah musuh per
+    // gelombang spawn di ZombieSpawner, jadi awal run benar-benar merangkak,
+    // bukan langsung nyembur. Gelombang pra-bos (jauh setelah menit ke-1)
+    // tidak terpengaruh - tetap ramai seperti yang diinginkan.
+    //
+    // MENYETEL:
+    //   Mau awal lebih sepi         -> kecilkan PemanasanAwal (mis. 0.35).
+    //   Mau masa belajar lebih lama -> besarkan PemanasanDetikTahan / DetikPenuh.
+    public const float PemanasanAwal       = 0.5f;  // kepadatan di detik ke-0
+    public const float PemanasanDetikTahan = 20f;   // ditahan di kepadatan awal selama ini
+    public const float PemanasanDetikPenuh = 60f;   // kapan mencapai kepadatan penuh
+
+    public static float PengaliPemanasan(float detik)
+    {
+        detik = Mathf.Max(0f, detik);
+        if (detik <= PemanasanDetikTahan) return PemanasanAwal;
+        if (detik >= PemanasanDetikPenuh) return 1f;
+        float t = (detik - PemanasanDetikTahan) / (PemanasanDetikPenuh - PemanasanDetikTahan);
+        return Mathf.Lerp(PemanasanAwal, 1f, t);
+    }
+
+    // =================================================================
     //  KEKUATAN MUSUH MENGIKUTI WAKTU  (paket "seimbang")
     // =================================================================
     //
