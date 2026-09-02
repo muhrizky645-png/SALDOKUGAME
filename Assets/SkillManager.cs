@@ -13,9 +13,7 @@ public class SkillManager : MonoBehaviour
 
     private List<Skill> semuaSkill = new List<Skill>();
     private List<Skill> pilihanSekarang = new List<Skill>();
-    // menyimpan berapa kali tiap skill sudah diambil (untuk keterangan level di kartu)
     private Dictionary<string, int> tingkat = new Dictionary<string, int>();
-    // dipakai ulang tiap MulaiPilih supaya tidak mengalokasikan List baru
     private List<Skill> kolam = new List<Skill>();
     private bool sedangMemilih = false;
     private int levelTerakhir = 1;
@@ -37,7 +35,6 @@ public class SkillManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
 
-        // reset semua state biar benar-benar mulai dari awal setiap game baru
         sedangMemilih = false;
         AktifMemilih = false;
         levelTerakhir = 1;
@@ -96,12 +93,14 @@ public class SkillManager : MonoBehaviour
             new Skill("Nova Beku", "Ledakan es + perlambat musuh. Lv5: evolusi!", "es", mS, true, () => {
                 if (SenjataManager.Instance != null) SenjataManager.Instance.TambahNova();
             }),
+            new Skill("Bumerang", "Bilah melesat & balik, menembus. Lv5: evolusi!", "bumerang", mS, true, () => {
+                if (SenjataManager.Instance != null) SenjataManager.Instance.TambahBumerang();
+            }),
         };
     }
 
     void Update()
     {
-        // jangan tawarkan skill saat menu awal / jeda / game over
         if (!GameMenu.SedangMain || GameMenu.SedangJeda || PlayerHealth.GameOver) return;
         if (sedangMemilih) return;
         if (LevelSystem.Instance == null) return;
@@ -285,14 +284,13 @@ public class SkillManager : MonoBehaviour
         }
     }
 
-    // struktur data satu skill
     private class Skill
     {
         public string nama;
         public string deskripsi;
         public string ikon;
-        public int maks;      // 0 = tak terbatas (sekarang tidak dipakai lagi)
-        public bool senjata;  // true = memakai slot senjata, false = slot pasif
+        public int maks;
+        public bool senjata;
         public System.Action efek;
         public Skill(string n, string d, string ik, int mk, bool sj, System.Action e)
         { nama = n; deskripsi = d; ikon = ik; maks = mk; senjata = sj; efek = e; }

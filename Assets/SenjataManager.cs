@@ -3,13 +3,12 @@ using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
 // Mengelola senjata otomatis ala Survivor.io: Pisau Berputar (orbit), Aura Setrum,
-// Roket Pelacak, Kilat Rantai, Bola Api, Nova Beku. Tiap senjata bisa naik sampai
-// level MAX. Di level 5+ senjata OTOMATIS berevolusi (lebih kuat, UNGU + petir).
+// Roket Pelacak, Kilat Rantai, Bola Api, Nova Beku, Bumerang. Tiap senjata bisa
+// naik sampai level MAX. Di level 5+ senjata OTOMATIS berevolusi (lebih kuat,
+// berubah UNGU + petir).
 //
-// KURVA KEKUATAN (disetel ulang setelah playtest):
-// Level 1 sengaja KECIL & LEMAH (tapi tetap membunuh gerombolan terlemah), lalu
-// UKURAN dan DAMAGE naik jelas tiap level. Evolusi (lvl 5+) bukan sekadar
-// membesar: berubah UNGU dan menyambar PETIR (lihat PetirEfek.cs).
+// KURVA KEKUATAN: Level 1 sengaja KECIL & LEMAH lalu UKURAN & DAMAGE naik jelas
+// tiap level. Evolusi (lvl 5+) berubah UNGU dan menyambar PETIR (PetirEfek.cs).
 //
 // CATATAN FASE 0: pencarian musuh lewat EnemyRegistry. Angka balancing masih
 // hardcoded; pemindahannya ke SenjataSO adalah pekerjaan Fase 1.
@@ -27,6 +26,7 @@ public class SenjataManager : MonoBehaviour
     public int lvRantai = 0;
     public int lvBolaApi = 0;
     public int lvNova = 0;
+    public int lvBumerang = 0;
 
     private Transform player;
 
@@ -51,6 +51,9 @@ public class SenjataManager : MonoBehaviour
     // nova beku
     private float novaTimer = 0f;
 
+    // bumerang
+    private float bumerangTimer = 0f;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
     {
@@ -68,9 +71,10 @@ public class SenjataManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         // reset semua senjata tiap game baru / restart
-        lvOrbit = 0; lvAura = 0; lvRoket = 0; lvRantai = 0; lvBolaApi = 0; lvNova = 0;
+        lvOrbit = 0; lvAura = 0; lvRoket = 0; lvRantai = 0; lvBolaApi = 0; lvNova = 0; lvBumerang = 0;
         bilah.Clear();
-        sudutOrbit = 0f; auraTimer = 0f; roketTimer = 0f; rantaiTimer = 0f; bolaApiTimer = 0f; novaTimer = 0f;
+        sudutOrbit = 0f; auraTimer = 0f; roketTimer = 0f; rantaiTimer = 0f;
+        bolaApiTimer = 0f; novaTimer = 0f; bumerangTimer = 0f;
     }
 
     Transform Player()
@@ -90,6 +94,7 @@ public class SenjataManager : MonoBehaviour
     public void TambahRantai() { lvRantai = Mathf.Min(MAX, lvRantai + 1); }
     public void TambahBolaApi() { lvBolaApi = Mathf.Min(MAX, lvBolaApi + 1); }
     public void TambahNova() { lvNova = Mathf.Min(MAX, lvNova + 1); }
+    public void TambahBumerang() { lvBumerang = Mathf.Min(MAX, lvBumerang + 1); }
 
     // ====== ORBIT ======
     void BangunOrbit()
@@ -257,11 +262,6 @@ public class SenjataManager : MonoBehaviour
         }
 
         // ---- NOVA BEKU ----
-        // Ledakan cincin es: damage area + memperlambat SEMUA musuh sebentar.
-        // L1 kecil & slow ringan; naik tiap level; evolusi (lvl 5+): ungu, damage
-        // & slow melonjak + petir.
-        //  dmg  : L1=6, L2=9, L3=12, L4=15, L5(evo)=28
-        //  slow : L1 ~15% ->  L4 ~30% -> L5(evo) 50% (faktor 0.5)
         if (lvNova > 0)
         {
             bool evo = lvNova >= 5;
@@ -275,6 +275,35 @@ public class SenjataManager : MonoBehaviour
             {
                 novaTimer = 0f;
                 NovaBeku.Ledak(pl.position, radius, dmg, slowDurasi, slowFaktor, evo);
+            }
+        }
+
+        // ---- BUMERANG ----
+        // Dilempar ke musuh terdekat, melesat keluar lalu balik, menembus jalur
+        // (lihat Bumerang.cs). L1 kecil & pendek; naik tiap level; evolusi (lvl
+        // 5+): ungu, lebih jauh + 2 bilah sekaligus + petir.
+        //  dmg       : L1=6, L2=9, L3=12, L4=15, L5(evo)=28
+        //  jangkauan : L1=3.5 -> L4=5.0 -> L5(evo)=8.0
+        if (lvBumerang > 0)
+        {
+            bool evo = lvBumerang >= 5;
+            float jeda = Mathf.Max(0.9f, 2.4f - lvBumerang * 0.22f);
+            int dmg = 3 + lvBumerang * 3 + (evo ? 10 : 0);
+            float jangkauan = 3.0f + lvBumerang * 0.5f + (evo ? 1.5f : 0f);
+            float skala = 0.4f + lvBumerang * 0.08f + (evo ? 0.2f : 0f);
+            int jumlah = evo ? 2 : 1;
+            bumerangTimer += Time.deltaTime;
+            if (bumerangTimer >= jeda)
+            {
+                bumerangTimer = 0f;
+                EnemyChase t = EnemyRegistry.Terdekat(pl.position, JangkauanCariTarget, null);
+                Vector3 dasar = (t != null) ? (t.transform.position - pl.position).normalized : Vector3.right;
+                for (int i = 0; i < jumlah; i++)
+                {
+                    float sudut = (jumlah == 1) ? 0f : (i == 0 ? -18f : 18f);
+                    Vector3 a = Quaternion.Euler(0, 0, sudut) * dasar;
+                    Bumerang.Lempar(pl.position, pl, a, 9f, jangkauan, dmg, skala, evo);
+                }
             }
         }
     }
