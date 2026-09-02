@@ -111,12 +111,12 @@ public static class Balance
     //  PEMANASAN AWAL RUN
     // =================================================================
     //
-    // Begitu pemain klik Mulai, jangan langsung sesak. Tahan kepadatan di
-    // sekitar separuh selama detik-detik pertama supaya pemain sempat belajar
-    // gerak & menembak, lalu naikkan perlahan sampai penuh.
+    // Begitu pemain klik Mulai, jangan langsung sesak. Tahan kepadatan sangat
+    // rendah di beberapa detik pertama supaya pemain sempat kenalan dengan
+    // kendali, lalu naikkan bertahap sampai penuh.
     //
-    //   0  - 20 dtk : ~50%  (masa belajar, ditahan)
-    //   20 - 60 dtk : naik perlahan 50% -> 100%
+    //   0  - 5  dtk : ~20%  (sangat lega, kenalan sebentar - ditahan)
+    //   5  - 60 dtk : naik bertahap 20% -> 100%
     //   > 60 dtk    : 100%  (kepadatan normal seperti biasa)
     //
     // Pengali ini dikalikan ke langit-langit musuh hidup DAN jumlah musuh per
@@ -125,10 +125,11 @@ public static class Balance
     // tidak terpengaruh - tetap ramai seperti yang diinginkan.
     //
     // MENYETEL:
-    //   Mau awal lebih sepi         -> kecilkan PemanasanAwal (mis. 0.35).
-    //   Mau masa belajar lebih lama -> besarkan PemanasanDetikTahan / DetikPenuh.
-    public const float PemanasanAwal       = 0.5f;  // kepadatan di detik ke-0
-    public const float PemanasanDetikTahan = 20f;   // ditahan di kepadatan awal selama ini
+    //   Mau awal lebih sepi         -> kecilkan PemanasanAwal (mis. 0.15).
+    //   Mau masa lega lebih lama    -> besarkan PemanasanDetikTahan.
+    //   Mau naik penuh lebih cepat  -> kecilkan PemanasanDetikPenuh (mis. 45).
+    public const float PemanasanAwal       = 0.2f;  // kepadatan di detik ke-0
+    public const float PemanasanDetikTahan = 5f;    // ditahan di kepadatan awal selama ini
     public const float PemanasanDetikPenuh = 60f;   // kapan mencapai kepadatan penuh
 
     public static float PengaliPemanasan(float detik)
