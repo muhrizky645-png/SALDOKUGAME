@@ -8,7 +8,6 @@ using System.Collections.Generic;
 public class SkillManager : MonoBehaviour
 {
     public static SkillManager Instance;
-    // dibaca HUD & GameMenu supaya sembunyi saat kartu skill tampil
     public static bool AktifMemilih = false;
 
     private List<Skill> semuaSkill = new List<Skill>();
@@ -95,6 +94,9 @@ public class SkillManager : MonoBehaviour
             }),
             new Skill("Bumerang", "Bilah melesat & balik, menembus. Lv5: evolusi!", "bumerang", mS, true, () => {
                 if (SenjataManager.Instance != null) SenjataManager.Instance.TambahBumerang();
+            }),
+            new Skill("Ranjau", "Ranjau meledak saat musuh dekat. Lv5: evolusi!", "ranjau", mS, true, () => {
+                if (SenjataManager.Instance != null) SenjataManager.Instance.TambahRanjau();
             }),
         };
     }

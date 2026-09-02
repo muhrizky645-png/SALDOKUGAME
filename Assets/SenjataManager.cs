@@ -3,8 +3,8 @@ using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
 // Mengelola senjata otomatis ala Survivor.io: Pisau Berputar (orbit), Aura Setrum,
-// Roket Pelacak, Kilat Rantai, Bola Api, Nova Beku, Bumerang. Tiap senjata bisa
-// naik sampai level MAX. Di level 5+ senjata OTOMATIS berevolusi (lebih kuat,
+// Roket Pelacak, Kilat Rantai, Bola Api, Nova Beku, Bumerang, Ranjau. Tiap senjata
+// bisa naik sampai level MAX. Di level 5+ senjata OTOMATIS berevolusi (lebih kuat,
 // berubah UNGU + petir).
 //
 // KURVA KEKUATAN: Level 1 sengaja KECIL & LEMAH lalu UKURAN & DAMAGE naik jelas
@@ -27,6 +27,7 @@ public class SenjataManager : MonoBehaviour
     public int lvBolaApi = 0;
     public int lvNova = 0;
     public int lvBumerang = 0;
+    public int lvRanjau = 0;
 
     private Transform player;
 
@@ -41,18 +42,16 @@ public class SenjataManager : MonoBehaviour
 
     // roket
     private float roketTimer = 0f;
-
     // kilat rantai
     private float rantaiTimer = 0f;
-
     // bola api
     private float bolaApiTimer = 0f;
-
     // nova beku
     private float novaTimer = 0f;
-
     // bumerang
     private float bumerangTimer = 0f;
+    // ranjau
+    private float ranjauTimer = 0f;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
@@ -71,10 +70,11 @@ public class SenjataManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         // reset semua senjata tiap game baru / restart
-        lvOrbit = 0; lvAura = 0; lvRoket = 0; lvRantai = 0; lvBolaApi = 0; lvNova = 0; lvBumerang = 0;
+        lvOrbit = 0; lvAura = 0; lvRoket = 0; lvRantai = 0; lvBolaApi = 0;
+        lvNova = 0; lvBumerang = 0; lvRanjau = 0;
         bilah.Clear();
         sudutOrbit = 0f; auraTimer = 0f; roketTimer = 0f; rantaiTimer = 0f;
-        bolaApiTimer = 0f; novaTimer = 0f; bumerangTimer = 0f;
+        bolaApiTimer = 0f; novaTimer = 0f; bumerangTimer = 0f; ranjauTimer = 0f;
     }
 
     Transform Player()
@@ -95,6 +95,7 @@ public class SenjataManager : MonoBehaviour
     public void TambahBolaApi() { lvBolaApi = Mathf.Min(MAX, lvBolaApi + 1); }
     public void TambahNova() { lvNova = Mathf.Min(MAX, lvNova + 1); }
     public void TambahBumerang() { lvBumerang = Mathf.Min(MAX, lvBumerang + 1); }
+    public void TambahRanjau() { lvRanjau = Mathf.Min(MAX, lvRanjau + 1); }
 
     // ====== ORBIT ======
     void BangunOrbit()
@@ -279,11 +280,6 @@ public class SenjataManager : MonoBehaviour
         }
 
         // ---- BUMERANG ----
-        // Dilempar ke musuh terdekat, melesat keluar lalu balik, menembus jalur
-        // (lihat Bumerang.cs). L1 kecil & pendek; naik tiap level; evolusi (lvl
-        // 5+): ungu, lebih jauh + 2 bilah sekaligus + petir.
-        //  dmg       : L1=6, L2=9, L3=12, L4=15, L5(evo)=28
-        //  jangkauan : L1=3.5 -> L4=5.0 -> L5(evo)=8.0
         if (lvBumerang > 0)
         {
             bool evo = lvBumerang >= 5;
@@ -303,6 +299,31 @@ public class SenjataManager : MonoBehaviour
                     float sudut = (jumlah == 1) ? 0f : (i == 0 ? -18f : 18f);
                     Vector3 a = Quaternion.Euler(0, 0, sudut) * dasar;
                     Bumerang.Lempar(pl.position, pl, a, 9f, jangkauan, dmg, skala, evo);
+                }
+            }
+        }
+
+        // ---- RANJAU ----
+        // Pasang ranjau di dekat pemain; meledak saat musuh menyentuhnya
+        // (lihat Ranjau.cs). L1 kecil & 1 ranjau; naik tiap level; evolusi (lvl
+        // 5+): ungu, 3 ranjau sekaligus + petir.
+        //  dmg    : L1=8, L2=12, L3=16, L4=20, L5(evo)=36
+        //  jumlah : L1..L4=1, L5(evo)=3 ranjau per pasang
+        if (lvRanjau > 0)
+        {
+            bool evo = lvRanjau >= 5;
+            float jeda = Mathf.Max(1.0f, 2.6f - lvRanjau * 0.28f);
+            int dmg = 4 + lvRanjau * 4 + (evo ? 12 : 0);
+            float radius = 1.1f + lvRanjau * 0.18f + (evo ? 0.6f : 0f);
+            int jumlah = 1 + (evo ? 2 : 0);
+            ranjauTimer += Time.deltaTime;
+            if (ranjauTimer >= jeda)
+            {
+                ranjauTimer = 0f;
+                for (int i = 0; i < jumlah; i++)
+                {
+                    Vector2 off = Random.insideUnitCircle * 1.6f;
+                    Ranjau.Pasang(pl.position + new Vector3(off.x, off.y, 0f), dmg, radius, evo);
                 }
             }
         }
