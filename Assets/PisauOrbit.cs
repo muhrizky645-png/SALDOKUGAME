@@ -4,11 +4,18 @@ using System.Collections.Generic;
 // Satu bilah yang berputar mengelilingi pemain (posisinya diatur SenjataManager).
 // Spritenya SELALU shuriken untuk SEMUA karakter. Memutar senjata asli karakter
 // (mis. senapan tentara) terasa tidak masuk akal, jadi dikembalikan ke shuriken.
+//
+// Ukuran (skala), warna, dan status evolusi (evo) DIISI oleh SenjataManager per
+// level: makin tinggi level makin besar; saat evolusi bilah berubah ungu dan
+// sesekali memercikkan petir.
 public class PisauOrbit : MonoBehaviour
 {
     public int dmg = 2;
     public float jarakKena = 0.85f;
     public float jedaPerMusuh = 0.4f;
+    public float skala = 0.85f;        // ukuran bilah dalam satuan dunia (diisi per level)
+    public Color warna = Color.white;  // putih biasa; ungu saat evolusi
+    public bool evo = false;           // true kalau senjata sudah berevolusi
 
     private SpriteRenderer sr;
     private Dictionary<EnemyChase, float> kenaTerakhir = new Dictionary<EnemyChase, float>();
@@ -36,10 +43,10 @@ public class PisauOrbit : MonoBehaviour
         // SELALU shuriken, apa pun karakter yang dipilih
         Sprite spr = SpriteShuriken();
         sr.sprite = spr;
-        sr.color = Color.white;
+        sr.color = warna;
         float worldH = spr.rect.height / spr.pixelsPerUnit;
-        // ukuran 2x lipat dari sebelumnya (0.425 -> 0.85)
-        float sc = worldH > 0.001f ? 0.85f / worldH : 0.85f;
+        // ukuran diatur per level lewat 'skala' (diisi SenjataManager)
+        float sc = worldH > 0.001f ? skala / worldH : skala;
         transform.localScale = Vector3.one * sc;
     }
 
@@ -62,6 +69,12 @@ public class PisauOrbit : MonoBehaviour
 
             kenaTerakhir[ec] = Time.time;
             ec.KenaSerangan(dmg);
+
+            // EVOLUSI: sesekali percikkan petir ungu dari bilah ke musuh yang
+            // kena. Pakai peluang kecil supaya jadi kilatan sporadis, bukan
+            // tembok cahaya yang menutupi layar.
+            if (evo && Random.value < 0.20f)
+                PetirEfek.Sambar(transform.position, m.transform.position, new Color(0.8f, 0.5f, 1f, 1f), 0.08f);
         }
     }
 }

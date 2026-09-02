@@ -5,6 +5,13 @@ using System.Collections.Generic;
 // Mengelola senjata otomatis ala Survivor.io: Pisau Berputar (orbit), Aura Setrum, Roket Pelacak.
 // Tiap senjata bisa naik sampai level MAX. Di level 5+ senjata OTOMATIS berevolusi (lebih kuat).
 //
+// KURVA KEKUATAN (disetel ulang setelah playtest):
+// Dulu level 1 sudah kuat dan ukuran nyaris tak berubah antar level, jadi
+// naik level terasa hambar sampai evolusi. Sekarang level 1 sengaja KECIL &
+// LEMAH (tapi tetap membunuh gerombolan terlemah), lalu UKURAN dan DAMAGE
+// naik jelas tiap level. Evolusi (lvl 5+) bukan sekadar membesar: berubah
+// UNGU dan menyambar PETIR (lihat PetirEfek.cs).
+//
 // CATATAN FASE 0:
 // Semua pencarian musuh sekarang lewat EnemyRegistry, bukan
 // GameObject.FindGameObjectsWithTag("Enemy"). Lihat komentar di tiap blok.
@@ -30,6 +37,7 @@ public class SenjataManager : MonoBehaviour
 
     // aura (medan setrum)
     private GameObject auraVisual;
+    private SpriteRenderer auraSR;
     private float auraTimer = 0f;
 
     // roket
@@ -80,7 +88,14 @@ public class SenjataManager : MonoBehaviour
 
         bool evo = lvOrbit >= 5;
         int jumlah = lvOrbit + 1 + (evo ? 2 : 0); // evolusi: +2 bilah
-        int dmg = 3 + lvOrbit * 2 + (evo ? 5 : 0); // damage dinaikkan
+
+        // Level 1 sengaja lemah & pisau kecil, naik jelas tiap level. Evolusi
+        // melonjak besar, berubah ungu, dan memercikkan petir (di PisauOrbit).
+        //  dmg   : L1=3, L2=5, L3=7, L4=9, L5(evo)=17, L6=19
+        //  skala : L1=0.53, L2=0.61, ... L5(evo)=1.10 (2x lipat lebih dari L1)
+        int dmg = 1 + lvOrbit * 2 + (evo ? 6 : 0);
+        float skala = 0.45f + lvOrbit * 0.08f + (evo ? 0.25f : 0f);
+        Color warna = evo ? new Color(0.78f, 0.45f, 1f, 1f) : Color.white;
 
         for (int i = 0; i < jumlah; i++)
         {
@@ -88,6 +103,9 @@ public class SenjataManager : MonoBehaviour
             go.transform.SetParent(transform);
             PisauOrbit po = go.AddComponent<PisauOrbit>();
             po.dmg = dmg;
+            po.skala = skala;
+            po.warna = warna;
+            po.evo = evo;
             bilah.Add(go.transform);
         }
     }
@@ -98,10 +116,10 @@ public class SenjataManager : MonoBehaviour
         if (auraVisual == null)
         {
             auraVisual = new GameObject("AuraVisual");
-            SpriteRenderer sr = auraVisual.AddComponent<SpriteRenderer>();
-            sr.sprite = BuatLingkaran(64);
-            sr.color = new Color(0.4f, 0.8f, 1f, 0.16f);
-            sr.sortingOrder = 5;
+            auraSR = auraVisual.AddComponent<SpriteRenderer>();
+            auraSR.sprite = BuatLingkaran(64);
+            auraSR.color = new Color(0.4f, 0.8f, 1f, 0.16f);
+            auraSR.sortingOrder = 5;
         }
     }
 
@@ -131,12 +149,21 @@ public class SenjataManager : MonoBehaviour
         if (lvAura > 0 && auraVisual != null)
         {
             bool evo = lvAura >= 5;
-            // Aura DIPERKUAT setelah playtest: dulu terasa kurang ngefek.
-            // Radius lebih lebar + tick lebih sering + damage hampir dua kali
-            // lipat, supaya cincin di sekeliling pemain benar-benar membersihkan
-            // gerombolan lemah yang mendekat - ini identitas senjata aura.
-            float radius = (evo ? 2.9f : 2.1f) + lvAura * 0.22f;
-            int dmg = 5 + lvAura * 4 + (evo ? 10 : 0); // damage dinaikkan
+            // Kurva dibuat lebih terasa: level 1 KECIL & LEMAH (tapi tetap
+            // membunuh gerombolan paling lemah), lalu radius & damage naik
+            // jelas tiap level. Saat evolusi (lvl 5+) aura melonjak, berubah
+            // UNGU, dan menyambar PETIR ke beberapa musuh yang kena.
+            //  radius : L1=1.35, L2=1.70, L3=2.05, L4=2.40, L5(evo)=3.55, L6=3.90
+            //  dmg    : L1=5,   L2=8,   L3=11,  L4=14,  L5(evo)=29,   L6=32
+            float radius = 1.0f + lvAura * 0.35f + (evo ? 0.8f : 0f);
+            int dmg = 2 + lvAura * 3 + (evo ? 12 : 0);
+
+            // Warna aura: biru setrum biasa, berubah UNGU menyala saat evolusi.
+            if (auraSR != null)
+                auraSR.color = evo
+                    ? new Color(0.62f, 0.28f, 1f, 0.24f)
+                    : new Color(0.4f, 0.8f, 1f, 0.16f);
+
             auraVisual.transform.position = pl.position;
             auraVisual.transform.localScale = Vector3.one * radius * 2f;
             auraTimer += Time.deltaTime;
@@ -161,6 +188,21 @@ public class SenjataManager : MonoBehaviour
                 // Sebagai gantinya, satu bunyi setrum "zzap" per denyut aura:
                 // berirama & garang, bukan brisik. Hanya jika ada yang kena.
                 if (n > 0) SoundManager.AuraZap();
+
+                // EVOLUSI: sambar petir ungu ke beberapa musuh terdekat yang
+                // kena, biar aura terlihat seperti medan listrik yang hidup -
+                // bukan sekadar lingkaran ungu yang membesar.
+                if (evo && n > 0)
+                {
+                    int petir = Mathf.Min(n, 3);
+                    Color ungu = new Color(0.8f, 0.5f, 1f, 1f);
+                    for (int i = 0; i < petir; i++)
+                    {
+                        EnemyChase ec2 = EnemyRegistry.Buffer[i];
+                        if (ec2 != null)
+                            PetirEfek.Sambar(pl.position, ec2.transform.position, ungu, 0.12f);
+                    }
+                }
             }
         }
 
